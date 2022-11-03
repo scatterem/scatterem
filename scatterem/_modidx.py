@@ -5,4 +5,5 @@ d = { 'settings': { 'branch': 'main',
                 'doc_host': 'https://scatterem.github.io',
                 'git_url': 'https://github.com/scatterem/scatterem',
                 'lib_path': 'scatterem'},
-  'syms': {'scatterem.core': {'scatterem.core.foo': ('core.html#foo', 'scatterem/core.py')}}}
+  'syms': { 'scatterem.core': { 'scatterem.core.foo': ('core.html#foo', 'scatterem/core.py'),
+                                'scatterem.core.say_hello': ('core.html#say_hello', 'scatterem/core.py')}}}

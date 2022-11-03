@@ -1,0 +1,39 @@
+package:
+  name: scatterem
+  version: 0.0.10
+source:
+  sha256: da4f62d03b5a85c6119590c04f667d1867df18cc863c86d7cfd6b037af811d3c
+  url: https://files.pythonhosted.org/packages/54/76/b10be205cf33055184fa62bf95c143319d99895b3c7a922b67627eeae018/scatterem-0.0.10.tar.gz
+about:
+  description: 'This file will be overwritten by `index.ipynb`
+
+    '
+  dev_url: https://scatterem.github.io
+  doc_url: https://scatterem.github.io
+  home: https://scatterem.github.io
+  license: Apache Software
+  license_family: APACHE
+  summary: scatterem
+build:
+  noarch: python
+  number: '0'
+  script: '{{ PYTHON }} -m pip install . -vv'
+extra:
+  recipe-maintainers:
+  - scatterem
+requirements:
+  host:
+  - pip
+  - python
+  - packaging
+  - torchvision
+  - pytorch>=1.8.0
+  run:
+  - pip
+  - python
+  - packaging
+  - torchvision
+  - pytorch>=1.8.0
+test:
+  imports:
+  - scatterem
