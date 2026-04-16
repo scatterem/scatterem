@@ -1,0 +1,18 @@
+name: Question
+description: Ask about scope, release plans, reproducibility expectations, or intended workflows.
+title: "[Question]: "
+labels:
+  - question
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: Ask one clear question and include enough context for a useful answer.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Tell us about your use case, constraints, or why this answer matters for your work.
