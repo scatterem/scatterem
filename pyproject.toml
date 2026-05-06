@@ -3,26 +3,12 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "scatterem"
+name = "scatterem2"
 version = "0.1.0"
 description = "Collection of scattering and electron microscopy tools"
+ 
 readme = "README.md"
-license = "Apache-2.0"
 requires-python = ">=3.10"
-authors = [
-    { name = "Philipp Pelz", email = "philipp.pelz@yahoo.de" },
-]
-keywords = ["electron-microscopy", "ptychography", "scattering", "wave-propagation", "deep-learning"]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Scientific/Engineering :: Physics",
-]
 dependencies = [
     "numpy>=1.26.0",
     "scipy>=1.14.0",
@@ -33,6 +19,9 @@ dependencies = [
     "scikit-image>=0.21.0",
     "scikit-learn>=1.3.0",
     "pandas>=2.0.0",
+    "jupyter>=1.0.0",
+    "jupyterlab>=4.3.0",
+    "ipython>=8.14.0",    
     "warp-lang>=1.7.0",
     "dill>=0.3.7",
     "zarr>=2.16.0",
@@ -41,39 +30,47 @@ dependencies = [
     "colorspacious>=1.1.0",
 ]
 
-[project.urls]
-Homepage = "https://github.com/ECLIPSE-Lab/scatterem"
-Repository = "https://github.com/ECLIPSE-Lab/scatterem"
-Documentation = "https://github.com/ECLIPSE-Lab/scatterem#readme"
-Issues = "https://github.com/ECLIPSE-Lab/scatterem/issues"
-
 [dependency-groups]
 test = [
     "pytest>=8.3.5",
 ]
 dev = [
     { include-group = "test" },
+    "abtem>=1.0.6",
+    "ase>=3.22.0",
     "pytest>=7.0.0",
     "black>=24.0.0",
-    "ruff>=0.11.5",
+    "flake8>=7.0.0",
+    "isort>=6.0.0",
     "pre-commit>=3.0.0",
+    "ruff>=0.11.5",
+    "tomli>=2.2.1",
 ]
+
+ 
+
 docs = [
     "sphinx>=7.0.0",
     "sphinx-rtd-theme>=1.3.0",
 ]
 
+
+[project.urls]
+Homepage = "https://github.com/yourusername/scatterem-collection"
+Repository = "https://github.com/yourusername/scatterem-collection"
+
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["scatterem"]
+packages = ["scatterem", "scatterem2"]
 
 [tool.uv]
 dev-dependencies = [
     "pytest>=7.0.0",
     "black>=24.0.0",
-    "ruff>=0.11.5",
+    "flake8>=7.0.0",
+    "isort>=6.0.0",
     "pre-commit>=3.0.0",
 ]
 
@@ -81,11 +78,15 @@ dev-dependencies = [
 line-length = 88
 target-version = ['py310']
 
+[tool.isort]
+profile = "black"
+line_length = 88
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
-python_functions = ["test_*"]
+python_functions = ["test_*"] 
 
 [tool.ruff]
 line-length = 88
@@ -103,20 +104,20 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I"]
+select = ["E4","E7","E9","F","I"]
 ignore = [
-    "E501",
-    "F401",
-    "F403",
-    "F405",
+    "E501",  # Line too long (handled by formatter)
+    "F401",  # Imported but unused
+    "F403",  # Wildcard imports
+    "F405",  # Name may be undefined, or defined from star imports
     "F811",
-    "E731",
+    "E731"
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["I001"]
 "tests/**/*.py" = ["E501", "F401"]
-"example/**/*.py" = ["E501", "F401", "F403"]
+"examples/**/*.py" = ["E501", "F401", "F403"]
 
 [tool.ruff.format]
 exclude = ["*.ipynb"]

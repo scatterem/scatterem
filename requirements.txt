@@ -1,0 +1,15 @@
+torch>=2.0.0
+numpy
+matplotlib
+pytorch-lightning
+kornia
+pyyaml
+scikit-image
+tinycudann  # May need special installation
+warp-lang   # May need special installation 
+multipledispatch
+seaborn
+optuna
+zarr<3.0
+ase
+pytest>=8.3.5
