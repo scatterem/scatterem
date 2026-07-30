@@ -9,18 +9,22 @@
 > third-party GPL-3.0 code and its Apache-2.0 licence is accurate. The two fits
 > locate the disk edge slightly differently, and the difference grows with noise:
 >
-> | dataset | `dk` change | fused image vs. published |
-> |---|---|---|
-> | carbon (300 kV) | 0.15% | correlation 0.9999999 |
-> | Co3O4 (200 kV) | 0.07% | correlation 0.9999932 |
-> | **Gd2O3 (60 kV, low dose — Figure 1)** | **1.37%** | **correlation 0.925** |
+> | dataset | `dk` change | fused, per pixel | fused, structure |
+> |---|---|---|---|
+> | carbon (300 kV) | 0.15% | corr 0.9999999 | — |
+> | Co3O4 (200 kV) | 0.07% | corr 0.9999932 | — |
+> | Gd2O3 (60 kV low dose — Figure 1) | **1.37%** | corr 0.928 | **corr 0.9987** |
 >
-> For carbon and Co3O4 the difference is invisible. **For Gd2O3 it is not**: the
-> reconstruction that this code now produces is measurably different from the one
-> in Figure 1, because a 1.37% error in `dk` propagates through the aberration fit
-> into the phase image. Which of the two disk fits is closer to the true radius has
-> not been established — that needs an independent calibration, not a comparison
-> of the two candidates against each other.
+> **The figures look the same.** For Gd2O3 the per-pixel correlation of 0.928 is
+> the low-dose noise reorganising, not a change in the object: blur the pixel noise
+> out and the structures agree at 0.9987 (4 px) and 0.99992 (8 px). Of the 43% raw
+> rms, about 10 points are a constant brightness offset and 5 a gain change, both
+> removed by any display stretch. Same particles, same positions, same contrast.
+>
+> What does change: a pixel-by-pixel comparison against the published arrays will
+> not match, and `dk` differs by 1.37%. Which of the two disk fits is closer to the
+> true radius has not been established — that needs an independent calibration, not
+> a comparison of the two candidates against each other.
 >
 > If you need the exact published reconstruction, use the tagged commit
 > `master-as-published`, which is the code as it was when the paper appeared. If
