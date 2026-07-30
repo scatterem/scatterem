@@ -13,6 +13,14 @@ S. You, G. Varnavides, S. Khavnekar, *et al.*, "Gap-Free Information Transfer in
 Data: [doi.org/10.5281/zenodo.18008901](https://doi.org/10.5281/zenodo.18008901) (CC-BY-4.0)
 Citation metadata: `CITATION.cff`
 
+## Try it in the browser
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb)
+
+The notebook installs the package, fetches one dataset from Zenodo and runs the
+full reconstruction on a free Colab T4. Nothing to set up locally. It sizes the
+scan to the GPU it lands on, so it also works on the smaller instances.
+
 ## Install
 
 ```bash
@@ -84,6 +92,17 @@ fused = dataset.fused_full_field(upsample=2.0)
 
 `master` is the code published with the paper. It is kept so that it stays
 available, and it receives no further development.
+
+Its bright-field disk fit was replaced so that the branch carries no third-party
+GPL-3.0 code and its Apache-2.0 licence is accurate. That shifts the reciprocal
+sampling `dk` slightly — 0.07% to 1.37% depending on the dataset — so `master` no
+longer reproduces the published numbers to the last digit, though the images are
+unchanged. For a pixel-exact reproduction of the paper, use the tag
+[`master-as-published`](../../tree/master-as-published).
+
+This branch is an independent reimplementation of the same method: the same
+algorithms written from the published descriptions rather than adapted from
+`master`, so the two share no code. Use this one for anything new.
 
 ## Licence
 

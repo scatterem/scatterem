@@ -62,6 +62,8 @@ named datasets, or crop your own array before constructing.
 
 ## Colab
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb)
+
 The [notebook](https://github.com/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb)
 runs the Au low-dose reconstruction end to end on a free T4, at a reduced scan
 size that fits in 4.4 GiB. It needs a GPU runtime

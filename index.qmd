@@ -16,6 +16,11 @@ each leaves a gap where the other is strong.
 spatial frequency is taken from whichever channel measures it better. The result
 is one image with no missing band.
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb)
+
+Run it now on a free GPU: the notebook installs the package, fetches one dataset
+from Zenodo and reconstructs it, with nothing to set up locally.
+
 ```python
 from scatterem import Dataset4dstem
 
