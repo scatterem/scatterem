@@ -106,8 +106,6 @@ algorithms written from the published descriptions rather than adapted from
 
 ## Authors
 
-This code was written by Shengbo You and Philipp Pelz.
-
 The method is the work of the paper's authors: Shengbo You, Georgios Varnavides, Sagar Khavnekar, Nikita Palatkin, Sihan Shao, Mingjian Wu, Daniel Stroppa, Darya Chernikova, Baixu Zhu, Ricardo Egoavil, Stefano Vespucci, Dileep Krishnan, Xingchen Ye, Florian K. M. Schur, Erdmann Spiecker and Philipp Pelz.
 
 `CITATION.cff` carries the machine-readable version for both the software and the
