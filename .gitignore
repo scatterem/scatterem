@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# reconstruction outputs and downloaded data
+*.png
+*.npy
+*.h5
+!experiments/**/*.png

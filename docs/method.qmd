@@ -1,0 +1,95 @@
+---
+title: "The method"
+---
+
+## Two channels, two halves of the band
+
+A converged probe illuminates a specimen and a pixelated detector records the full
+diffraction pattern at every scan position. What reaches the detector splits
+naturally in two, and the split is where the method starts.
+
+**Inside the bright-field disk**, the transmitted beam interferes with itself.
+Weak-phase scattering shifts the intensity distribution across the disk in
+proportion to the local phase *gradient*, which is what single-side-band
+ptychography reads. That works beautifully at low and mid spatial frequencies —
+each frequency is measured by a pair of overlapping beams, and the overlap is
+large — but the overlap shrinks as the spatial frequency approaches twice the
+convergence angle, and past it there is none. Transfer falls to zero.
+
+**Outside the disk**, scattering is incoherent to good approximation, and a
+dark-field detector segment sees an image that shifts with defocus and with the
+segment's angle — a parallax. Correcting those shifts and summing recovers high
+spatial frequencies well. But a dark-field segment carries almost no low-frequency
+information: at low frequency the parallax shift is small and the signal is
+dominated by thickness and composition rather than phase.
+
+So each channel is strong exactly where the other is weak. Neither spans the band.
+
+## Fusing them
+
+The fusion is a Wiener combination in the Fourier domain. Writing $P(\mathbf{q})$
+and $D(\mathbf{q})$ for the two channels' spectra and
+$\mathrm{SSNR}_P, \mathrm{SSNR}_D$ for their spectral signal-to-noise ratios,
+
+$$
+F(\mathbf{q}) \;=\;
+\frac{\mathrm{SSNR}_P(\mathbf{q})\, P(\mathbf{q})
+    + \mathrm{SSNR}_D(\mathbf{q})\, D(\mathbf{q})}
+     {\mathrm{SSNR}_P(\mathbf{q}) + \mathrm{SSNR}_D(\mathbf{q})}
+$$
+
+which is the minimum-variance linear estimator when the two channels' noise is
+independent. Each frequency is taken from whichever channel measures it better,
+with the crossover placed by the data rather than by a chosen cutoff. Where one
+SSNR vanishes the sum reduces to the other channel; where both are finite the
+result is better than either.
+
+The SSNR estimates are what make this more than a heuristic blend, and they are
+measured, not assumed: the scan is split into two interleaved half-sets in a
+checkerboard, each is reconstructed independently, and their difference gives the
+noise power while their mean gives the signal power, frequency by frequency. That
+costs two reconstructions per channel instead of one, and it means the weights
+adapt to dose, thickness and specimen without a parameter to tune.
+
+## Sub-pixel accumulation
+
+Tilt-corrected dark field shifts each azimuthal segment by its parallax shift and
+accumulates. How that shift is applied matters at low dose, and there are two
+options.
+
+`shift_method="fourier"` zero-pads and applies a phase ramp. It is exact for
+dense, band-limited signals.
+
+`shift_method="drizzle"` (the default) treats each input pixel as a small square
+drop, places it at the shifted position, and distributes its flux to the output
+pixels it overlaps by area — the drizzle of Fruchter & Hook (2002), specialised to
+pure translations on a regular grid. Because every weight is non-negative, the
+result is non-negative for non-negative input, and flux is conserved exactly.
+
+The difference shows up when the frames are sparse. At very low dose a segment
+image is a handful of single electron counts, and Fourier shifting turns each
+isolated count into a sinc: roughly 20% negative side-lobes, with energy spread
+across the whole frame. Drizzle has no ringing to spread.
+
+::: {.callout-note}
+The paper's figures were produced with the Fourier path; drizzle came afterwards.
+Both are available, and on dense high-dose data they agree closely — on amorphous
+carbon the fused images correlate to 0.9992.
+:::
+
+## What this is not
+
+The direct ptychography here is non-iterative. It is a single linear inversion of
+the bright-field intensity, not a phase-retrieval loop, so it has no convergence
+behaviour, no step size and no initialisation beyond the aberration estimate. That
+is why it runs in under a second on a 96² scan. It also means it inherits the weak-
+phase approximation: strong scatterers and thick specimens depart from it, and an
+iterative multislice reconstruction will do better there.
+
+## Reading further
+
+- The paper: [doi:10.1002/advs.76620](https://doi.org/10.1002/advs.76620)
+- Single-side-band ptychography: Rodenburg & Bates (1992); Pennycook *et al.* (2015)
+- Tilt-corrected bright/dark field and parallax: Ophus *et al.* (2016)
+- Drizzle: Fruchter & Hook, PASP **114**, 144 (2002)
+- Sub-pixel registration: Guizar-Sicairos, Thurman & Fienup, Opt. Lett. **33**, 156 (2008)

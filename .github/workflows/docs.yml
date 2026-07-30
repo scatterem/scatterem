@@ -1,0 +1,76 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# The deploy job pushes to gh-pages; nothing else needs write access.
+permissions:
+  contents: write
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # The API reference is generated from live docstrings, so the package has to
+      # be importable. CPU torch only -- this job renders pages, it does not
+      # reconstruct anything, and the CUDA wheels are several GB.
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e .
+
+      - name: Generate the API reference
+        run: python docs/_generate_api.py
+
+      # Fails the build if a documented symbol was renamed or removed: the
+      # generator raises rather than emitting a reference to nothing.
+      - name: Check the reference is not empty
+        run: |
+          test -s docs/api.qmd
+          grep -q '^### ' docs/api.qmd
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: 1.7.32
+
+      - name: Render
+        run: quarto render
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: _site
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: _site
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: _site
+          # The site is a build artifact, so its history carries no information.
+          force_orphan: true

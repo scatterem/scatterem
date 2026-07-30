@@ -1,0 +1,78 @@
+---
+title: "Install"
+---
+
+```bash
+pip install git+https://github.com/scatterem/scatterem
+```
+
+Python 3.10 or newer. Ten runtime dependencies, all from PyPI.
+
+## About the GPU
+
+A CUDA GPU is not optional in practice. The reconstructions are FFT- and
+kernel-bound, and the NVIDIA Warp kernels that do the direct-ptychography work
+need one for anything past a small test. Everything runs on CPU, just slowly
+enough that you would not want to.
+
+If the default `torch` wheel does not match your driver, install `torch` first
+from the index that does, then install this package — pip will leave your
+existing `torch` alone:
+
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cu128
+pip install git+https://github.com/scatterem/scatterem
+```
+
+`import scatterem` initialises Warp, which compiles a few kernels the first time
+and prints a short banner. That is expected, and it is cached afterwards.
+
+::: {.callout-note}
+## Two side effects on import
+
+`import scatterem` sets `torch.set_float32_matmul_precision("medium")` (TF32) and
+calls `warp.init()`. Both are inherited from the library the published
+reconstructions ran under, so results match — but if your own code depends on
+matmul precision, set it again after importing.
+:::
+
+## How much GPU memory
+
+Peak memory is set by the *output* grid, so it grows with scan size and
+upsampling rather than with detector size. Measured with
+`torch.cuda.max_memory_allocated`:
+
+| Reconstruction | Scan | Output | Peak |
+|---|---|---|---|
+| Amorphous carbon | 96² | 96² | ~1.2 GiB |
+| Au, low dose, reduced scan | 128² | 512² | 4.4 GiB |
+| Au, low dose, paper configuration | 256² | 1024² | 17.6 GiB |
+| Gd₂O₃ | — | 1024² | ~19.6 GiB |
+
+::: {.callout-warning}
+## Raising `n_batches` does not reduce memory
+
+It increases it. Measured on the Au reconstruction: `n_batches` of 15, 60 and 150
+gave 17.6, 21.0 and 24.5 GiB, with bit-identical output. Halving `upsample` made
+it slightly worse too.
+
+**Shrinking the scan is the only effective lever.** Pass `scan_edge_crop` to the
+named datasets, or crop your own array before constructing.
+:::
+
+## Colab
+
+The [notebook](https://github.com/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb)
+runs the Au low-dose reconstruction end to end on a free T4, at a reduced scan
+size that fits in 4.4 GiB. It needs a GPU runtime
+(*Runtime → Change runtime type → T4 GPU*) and nothing else — the code and the
+data are both public, and the dataset downloads itself, md5-verified.
+
+## From source
+
+```bash
+git clone https://github.com/scatterem/scatterem
+cd scatterem
+pip install -e ".[dev]"
+pytest
+```

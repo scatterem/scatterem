@@ -1,0 +1,90 @@
+---
+title: "Reproduce the paper"
+---
+
+Four scripts under `experiments/ff_stem/`, one per specimen. Each downloads its
+dataset from Zenodo on first run and verifies it by md5, so the only thing to
+decide is where the data should live:
+
+```bash
+export FFSTEM_DATA_ROOT=/path/with/space
+python experiments/ff_stem/Fig2_carbon.py
+```
+
+Each writes `.png` and `.npy` for all three channels into
+`experiments/ff_stem/outputs/`.
+
+## The specimens
+
+| Script | Specimen | Download | Output | Peak GPU |
+|---|---|---|---|---|
+| `Fig2_carbon.py` | amorphous carbon | 0.34 GB | 96² | ~1.2 GiB |
+| `Fig2_Co3O4.py` | Co₃O₄ | 0.56 GB | 185² | — |
+| `Fig4_diffraction.py` | Au, low dose | 0.50 GB | 1024² | 17.6 GiB |
+| `Fig1_Gd2O3.py` | Gd₂O₃ | 6.6 GB | 1024² | ~19.6 GiB |
+
+Carbon is the one to run first: smallest download, about a second of
+reconstruction, and it exercises the whole pipeline.
+
+::: {.callout-note}
+## Fitting a smaller GPU
+
+`Fig4_diffraction.py` takes `scan_edge_crop`, which trims the scan and so shrinks
+the output. The paper uses 128 (256² scan → 1024² output, 17.6 GiB); 192 gives
+128² → 512² at 4.4 GiB, which is what the Colab notebook runs; 224 gives 64² →
+256² at 2.5 GiB.
+
+Reducing the scan is the lever that works. Raising `n_batches` **increases** peak
+memory — measured 17.6, 21.0 and 24.5 GiB for 15, 60 and 150 batches, with
+bit-identical output.
+:::
+
+## What each script does
+
+The same five steps, with per-specimen parameters:
+
+1. Construct the named dataset, which downloads, verifies, and calibrates `dk`
+   from the bright-field disk.
+2. Set the scan rotation, and a starting defocus for the autofocus.
+3. `determine_aberrations_` — fit aberrations by sharpness, rotation held fixed.
+4. Reconstruct all three channels.
+5. Save each with a physical scale bar.
+
+Reading one script is enough to see how to apply the pipeline to your own data;
+[Quickstart](quickstart.qmd) is the same thing without the paper's parameters.
+
+## Verifying your run
+
+Each script prints a summary line and asserts the things that quietly go wrong:
+
+```
+[Fig2-carbon] OK: dp(96, 96) tcdf(96, 96) fff(96, 96) dk=0.042126 finite=True
+```
+
+`dk` must not be 1.0 — that is the uncalibrated placeholder, and it means the
+bright-field fit fell back. `finite=True` means no NaNs, which otherwise indicate
+a channel that produced nothing and a division by a zero SSNR.
+
+## Comparison plots
+
+Where a reference is available — a simulated potential for carbon, a phantom for
+Co₃O₄ — the scripts also emit a side-by-side comparison. Those references are not
+in the Zenodo record, so the scripts skip that step and say so rather than
+failing:
+
+```
+[Fig2-carbon] reference carbon72_potential.npy not found; skipping comparison plot.
+```
+
+## Numerical differences from the published figures
+
+Two are worth knowing about.
+
+The bright-field disk fit is an independent implementation, and end to end through
+the crop-and-refit it lands within **0.152%** of the original `dk`. That shifts the
+reciprocal scale by well under the uncertainty on the convergence angle itself, but
+it is not bit-identical.
+
+Scale-bar lengths are chosen on a 1-2-5 ladder, so a bar may be a different round
+number than in the paper — 10 Å where the paper shows 5 Å on the same field, for
+instance. The bar is correct; only which round number it picks differs.

@@ -1,0 +1,60 @@
+cff-version: 1.2.0
+message: If you use this software, please cite the paper it implements.
+title: "scatterem: fused full-field STEM"
+abstract: >-
+  Direct (single-side-band) ptychography, tilt-corrected dark-field imaging, and
+  their SSNR-weighted Wiener fusion for 4D-STEM data.
+type: software
+license: Apache-2.0
+repository-code: "https://github.com/scatterem/scatterem"
+
+# Authors of this software. The paper's full author list is under
+# preferred-citation below.
+authors:
+  - family-names: You
+    given-names: Shengbo
+  - family-names: Pelz
+    given-names: Philipp
+    email: philipp.pelz@fau.de
+
+preferred-citation:
+  type: article
+  title: "Gap-Free Information Transfer in 4D-STEM via Fusion of Complementary Scattering Channels"
+  journal: Advanced Science
+  year: 2026
+  doi: 10.1002/advs.76620
+  # Article number; Advanced Science publishes with an e-locator rather than pages.
+  number: e76620
+  authors:
+    - family-names: You
+      given-names: Shengbo
+    - family-names: Varnavides
+      given-names: Georgios
+    - family-names: Khavnekar
+      given-names: Sagar
+    - family-names: Palatkin
+      given-names: Nikita
+    - family-names: Shao
+      given-names: Sihan
+    - family-names: Wu
+      given-names: Mingjian
+    - family-names: Stroppa
+      given-names: Daniel
+    - family-names: Chernikova
+      given-names: Darya
+    - family-names: Zhu
+      given-names: Baixu
+    - family-names: Egoavil
+      given-names: Ricardo
+    - family-names: Vespucci
+      given-names: Stefano
+    - family-names: Krishnan
+      given-names: Dileep
+    - family-names: Ye
+      given-names: Xingchen
+    - family-names: Schur
+      given-names: Florian K. M.
+    - family-names: Spiecker
+      given-names: Erdmann
+    - family-names: Pelz
+      given-names: Philipp

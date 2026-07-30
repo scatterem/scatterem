@@ -1,0 +1,72 @@
+---
+title: "scatterem"
+subtitle: "Gap-free information transfer in 4D-STEM"
+toc: false
+---
+
+A 4D-STEM dataset holds more information than any single reconstruction recovers.
+Direct ptychography reads the phase gradient encoded in the bright-field disk and
+recovers low and mid spatial frequencies with high efficiency, but its transfer
+falls away past the disk. Tilt-corrected dark field reads the parallax shift of
+scattering *outside* the disk and recovers high frequencies, but carries almost
+nothing at low ones. Neither channel spans the band on its own, and used alone
+each leaves a gap where the other is strong.
+
+**Fused full-field STEM** combines them as an SSNR-weighted Wiener fusion, so each
+spatial frequency is taken from whichever channel measures it better. The result
+is one image with no missing band.
+
+```python
+from scatterem import Dataset4dstem
+
+dataset = Dataset4dstem.from_array(
+    array,                          # (scan_y, scan_x, det_y, det_x)
+    energy=300e3,                   # eV
+    semiconvergence_angle=19.7e-3,  # rad
+    scan_step=0.25,                 # Angstrom
+    device="cuda",
+)
+
+dataset.meta.aberrations.array[0] = -50.0   # starting defocus, Angstrom
+dataset.determine_aberrations_(correct_order=2)
+
+fused = dataset.fused_full_field()
+```
+
+That is the whole pipeline. Each channel is also available on its own —
+`dataset.direct_ptychography()` and `dataset.tilt_corrected_dark_field()` — and
+all three share one calibration, so they land on the same grid.
+
+## Where to go next
+
+| | |
+|---|---|
+| [Install](docs/install.qmd) | one `pip install`, plus what to know about GPUs |
+| [Quickstart](docs/quickstart.qmd) | your own data, from array to fused image |
+| [The method](docs/method.qmd) | what each channel measures, and why fusing them works |
+| [Calibration](docs/calibration.qmd) | the parameters that decide whether a reconstruction is correct |
+| [Reproduce the paper](docs/figures.qmd) | four specimens, downloaded automatically |
+| [API](docs/api.qmd) | reference, generated from the source |
+
+## Citing this
+
+The method is described in:
+
+> S. You, G. Varnavides, S. Khavnekar, N. Palatkin, S. Shao, M. Wu, D. Stroppa,
+> D. Chernikova, B. Zhu, R. Egoavil, S. Vespucci, D. Krishnan, X. Ye,
+> F. K. M. Schur, E. Spiecker, P. Pelz.
+> *Gap-Free Information Transfer in 4D-STEM via Fusion of Complementary
+> Scattering Channels.* **Advanced Science** (2026) e76620.
+> [doi:10.1002/advs.76620](https://doi.org/10.1002/advs.76620)
+
+`CITATION.cff` in the repository carries the same metadata in machine-readable
+form. The datasets are on Zenodo under
+[10.5281/zenodo.18008901](https://doi.org/10.5281/zenodo.18008901), CC-BY-4.0 —
+please cite the record as well as the paper if you use them.
+
+## Scope
+
+This repository is the FF-STEM pipeline: direct ptychography, tilt-corrected dark
+field, their fusion, and the calibration and I/O they need. The wider `scatterem`
+codebase covers iterative ptychography, tomography and multislice simulation;
+those parts accompany their own publications and are released with them.

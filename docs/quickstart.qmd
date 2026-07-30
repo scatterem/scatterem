@@ -1,0 +1,112 @@
+---
+title: "Quickstart"
+---
+
+## From an array
+
+The container needs the acquisition geometry, because every reconstruction here is
+calibrated — the fusion weights are functions of spatial frequency, so the code has
+to know what a pixel is worth.
+
+```python
+import numpy as np
+from scatterem import Dataset4dstem
+
+array = np.load("my_4dstem.npy")   # (scan_y, scan_x, det_y, det_x)
+
+dataset = Dataset4dstem.from_array(
+    array,
+    energy=300e3,                   # accelerating voltage, eV
+    semiconvergence_angle=19.7e-3,  # convergence semi-angle, rad
+    scan_step=0.25,                 # scan pitch, Angstrom
+    device="cuda",
+)
+```
+
+`scan_step` may be a scalar or a `(dy, dx)` pair. The reciprocal pixel size `dk`
+is *measured* from the bright-field disk rather than taken on faith — see
+[Calibration](calibration.qmd), which is where most reconstruction problems
+actually live.
+
+## Fit the aberrations
+
+The reconstruction needs a decent aberration estimate, and the autofocus finds one
+by maximising image sharpness. It is a local optimisation, so it needs a starting
+point:
+
+```python
+dataset.meta.aberrations.array[0] = -50.0   # defocus, Angstrom
+dataset.determine_aberrations_(correct_order=2)
+```
+
+::: {.callout-important}
+## Give it a defocus
+
+With `meta.aberrations` all zero the autofocus has nothing to descend from, and it
+raises rather than silently returning something arbitrary. Any estimate within a
+factor of two or so of the truth is enough; the sign matters more than the
+magnitude.
+
+Index 0 is `C10`, and `defocus == -C10`.
+:::
+
+`correct_order=2` fits up to second order (defocus, two-fold astigmatism, coma,
+three-fold astigmatism). Raise it to reach spherical aberration; the higher orders
+need more signal to constrain.
+
+The autofocus holds the scan rotation **fixed**, so `meta.rotation` must already be
+right on the way in. If you do not know it, see [Calibration](calibration.qmd).
+
+## Reconstruct
+
+```python
+ptycho     = dataset.direct_ptychography()
+dark_field = dataset.tilt_corrected_dark_field()
+fused      = dataset.fused_full_field()
+```
+
+Each takes `upsample`, which defaults to `"nyquist"` — the factor that brings the
+output pitch to the resolution the data can actually support, rather than a round
+number someone picked. Pass a float to override.
+
+All three cache on the dataset, so `fused_full_field()` reuses the two channel
+reconstructions if you already ran them with the same parameters.
+
+## Look at the result
+
+```python
+from scatterem.vis.reconstruction_sampling import reconstruction_sampling
+from scatterem.vis.visualization import show_2d
+
+fig, ax = show_2d(fused, sampling=reconstruction_sampling(dataset, fused))
+fig.savefig("fused.png", dpi=150, bbox_inches="tight")
+```
+
+Passing the sampling is what makes the scale bar read in Ångström instead of
+`a.u.` — and it must be the *reconstruction's* sampling, not the dataset's. The
+output is upsampled, so `dataset.sampling` would overstate the bar by the upsample
+factor: four-fold on the paper's Fig. 4.
+
+## Save and reload
+
+```python
+dataset.save("carbon.h5")
+same = Dataset4dstem.load("carbon.h5", device="cuda")
+```
+
+The file records which fields it contains. If you later add or rename a field on
+the class, loading an old file **fails** and names the difference, rather than
+handing you a half-populated object. See
+[`scatterem.io.store`](api.qmd#scatteremiostore).
+
+## The named datasets
+
+The four specimens from the paper download themselves, verified by md5:
+
+```python
+from scatterem import You2026Carbon
+
+dataset = You2026Carbon(root="~/ffstem-data", download=True, device="cuda")
+```
+
+They arrive already calibrated. See [Reproduce the paper](figures.qmd).

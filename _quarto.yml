@@ -1,0 +1,62 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - index.qmd
+    - docs/*.qmd
+
+website:
+  title: "scatterem"
+  description: "Fused full-field STEM: gap-free information transfer in 4D-STEM"
+  site-url: "https://scatterem.github.io/scatterem"
+  repo-url: "https://github.com/scatterem/scatterem"
+  repo-actions: [issue, source]
+  navbar:
+    left:
+      - text: "Get started"
+        href: docs/install.qmd
+      - text: "The method"
+        href: docs/method.qmd
+      - text: "Reproduce the paper"
+        href: docs/figures.qmd
+      - text: "API"
+        href: docs/api.qmd
+    right:
+      - icon: github
+        href: "https://github.com/scatterem/scatterem"
+  sidebar:
+    style: floating
+    contents:
+      - index.qmd
+      - section: "Get started"
+        contents:
+          - docs/install.qmd
+          - docs/quickstart.qmd
+      - section: "Background"
+        contents:
+          - docs/method.qmd
+          - docs/calibration.qmd
+      - section: "Reference"
+        contents:
+          - docs/figures.qmd
+          - docs/api.qmd
+  page-footer:
+    left: "Apache-2.0"
+    right: "Built with [Quarto](https://quarto.org)"
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    code-copy: true
+    code-overflow: wrap
+    highlight-style: github
+    grid:
+      sidebar-width: 250px
+      body-width: 900px
+
+# Executed code is cached, so a rebuild does not re-run a reconstruction.
+execute:
+  freeze: auto
