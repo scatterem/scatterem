@@ -1118,39 +1118,42 @@ class Dataset4dstem(Dataset):
         self._radius_bright_field = r
         return r, c
 
-    def _fallback_area_method(self, DP, thresh_lower: float, thresh_upper: float, N: int = 50
+    def _fallback_area_method(
+        self, DP, thresh_lower: float, thresh_upper: float, N: int = 50
     ) -> Tuple[float, np.ndarray]:
-        """Fallback to original area-based method if circle fitting fails."""
-        # This is the original method from your code
-        thresh_vals = torch.linspace(thresh_lower, thresh_upper, N, device=self.device)
-        r_vals = torch.zeros(N, device=self.device)
+        """Radius and centre of the bright-field disk from its area.
 
-        ind = min(1000, DP.shape[0])
-        
-        DPmax = torch.max(DP)
+        Delegates to
+        :func:`scatterem2.utils.data.disk_fit.fit_bright_field_disk`, which is
+        written from the geometry: sweep a threshold, take the radius from the
+        plateau where it stops depending on the threshold, and put the centre at
+        the intensity centroid inside the resulting mask.
 
-        for i in range(len(thresh_vals)):
-            thresh = thresh_vals[i]
-            mask = DP > DPmax * thresh
-            r_vals[i] = torch.sqrt(torch.sum(mask) / torch.pi)
+        Two guards the previous version lacked: it refuses a radius exceeding a
+        plausible fraction of the detector, and it refuses a pattern with no real
+        contrast across the disk edge. Both used to return a confident number for
+        a pattern containing no disk at all.
 
-        dr_dtheta = torch.gradient(r_vals, dim=0)[0]
-        mask = (dr_dtheta <= 0) * (dr_dtheta >= 2 * torch.median(dr_dtheta))
-        r = torch.mean(r_vals[mask])
+        Returns
+        -------
+        tuple
+            ``(radius, array([cy, cx]))``, as before.
+        """
+        from scatterem2.utils.data.disk_fit import fit_bright_field_disk
 
-        thresh = torch.mean(thresh_vals[mask])
-        mask = DP > DPmax * thresh
-        ar = DP * mask
-        nx, ny = ar.shape
-        ry, rx = torch.meshgrid(
-            torch.arange(nx, device=self.device), torch.arange(ny, device=self.device), indexing="ij"
+        # This is called on a pattern that has often already been cropped to the
+        # bright-field region, where the disk legitimately fills most of the
+        # frame. The "radius too large for the detector" and contrast guards are
+        # there to catch an *uncropped* pattern with no disk, so they would
+        # misfire here; they are relaxed rather than removed.
+        radius, centre = fit_bright_field_disk(
+            DP,
+            threshold_range=(float(thresh_lower), float(thresh_upper)),
+            n_thresholds=int(N),
+            max_radius_fraction=0.95,
+            min_contrast=1.0,
         )
-        print(ry.shape, rx.shape, ar.shape)
-        tot_intens = torch.sum(ar)
-        x0 = torch.sum(rx * ar) / tot_intens
-        y0 = torch.sum(ry * ar) / tot_intens
-
-        return float(r), np.array([y0.item(), x0.item()])
+        return float(radius), np.asarray(centre, dtype=float)
 
     @property
     def total_intensity(self) -> float:
