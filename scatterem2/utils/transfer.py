@@ -7,10 +7,7 @@ from typing import Mapping, SupportsFloat
 import numpy as np
 import torch
 
-from scatterem2.utils.energy import (
-    HasAcceleratorMixin,
-    energy2wavelength,
-)
+from scatterem2.utils.stem import energy2wavelength
 from scatterem2.utils.utils import get_dtype
 from scatterem2.utils.stem import fftfreq2, _cartesian_aberrations
 
@@ -328,144 +325,6 @@ polar_aliases = {
 polar_symbols = {value: key for key, value in polar_aliases.items()}
 
 
-class _HasAberrations(HasAcceleratorMixin):
-    C10: float
-    C12: float
-    phi12: float
-    C21: float
-    phi21: float
-    C23: float
-    phi23: float
-    C30: float
-    C32: float
-    phi32: float
-    C34: float
-    phi34: float
-    C41: float
-    phi41: float
-    C43: float
-    phi43: float
-    C45: float
-    phi45: float
-    C50: float
-    C52: float
-    phi52: float
-    C54: float
-    phi54: float
-    C56: float
-    phi56: float
-    Cs: float
-    C5: float
-    astigmatism: float
-    astigmatism_angle: float
-    astigmatism3: float
-    astigmatism3_angle: float
-    astigmatism5: float
-    astigmatism5_angle: float
-    coma: float
-    coma_angle: float
-    coma4: float
-    coma4_angle: float
-    trefoil: float
-    trefoil_angle: float
-    trefoil4: float
-    trefoil4_angle: float
-    quadrafoil: float
-    quadrafoil_angle: float
-    quadrafoil5: float
-    quadrafoil5_angle: float
-    pentafoil: float
-    pentafoil_angle: float
-    hexafoil: float
-    hexafoil_angle: float
-
-    def __init__(self, *args, **kwargs):
-        self._aberration_coefficients = {symbol: 0.0 for symbol in polar_symbols.keys()}
-        super().__init__(*args, **kwargs)
-
-    def __getattr__(self, name: str) -> float:
-        name = polar_aliases.get(name, name)
-
-        if name not in polar_symbols:
-            raise AttributeError(
-                f"'{self.__class__.__name__}' object has no attribute '{name}'"
-            )
-
-        return self._aberration_coefficients.get(name, 0.0)
-
-    def __setattr__(self, name: str, value: float) -> None:
-        if name == "defocus":
-            super().__setattr__(name, value)
-            return
-
-        name = polar_aliases.get(name, name)
-
-        if name in polar_symbols:
-            self._aberration_coefficients[name] = value
-        else:
-            super().__setattr__(name, value)
-
-    @property
-    def defocus(self) -> float:
-        """Defocus equivalent to negative C10."""
-        return -self.C10
-
-    @defocus.setter
-    def defocus(self, value: float) -> None:
-        self.C10 = -value
-
-    def _nonzero_coefficients(self, symbols: tuple[str, ...]) -> bool:
-        for symbol in symbols:
-            if not np.isscalar(self._aberration_coefficients[symbol]):
-                return True
-
-            if not self._aberration_coefficients[symbol] == 0.0:
-                return True
-
-        return False
-
-    @property
-    def aberration_coefficients(self) -> Mapping[str, float]:
-        """The aberration coefficients as a dictionary."""
-        return copy.deepcopy(self._aberration_coefficients)
-
-    @property
-    def _has_aberrations(self) -> bool:
-        if np.all(
-            [np.all(value == 0.0) for value in self._aberration_coefficients.values()]
-        ):
-            return False
-        else:
-            return True
-
-    def set_aberrations(
-        self, aberration_coefficients: Mapping[str, str | float]
-    ) -> None:
-        """
-        Set the phase of the phase aberration.
-
-        Parameters
-        ----------
-        aberration_coefficients : dict
-            Mapping from aberration symbols to their corresponding values.
-        """
-        for symbol, value in aberration_coefficients.items():
-            if symbol in ("defocus", "C10"):
-                if isinstance(value, str) and value.lower() == "scherzer":
-                    if self.energy is None:
-                        raise RuntimeError(
-                            "energy undefined, Scherzer defocus cannot be evaluated"
-                        )
-                    C30 = self._aberration_coefficients["C30"]
-                    assert isinstance(C30, SupportsFloat)
-                    value = scherzer_defocus(float(C30), self._valid_energy)
-
-            if isinstance(value, str):
-                raise ValueError("string values only allowed for defocus")
-
-            setattr(self, symbol, value)
-
-
 def nyquist_sampling(semiangle_cutoff: float, energy: float) -> float:
     """
     Calculate the Nyquist sampling.
@@ -496,79 +355,33 @@ def scherzer_defocus(Cs: float, energy: float) -> float:
 
 
 def polar2cartesian(polar: dict) -> dict:
+    """Polar aberration coefficients as cartesian pairs.
+
+    Delegates to :func:`scatterem2.utils.aberration_basis.polar_to_cartesian`,
+    which is written from the standard wave-aberration expansion. Same
+    dict-in/dict-out contract as before.
     """
-    Convert between polar and Cartesian aberration coefficients.
+    from scatterem2.utils.aberration_basis import polar_to_cartesian
 
-    Parameters
-    ----------
-    polar : dict
-        Mapping from polar aberration symbols to their corresponding values.
-
-    Returns
-    -------
-    cartesian : dict
-        Mapping from Cartesian aberration symbols to their corresponding values.
-    """
-
-    polar = defaultdict(lambda: 0, polar)
-
-    cartesian = dict()
-    cartesian["C10"] = polar["C10"]
-    cartesian["C12a"] = -polar["C12"] * np.cos(2 * polar["phi12"])
-    cartesian["C12b"] = polar["C12"] * np.sin(2 * polar["phi12"])
-    cartesian["C21a"] = polar["C21"] * np.sin(polar["phi21"])
-    cartesian["C21b"] = polar["C21"] * np.cos(polar["phi21"])
-    cartesian["C23a"] = -polar["C23"] * np.sin(3 * polar["phi23"])
-    cartesian["C23b"] = polar["C23"] * np.cos(3 * polar["phi23"])
-    cartesian["C30"] = polar["C30"]
-    cartesian["C32a"] = -polar["C32"] * np.cos(2 * polar["phi32"])
-    cartesian["C32b"] = polar["C32"] * np.cos(np.pi / 2 - 2 * polar["phi32"])
-    cartesian["C34a"] = polar["C34"] * np.cos(-4 * polar["phi34"])
-    k = np.sqrt(3 + np.sqrt(8.0))
-    cartesian["C34b"] = (
-        1
-        / 4.0
-        * (1 + k**2) ** 2
-        / (k**3 - k)
-        * polar["C34"]
-        * np.cos(4 * np.arctan(1 / k) - 4 * polar["phi34"])
-    )
-
-    return cartesian
+    return polar_to_cartesian(polar)
 
 
 def cartesian2polar(cartesian: dict) -> dict:
+    """Cartesian aberration pairs as polar magnitude/angle.
+
+    Delegates to :func:`scatterem2.utils.aberration_basis.cartesian_to_polar`.
+
+    This also fixes a defect in the implementation it replaces, which returned a
+    *negative* magnitude and a sign-flipped angle: round-tripping
+    ``{"C12": 15.0, "phi12": 0.3}`` came back as ``C12 = -15.0``,
+    ``phi12 = -1.27``. A magnitude is a length and the pair has to describe the
+    same wavefront it came from, which the replacement does. Only the printed
+    diagnostic in ``determine_aberrations`` consumes this, so nothing computes on
+    the old values.
     """
-    Convert between Cartesian and polar aberration coefficients.
+    from scatterem2.utils.aberration_basis import cartesian_to_polar
 
-    Parameters
-    ----------
-    cartesian : dict
-        Mapping from Cartesian aberration symbols to their corresponding values.
-
-    Returns
-    -------
-    polar : dict
-        Mapping from polar aberration symbols to their corresponding values.
-    """
-
-    cartesian = defaultdict(lambda: 0, cartesian)
-
-    polar = dict()
-    polar["C10"] = cartesian["C10"]
-    polar["C12"] = -np.sqrt(cartesian["C12a"] ** 2 + cartesian["C12b"] ** 2)
-    polar["phi12"] = -np.arctan2(cartesian["C12b"], cartesian["C12a"]) / 2.0
-    polar["C21"] = np.sqrt(cartesian["C21a"] ** 2 + cartesian["C21b"] ** 2)
-    polar["phi21"] = np.arctan2(cartesian["C21a"], cartesian["C21b"])
-    polar["C23"] = np.sqrt(cartesian["C23a"] ** 2 + cartesian["C23b"] ** 2)
-    polar["phi23"] = -np.arctan2(cartesian["C23a"], cartesian["C23b"]) / 3.0
-    polar["C30"] = cartesian["C30"]
-    polar["C32"] = -np.sqrt(cartesian["C32a"] ** 2 + cartesian["C32b"] ** 2)
-    polar["phi32"] = -np.arctan2(cartesian["C32b"], cartesian["C32a"]) / 2.0
-    polar["C34"] = np.sqrt(cartesian["C34a"] ** 2 + cartesian["C34b"] ** 2)
-    polar["phi34"] = np.arctan2(cartesian["C34b"], cartesian["C34a"]) / 4
-
-    return polar
+    return cartesian_to_polar(cartesian)
 
 
 def pair_overlap_area(d, R):

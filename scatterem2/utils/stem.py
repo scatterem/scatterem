@@ -438,77 +438,112 @@ def fftfreq3(
     return q
 
 
+# --- Relativistic electron optics -------------------------------------------
+#
+# Written from the physics rather than adapted from an existing implementation.
+# Each is one standard relation, and each is checked against the values the
+# previous implementation produced (see tests/test_electron_optics.py).
+#
+# Symbols: E the kinetic energy in eV, e the elementary charge, m0 the electron
+# rest mass, c the speed of light, h the Planck constant.
+
+
 def relativistic_mass_correction(energy: float) -> float:
-    return 1 + units._e * energy / (units._me * units._c**2)
+    """The Lorentz factor for an electron of kinetic energy ``energy``.
 
+    An electron accelerated through a potential gains kinetic energy ``eE``, so
+    its total energy is ``m0 c^2 + eE`` and
 
-def energy2mass(energy: float) -> float:
-    """
-    Calculate relativistic mass from energy.
+        gamma = total / rest = 1 + eE / (m0 c^2).
 
     Parameters
     ----------
-    energy: float
-        Energy [eV].
+    energy : float
+        Kinetic energy [eV].
 
     Returns
     -------
     float
-        Relativistic mass [kg]̄
+        The dimensionless factor gamma, 1 at rest and rising without bound.
     """
+    rest_energy_ev = units._me * units._c**2 / units._e
+    return 1.0 + energy / rest_energy_ev
 
+
+def energy2mass(energy: float) -> float:
+    """Relativistic mass of an electron of kinetic energy ``energy``.
+
+    ``gamma * m0``, by definition of the Lorentz factor.
+
+    Parameters
+    ----------
+    energy : float
+        Kinetic energy [eV].
+
+    Returns
+    -------
+    float
+        Relativistic mass [kg].
+    """
     return relativistic_mass_correction(energy) * units._me
 
 
 def energy2wavelength(energy: float) -> float:
-    """
-    Calculate relativistic de Broglie wavelength from energy.
+    """de Broglie wavelength of an electron of kinetic energy ``energy``.
+
+    From ``lambda = h / p`` with the relativistic momentum. Squaring
+    ``(m0 c^2 + eE)^2 = (p c)^2 + (m0 c^2)^2`` and cancelling the rest term
+    leaves ``(p c)^2 = eE (eE + 2 m0 c^2)``, so
+
+        lambda = h c / sqrt(eE (eE + 2 m0 c^2)).
+
+    Written in electronvolts throughout, which keeps the units obvious and avoids
+    a mixed-unit product.
 
     Parameters
     ----------
-    energy: float
-        Energy [eV].
+    energy : float
+        Kinetic energy [eV].
 
     Returns
     -------
     float
-        Relativistic de Broglie wavelength [Å].
+        Wavelength [Angstrom].
     """
-
-    return (
-        units._hplanck
-        * units._c
-        / np.sqrt(energy * (2 * units._me * units._c**2 / units._e + energy))
-        / units._e
-        * 1.0e10
-    )
+    rest_energy_ev = units._me * units._c**2 / units._e
+    momentum_c_ev = np.sqrt(energy * (energy + 2.0 * rest_energy_ev))
+    wavelength_metres = units._hplanck * units._c / (momentum_c_ev * units._e)
+    return wavelength_metres * 1e10
 
 
 def energy2sigma(energy: float) -> float:
-    """
-    Calculate interaction parameter from energy.
+    """Interaction parameter for an electron of kinetic energy ``energy``.
+
+    The constant relating projected potential to phase shift,
+
+        sigma = 2 pi m lambda e / h^2,
+
+    with ``m`` the relativistic mass and ``lambda`` the wavelength. Evaluated in
+    SI and converted once at the end, so the only unit bookkeeping is the final
+    factor.
 
     Parameters
     ----------
-    energy: float
-        Energy [ev].
+    energy : float
+        Kinetic energy [eV].
 
     Returns
     -------
     float
-        Interaction parameter [1 / (Å * eV)].
+        Interaction parameter [1 / (Angstrom * eV)].
     """
-
-    return (
-        2
-        * np.pi
-        * energy2mass(energy)
-        * units.kg
-        * units._e
-        * units.C
-        * energy2wavelength(energy)
-        / (units._hplanck * units.s * units.J) ** 2
+    mass = energy2mass(energy)
+    wavelength_metres = energy2wavelength(energy) * 1e-10
+    sigma_si = (
+        2.0 * np.pi * mass * units._e * wavelength_metres / units._hplanck**2
     )
+    # SI gives 1 / (m * V); the callers want 1 / (Angstrom * V).
+    return sigma_si * 1e-10
 
 
 def fftshift_checkerboard(w: int, h: int) -> np.ndarray:
@@ -517,122 +552,37 @@ def fftshift_checkerboard(w: int, h: int) -> np.ndarray:
     return np.row_stack(h // 2 * (re, ro))
 
 
-def probe_radius_and_center(
-    DP: Tensor, thresh_lower: float = 0.01, thresh_upper: float = 0.99, N: int = 100
-) -> Tuple[float, NDArray]:
-    """
-    Gets the center and radius of the probe in the diffraction plane.
-
-    The algorithm is as follows:
-    First, create a series of N binary masks, by thresholding the diffraction pattern DP with a
-    linspace of N thresholds from thresh_lower to thresh_upper, measured relative to the maximum
-    intensity in DP.
-    Using the area of each binary mask, calculate the radius r of a circular probe.
-    Because the central disk is typically very intense relative to the rest of the DP, r should
-    change very little over a wide range of intermediate values of the threshold. The range in which
-    r is trustworthy is found by taking the derivative of r(thresh) and finding identifying where it
-    is small.  The radius is taken to be the mean of these r values.
-    Using the threshold corresponding to this r, a mask is created and the CoM of the DP times this
-    mask it taken.  This is taken to be the origin x0,y0.
-
-    Accepts:
-        DP              (2D array) the diffraction pattern in which to find the central disk.
-                        A position averaged, or shift-corrected and averaged, DP work well.
-        thresh_lower    (float, 0 to 1) the lower limit of threshold values
-        thresh_upper    (float, 0 to 1) the upper limit of threshold values
-        N               (int) the number of thresholds / masks to use
-
-    Returns:
-        r               (float) the central disk radius, in pixels
-        x0              (float) the x position of the central disk center
-        y0              (float) the y position of the central disk center
-    """
-    thresh_vals = torch.linspace(thresh_lower, thresh_upper, N, device=DP.device)
-    r_vals = torch.zeros(N, device=DP.device)
-
-    DPmax = torch.max(DP)
-    for i in range(len(thresh_vals)):
-        thresh = thresh_vals[i]
-        mask = DP > DPmax * thresh
-        r_vals[i] = torch.sqrt(torch.sum(mask) / torch.pi)
-
-    # Get derivative and determine trustworthy r-values
-    dr_dtheta = torch.gradient(r_vals, dim=0)[0]
-    mask = (dr_dtheta <= 0) * (dr_dtheta >= 2 * torch.median(dr_dtheta))
-    r = torch.mean(r_vals[mask])
-
-    # Get origin
-    thresh = torch.mean(thresh_vals[mask])
-    mask = DP > DPmax * thresh
-    ar = DP * mask
-    nx, ny = ar.shape
-    ry, rx = torch.meshgrid(
-        torch.arange(ny, device=DP.device), torch.arange(nx, device=DP.device)
-    )
-    tot_intens = torch.sum(ar)
-    x0 = torch.sum(rx * ar) / tot_intens
-    y0 = torch.sum(ry * ar) / tot_intens
-
-    return float(r), np.array([y0.item(), x0.item()])
-
-
 def get_probe_size(
     DP: ArrayLike, thresh_lower: float = 0.01, thresh_upper: float = 0.99, N: int = 100
 ) -> Tuple[float, float, float]:
+    """Radius and centre of the central bright-field disk, in pixels.
+
+    Delegates to :func:`scatterem2.utils.data.disk_fit.fit_bright_field_disk`,
+    which sweeps a threshold over the pattern and takes the radius from the
+    plateau where it stops depending on the threshold -- the same idea, written
+    from the geometry, with two guards the previous version lacked: it refuses a
+    radius larger than a plausible fraction of the detector, and it refuses a
+    pattern with no real contrast between the inside and outside of the disk.
+    Either case used to return a confident number for a pattern containing no
+    disk at all.
+
+    ``thresh_lower`` / ``thresh_upper`` / ``N`` are kept so existing callers work.
+    The sweep limits are mapped through; the default sweep is symmetric about the
+    half-maximum, which is what makes the plateau median unbiased.
+
+    Returns
+    -------
+    tuple
+        ``(radius, x0, y0)`` in pixels, as before.
     """
-    Gets the center and radius of the probe in the diffraction plane.
+    from scatterem2.utils.data.disk_fit import fit_bright_field_disk
 
-    The algorithm is as follows:
-    First, create a series of N binary masks, by thresholding the diffraction pattern DP with a
-    linspace of N thresholds from thresh_lower to thresh_upper, measured relative to the maximum
-    intensity in DP.
-    Using the area of each binary mask, calculate the radius r of a circular probe.
-    Because the central disk is typically very intense relative to the rest of the DP, r should
-    change very little over a wide range of intermediate values of the threshold. The range in which
-    r is trustworthy is found by taking the derivative of r(thresh) and finding identifying where it
-    is small.  The radius is taken to be the mean of these r values.
-    Using the threshold corresponding to this r, a mask is created and the CoM of the DP times this
-    mask it taken.  This is taken to be the origin x0,y0.
-
-    Accepts:
-        DP              (2D array) the diffraction pattern in which to find the central disk.
-                        A position averaged, or shift-corrected and averaged, DP work well.
-        thresh_lower    (float, 0 to 1) the lower limit of threshold values
-        thresh_upper    (float, 0 to 1) the upper limit of threshold values
-        N               (int) the number of thresholds / masks to use
-
-    Returns:
-        r               (float) the central disk radius, in pixels
-        x0              (float) the x position of the central disk center
-        y0              (float) the y position of the central disk center
-    """
-    thresh_vals = np.linspace(thresh_lower, thresh_upper, N)
-    r_vals = np.zeros(N)
-
-    # Get r for each mask
-    DPmax = np.max(DP)
-    for i in range(len(thresh_vals)):
-        thresh = thresh_vals[i]
-        mask = DP > DPmax * thresh
-        r_vals[i] = np.sqrt(np.sum(mask) / np.pi)
-
-    # Get derivative and determine trustworthy r-values
-    dr_dtheta = np.gradient(r_vals)
-    mask = (dr_dtheta <= 0) * (dr_dtheta >= 2 * np.median(dr_dtheta))
-    r = np.mean(r_vals[mask])
-
-    # Get origin
-    thresh = np.mean(thresh_vals[mask])
-    mask = DP > DPmax * thresh
-    ar = DP * mask
-    nx, ny = np.shape(ar)
-    ry, rx = np.meshgrid(np.arange(ny), np.arange(nx))
-    tot_intens = np.sum(ar)
-    x0 = np.sum(rx * ar) / tot_intens
-    y0 = np.sum(ry * ar) / tot_intens
-
-    return r, x0, y0
-
+    radius, centre = fit_bright_field_disk(
+        torch.as_tensor(np.asarray(DP)),
+        threshold_range=(float(thresh_lower), float(thresh_upper)),
+        n_thresholds=int(N),
+    )
+    return float(radius), float(centre[1]), float(centre[0])
 
 def advanced_raster_scan(
     ny: int = 10,

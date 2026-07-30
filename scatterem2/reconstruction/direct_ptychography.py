@@ -13,7 +13,7 @@ from scatterem2.utils.data.datasets import (
     Dataset4dstem,
     DatasetVirtualBrightField4dstem,
 )
-from scatterem2.utils.registration import relative_shifts
+from scatterem2.utils.subpixel import relative_shifts
 from scatterem2.utils.stem import (
     beamlet_samples,
     fftfreq2,

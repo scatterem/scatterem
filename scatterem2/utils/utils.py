@@ -179,15 +179,27 @@ def compose_affine_matrix(
 def number_to_tuple(
     value: T | tuple[T, ...], dimension: Optional[int] = None
 ) -> tuple[T, ...]:
-    if isinstance(value, (float, int, bool)):
-        if dimension is None:
-            return (value,)
-        else:
-            return (value,) * dimension
-    else:
-        if dimension is not None:
-            assert len(value) == dimension
-        return value
+    """Normalise a scalar-or-sequence to a tuple of length dimension.
+
+    A scalar is repeated; a sequence is passed through once its length is
+    confirmed. dimension=None means "whatever length was given", so a scalar
+    becomes a 1-tuple.
+
+    Raises
+    ------
+    ValueError
+        If a sequence is given whose length is not dimension. The previous
+        implementation used a bare assert here, which vanishes under -O.
+    """
+    if isinstance(value, (int, float, bool)):
+        return (value,) if dimension is None else (value,) * dimension
+
+    values = tuple(value)
+    if dimension is not None and len(values) != dimension:
+        raise ValueError(
+            f"expected {dimension} values, got {len(values)}: {values!r}"
+        )
+    return values
 
 
 class CopyMixin:
@@ -218,30 +230,21 @@ class CopyMixin:
         return copy.deepcopy(self)
 
 
-def get_dtype(complex: bool = False) -> torch.dtype | type:
-    """
-    Get the numpy dtype from the config precision setting.
+def get_dtype(complex: bool = False) -> torch.dtype:
+    """The working floating-point dtype, real or complex.
+
+    Single precision throughout. The previous version dispatched over a
+    ``precision`` config setting whose lookup was commented out, so only the
+    float32 branches were ever reachable; this states that outright instead of
+    keeping four dead branches and a docstring that said "numpy dtype" while
+    returning a torch one.
 
     Parameters
     ----------
     complex : bool, optional
-        If True, return a complex dtype. Defaults to False.
+        Return the complex dtype of the same precision.
     """
-    dtype = "float32"  # config.get("precision")
-
-    if dtype == "float32" and complex:
-        dtype = torch.complex64
-    elif dtype == "float32":
-        dtype = torch.float32
-    elif dtype == "float64" and complex:
-        dtype = torch.complex128
-    elif dtype == "float64":
-        dtype = torch.float64
-    else:
-        raise RuntimeError(f"Invalid dtype: {dtype}")
-
-    return dtype
-
+    return torch.complex64 if complex else torch.float32
 
 def detect_edges(mask: np.ndarray, method: str = "canny") -> np.ndarray:
     """Detect edges in binary mask using specified method."""
