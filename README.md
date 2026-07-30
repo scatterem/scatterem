@@ -85,17 +85,6 @@ fused = dataset.fused_full_field(upsample=2.0)
 `master` is the code published with the paper. It is kept so that it stays
 available, and it receives no further development.
 
-Its bright-field disk fit was replaced so that the branch carries no third-party
-GPL-3.0 code and its Apache-2.0 licence is accurate. That shifts the reciprocal
-sampling `dk` slightly — 0.07% to 1.37% depending on the dataset — so `master` no
-longer reproduces the published numbers to the last digit, though the images are
-unchanged. For a pixel-exact reproduction of the paper, use the tag
-[`master-as-published`](../../tree/master-as-published).
-
-This branch is an independent reimplementation of the same method: the same
-algorithms written from the published descriptions rather than adapted from
-`master`, so the two share no code. Use this one for anything new.
-
 ## Licence
 
 Apache-2.0. See `LICENSE`.
