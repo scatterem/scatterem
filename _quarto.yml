@@ -7,11 +7,14 @@ project:
 
 website:
   title: "scatterem"
+  favicon: favicon.png
   description: "Fused full-field STEM: gap-free information transfer in 4D-STEM"
   site-url: "https://scatterem.github.io/scatterem"
   repo-url: "https://github.com/scatterem/scatterem"
   repo-actions: [issue, source]
   navbar:
+    logo: logo.png
+    logo-alt: "scatterem"
     left:
       - text: "Get started"
         href: docs/install.qmd
@@ -48,7 +51,7 @@ format:
   html:
     theme:
       light: [cosmo, theme.scss]
-      dark: [darkly, theme.scss]
+      dark: [darkly, theme.scss, theme-dark.scss]
     toc: true
     code-copy: true
     code-overflow: wrap

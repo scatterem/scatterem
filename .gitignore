@@ -12,3 +12,9 @@ dist/
 *.npy
 *.h5
 !experiments/**/*.png
+
+# The site's mark. Without these two exceptions the blanket *.png above silently
+# drops them, and the navbar logo and favicon 404 on the published site -- which is
+# exactly what happened once.
+!logo.png
+!favicon.png

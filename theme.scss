@@ -1,57 +1,61 @@
 /*-- scss:defaults --*/
 
-// The palette is not decoration: it is this software's own phase wheel.
-// vis/complex_color.py colours a complex image by putting amplitude in Oklab
-// lightness and phase in hue, with chroma reduced only where sRGB cannot hold it.
-// The six petals of the logo are that wheel sampled every 60 degrees, and these
-// values come out of the repository's own `oklch_to_srgb` and
-// `_max_in_gamut_chroma` at L = 0.68 with a chroma ceiling of 0.19.
+// The palette is measured from the logo, not invented next to it. Sampling
+// logo.png (37% of it is ink) and taking the median of each saturated hue band
+// gives seven colours, and their Oklch forms come from inverting this package's
+// own matrices in vis/complex_color.py:
 //
-//   orange  oklch(0.68 0.190  35)      teal     oklch(0.68 0.120 215)
-//   amber   oklch(0.68 0.140  95)      violet   oklch(0.68 0.190 300)
-//   green   oklch(0.68 0.190 145)      magenta  oklch(0.68 0.190 350)
+//   red        #ee481d  oklch(0.635 0.209  34.7)
+//   orange     #fa8612  oklch(0.735 0.176  55.9)
+//   yellow     #fedf30  oklch(0.903 0.176  98.2)
+//   chartreuse #91c51c  oklch(0.759 0.188 126.8)
+//   blue       #0a93ea  oklch(0.644 0.164 246.3)
+//   violet     #7428bb  oklch(0.472 0.212 302.0)
+//   magenta    #c43bb1  oklch(0.593 0.214 334.1)
 //
-// Written in oklch() rather than hex so that every tint below is a perceptually
-// even step, and so `color-mix` interpolates without the muddy midpoints sRGB
-// gives you.
+// Two things about that distribution matter for using it. It is warm-weighted:
+// four of the seven sit between 34 and 127 degrees. And it has a hole -- nothing
+// between 127 and 246 -- so there is no green or teal to reach for, and inventing
+// one would read as not-quite-the-logo. Accents therefore come from the ends of
+// the range, blue and violet, and the warm run is kept for sequences where the
+// order carries meaning.
+//
+// Quarto's Bootstrap layer runs sass:color.red on these for its contrast
+// function, which accepts legacy sRGB only, so the SCSS variables are the hex as
+// sampled. The Oklch forms are used in the custom properties below, where the
+// browser evaluates them and interpolation stays perceptual.
 
-// Quarto's Bootstrap layer runs colour maths on these ($primary and friends feed
-// its contrast function, which calls sass:color.red and accepts legacy sRGB only),
-// so the SCSS variables are hex. They are not hand-picked hex: each is the sRGB
-// form of the oklch() value in the comment above, produced by this repository's own
-// gamut mapper. The oklch() originals live in the custom properties below, where
-// the browser evaluates them and no preprocessor is involved.
+$logo-red:        #ee481d;
+$logo-orange:     #fa8612;
+$logo-yellow:     #fedf30;
+$logo-chartreuse: #91c51c;
+$logo-blue:       #0a93ea;
+$logo-violet:     #7428bb;
+$logo-magenta:    #c43bb1;
 
-$petal-orange:  #f6623d;  // oklch(0.68 0.190  35)
-$petal-amber:   #b39600;  // oklch(0.68 0.140  95)
-$petal-green:   #33b544;  // oklch(0.68 0.190 145)
-$petal-teal:    #00aac6;  // oklch(0.68 0.120 215)
-$petal-violet:  #ac77fa;  // oklch(0.68 0.190 300)
-$petal-magenta: #ea5da9;  // oklch(0.68 0.190 350)
+$primary:   $logo-violet;
+$secondary: $logo-blue;
+$success:   $logo-chartreuse;
+$warning:   $logo-yellow;
+$danger:    $logo-red;
+$info:      $logo-magenta;
 
-$primary:   $petal-violet;
-$secondary: $petal-teal;
-$success:   $petal-green;
-$warning:   $petal-amber;
-$danger:    $petal-orange;
-$info:      $petal-magenta;
-
-$link-color: #8d55e0;     // violet, darkened for text contrast on paper
-$body-bg:    #fefdff;     // oklch(0.995 0.004 300)
-$body-color: #211d27;     // oklch(0.24  0.020 300)
+$link-color: #6d24b0;     // the logo's violet, a touch deeper for text contrast
+$body-bg:    #fdfcfe;
+$body-color: #1b1720;
 
 $font-family-sans-serif: "Inter var", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 $font-family-monospace: "JetBrains Mono", "SF Mono", ui-monospace, "Cascadia Code", monospace;
 $headings-font-weight: 640;
 $border-radius: 0.65rem;
 
-$code-bg: #f7f6fb;        // oklch(0.975 0.008 300)
-$code-color: #772473;     // oklch(0.42  0.150 330)
+$code-bg: #f6f4f8;
+$code-color: #8a2172;
 
 /*-- scss:rules --*/
 
 // ---------------------------------------------------------------------------
-// The wheel, as custom properties. @property makes --spin animatable, which a
+// The logo's colours, as custom properties. @property makes --spin animatable, which a
 // plain custom property is not: an un-registered property has no type, so the
 // browser cannot interpolate it and a conic-gradient rotation just snaps.
 // ---------------------------------------------------------------------------
@@ -69,61 +73,56 @@ $code-color: #772473;     // oklch(0.42  0.150 330)
 }
 
 :root {
-  --petal-1: oklch(0.68 0.190  35);
-  --petal-2: oklch(0.68 0.140  95);
-  --petal-3: oklch(0.68 0.190 145);
-  --petal-4: oklch(0.68 0.120 215);
-  --petal-5: oklch(0.68 0.190 300);
-  --petal-6: oklch(0.68 0.190 350);
+  --c-red:        oklch(0.635 0.209  34.7);
+  --c-orange:     oklch(0.735 0.176  55.9);
+  --c-yellow:     oklch(0.903 0.176  98.2);
+  --c-chartreuse: oklch(0.759 0.188 126.8);
+  --c-blue:       oklch(0.644 0.164 246.3);
+  --c-violet:     oklch(0.472 0.212 302.0);
+  --c-magenta:    oklch(0.593 0.214 334.1);
 
-  --ink:      oklch(0.24 0.020 300);
-  --ink-soft: oklch(0.48 0.020 300);
-  --paper:    oklch(0.995 0.004 300);
-  --paper-2:  oklch(0.975 0.008 300);
-  --edge:     oklch(0.90 0.010 300);
+  --ink:      oklch(0.22 0.020 302);
+  --ink-soft: oklch(0.47 0.020 302);
+  --paper:    oklch(0.993 0.004 302);
+  --paper-2:  oklch(0.972 0.008 302);
+  --edge:     oklch(0.895 0.010 302);
 
-  // One wheel definition, reused by the mark, the rules and the code accents.
-  --wheel: conic-gradient(
+  // The logo's own sweep, in its own order: the warm run, then the cool one. Used
+  // for rules, accents and the progress bar, so they all read as the same object.
+  --sweep: linear-gradient(
+    90deg,
+    var(--c-red), var(--c-orange), var(--c-yellow), var(--c-chartreuse),
+    var(--c-blue), var(--c-violet), var(--c-magenta)
+  );
+
+  // The same sweep bent into a ring, for anything circular.
+  --sweep-conic: conic-gradient(
     from var(--spin),
-    var(--petal-1), var(--petal-2), var(--petal-3),
-    var(--petal-4), var(--petal-5), var(--petal-6), var(--petal-1)
+    var(--c-red), var(--c-orange), var(--c-yellow), var(--c-chartreuse),
+    var(--c-blue), var(--c-violet), var(--c-magenta), var(--c-red)
   );
 
   --rhythm: clamp(1rem, 0.6rem + 1.4vw, 1.75rem);
 
   color-scheme: light dark;
-  scrollbar-color: color-mix(in oklab, var(--petal-5) 45%, var(--edge)) transparent;
+  scrollbar-color: color-mix(in oklab, var(--c-violet) 45%, var(--edge)) transparent;
   scrollbar-gutter: stable;
-  accent-color: var(--petal-5);
+  accent-color: var(--c-violet);
 }
 
-// Dark mode, hand-tuned rather than inverted: lightness moves, hue does not, so
-// the wheel stays the same wheel.
-.quarto-dark {
-  --ink:      oklch(0.94 0.014 300);
-  --ink-soft: oklch(0.72 0.018 300);
-  --paper:    oklch(0.17 0.022 300);
-  --paper-2:  oklch(0.22 0.026 300);
-  --edge:     oklch(0.32 0.024 300);
-
-  --petal-1: oklch(0.76 0.180  35);
-  --petal-2: oklch(0.80 0.150  95);
-  --petal-3: oklch(0.78 0.180 145);
-  --petal-4: oklch(0.78 0.130 215);
-  --petal-5: oklch(0.78 0.170 300);
-  --petal-6: oklch(0.76 0.180 350);
-
-  background: var(--paper);
-  color: var(--ink);
-}
+// Dark mode lives in theme-dark.scss, which is listed only in the dark theme so
+// it compiles into the dark bundle alone. It does NOT hang off `.quarto-dark`:
+// that class never arrives when the theme is a list containing a custom .scss, and
+// Quarto's third never-disabled copy of the light bundle would out-order it anyway.
+// See the comment at the top of that file.
 
 body {
   background: var(--paper);
   color: var(--ink);
-  // A whisper of the wheel behind everything, at the corners the eye ignores.
+  // A whisper of the sweep behind everything, at the corners the eye ignores.
   background-image:
-    radial-gradient(60rem 40rem at 8% -10%, color-mix(in oklab, var(--petal-5) 9%, transparent), transparent 70%),
-    radial-gradient(50rem 36rem at 100% 4%, color-mix(in oklab, var(--petal-4) 8%, transparent), transparent 70%);
+    radial-gradient(60rem 40rem at 8% -10%, color-mix(in oklab, var(--c-violet) 9%, transparent), transparent 70%),
+    radial-gradient(50rem 36rem at 100% 4%, color-mix(in oklab, var(--c-blue) 8%, transparent), transparent 70%);
   background-attachment: fixed;
 }
 
@@ -149,7 +148,7 @@ body::before {
   inset-inline: 0;
   z-index: 2000;
   block-size: 2px;
-  background: var(--wheel);
+  background: var(--sweep);
   transform-origin: 0 50%;
   scale: 0 1;
   animation: read linear both;
@@ -161,34 +160,40 @@ body::before {
 }
 
 // ---------------------------------------------------------------------------
-// The mark. The logo rebuilt in CSS: six petals as a conic gradient, punched
-// into a rosette by a radial mask, turning slowly. No image request, scales to
-// any size, and it recolours with the theme because it is the same wheel.
+// The mark. This is logo.png, not a drawing of it: the file is the brand and it
+// is already black-backed, which is how it was designed. All that is needed is a
+// radius so the black square reads as a tile rather than a crop accident, and a
+// hairline so it does not float on light paper.
+//
+// An earlier version of this file drew a six-petal rosette in CSS, inferred from
+// a thumbnail. The real logo is nested arcs converging downward, so that drawing
+// was wrong and is gone. The conic form of the sweep survives for round things
+// (see --sweep-conic) but nothing pretends to be the logo any more.
 // ---------------------------------------------------------------------------
 
-.navbar-brand-container::before {
-  content: "";
-  inline-size: 1.6em;
-  aspect-ratio: 1;
-  margin-inline-end: 0.55em;
-  border-radius: 50%;
-  background: var(--wheel);
-  // Six lobes: a repeating conic hard-stop pattern, softened, intersected with
-  // a ring so the middle stays open like the logo's.
-  mask-image:
-    repeating-conic-gradient(from 0deg, #000 0deg 42deg, transparent 42deg 60deg),
-    radial-gradient(circle, transparent 26%, #000 30% 92%, transparent 96%);
-  mask-composite: intersect;
-  filter: saturate(1.15);
-  animation: turn 24s linear infinite;
+.navbar-brand .navbar-logo {
+  block-size: 1.75em;
+  inline-size: auto;
+  border-radius: 0.3em;
+  margin-inline-end: 0.5em;
+  // The logo is dark; on paper it needs an edge, and in dark mode it needs none.
+  box-shadow: 0 0 0 1px var(--edge), 0 1px 3px -1px oklch(0 0 0 / 0.3);
+  transition: scale 0.2s cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 0.2s ease;
+}
+
+.navbar-brand:hover .navbar-logo {
+  scale: 1.06;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--c-violet) 45%, var(--edge)),
+    0 3px 12px -3px color-mix(in oklab, var(--c-violet) 55%, transparent);
+}
+
+.quarto-dark .navbar-brand .navbar-logo {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--edge) 70%, transparent);
 }
 
 @keyframes turn {
   to { --spin: 360deg; }
-}
-
-.navbar-brand-container:hover::before {
-  animation-duration: 3s;
 }
 
 // ---------------------------------------------------------------------------
@@ -205,7 +210,7 @@ body::before {
     font-weight: 700;
     letter-spacing: -0.02em;
     // Gradient wordmark. background-clip:text needs a transparent fill to show.
-    background: var(--wheel);
+    background: var(--sweep);
     background-size: 300% 100%;
     -webkit-background-clip: text;
     background-clip: text;
@@ -225,7 +230,7 @@ body::before {
   transition: color 0.18s ease;
 
   // Underline that grows from the centre, coloured per position so the nav
-  // reads left-to-right around the wheel.
+  // reads left-to-right along the logo's sweep.
   &::after {
     content: "";
     position: absolute;
@@ -252,14 +257,14 @@ body::before {
 
   &::after {
     scale: 1 1;
-    background: var(--wheel);
+    background: var(--sweep);
   }
 }
 
-.navbar .navbar-nav > .nav-item:nth-child(1) .nav-link:hover { color: var(--petal-3); }
-.navbar .navbar-nav > .nav-item:nth-child(2) .nav-link:hover { color: var(--petal-4); }
-.navbar .navbar-nav > .nav-item:nth-child(3) .nav-link:hover { color: var(--petal-5); }
-.navbar .navbar-nav > .nav-item:nth-child(4) .nav-link:hover { color: var(--petal-6); }
+.navbar .navbar-nav > .nav-item:nth-child(1) .nav-link:hover { color: var(--c-chartreuse); }
+.navbar .navbar-nav > .nav-item:nth-child(2) .nav-link:hover { color: var(--c-blue); }
+.navbar .navbar-nav > .nav-item:nth-child(3) .nav-link:hover { color: var(--c-violet); }
+.navbar .navbar-nav > .nav-item:nth-child(4) .nav-link:hover { color: var(--c-magenta); }
 
 #quarto-sidebar {
   background: transparent;
@@ -272,12 +277,12 @@ body::before {
     color: var(--ink-soft);
 
     &:hover {
-      background: color-mix(in oklab, var(--petal-5) 8%, transparent);
+      background: color-mix(in oklab, var(--c-violet) 8%, transparent);
       color: var(--ink);
     }
   }
 
-  // The active page gets a petal-coloured bar. :has() lets the container react
+  // The active page gets a bar in the logo's sweep. :has() lets the container react
   // to its own descendant's state, which previously needed a class on the parent.
   .sidebar-item:has(.active) {
     position: relative;
@@ -289,7 +294,7 @@ body::before {
       inset-inline-start: -0.55rem;
       inline-size: 3px;
       border-radius: 3px;
-      background: var(--wheel);
+      background: var(--sweep);
     }
   }
 
@@ -302,7 +307,7 @@ body::before {
     font-size: 0.78rem;
     text-transform: uppercase;
     letter-spacing: 0.09em;
-    color: color-mix(in oklab, var(--ink-soft) 80%, var(--petal-5));
+    color: color-mix(in oklab, var(--ink-soft) 80%, var(--c-violet));
   }
 }
 
@@ -320,14 +325,13 @@ p, li { text-wrap: pretty; }
 #title-block-header .title {
   font-size: clamp(2.1rem, 1.2rem + 3.4vw, 3.4rem);
   line-height: 1.04;
-  // The wheel read as a line rather than a circle: ink into violet into teal,
-  // so the title carries the mark's colour without competing with it.
+  // Ink into violet into blue -- the cool end of the logo's range, so the title
+  // carries the mark's colour without competing with it.
   background: linear-gradient(
     100deg,
     var(--ink) 8%,
-    color-mix(in oklab, var(--petal-5) 85%, var(--ink)) 48%,
-    color-mix(in oklab, var(--petal-4) 88%, var(--ink)) 78%,
-    color-mix(in oklab, var(--petal-3) 80%, var(--ink))
+    color-mix(in oklab, var(--c-violet) 85%, var(--ink)) 48%,
+    color-mix(in oklab, var(--c-blue) 88%, var(--ink))
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -347,39 +351,39 @@ h2 {
   // A rule that fades out rather than stopping dead.
   border-image: linear-gradient(
       90deg,
-      color-mix(in oklab, var(--petal-5) 55%, transparent),
+      color-mix(in oklab, var(--c-violet) 55%, transparent),
       transparent 65%
     ) 1;
 }
 
-// Section numbers as petals, cycling the wheel down the page.
+// Headings clear the fixed navbar when linked to directly.
 h2, h3 { scroll-margin-block-start: 5rem; }
 
 a:not(.nav-link):not(.sidebar-link):not(.btn) {
-  color: color-mix(in oklab, var(--petal-5) 82%, var(--ink));
-  text-decoration-color: color-mix(in oklab, var(--petal-5) 40%, transparent);
+  color: color-mix(in oklab, var(--c-violet) 82%, var(--ink));
+  text-decoration-color: color-mix(in oklab, var(--c-violet) 40%, transparent);
   text-decoration-thickness: 1.5px;
   text-underline-offset: 0.18em;
   transition: text-decoration-color 0.16s ease, color 0.16s ease;
 
   &:hover {
-    color: var(--petal-6);
+    color: var(--c-magenta);
     text-decoration-color: currentColor;
   }
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--petal-4) 30%, transparent);
+  background: color-mix(in oklab, var(--c-blue) 30%, transparent);
 }
 
 :focus-visible {
-  outline: 2px solid var(--petal-5);
+  outline: 2px solid var(--c-violet);
   outline-offset: 3px;
   border-radius: 0.25rem;
 }
 
 // ---------------------------------------------------------------------------
-// Code. The accent cycles the wheel so consecutive blocks are distinguishable
+// Code. The accent walks the logo's sweep so consecutive blocks are distinguishable
 // at a glance when you are scanning for the one you were reading.
 // ---------------------------------------------------------------------------
 
@@ -396,22 +400,22 @@ div.sourceCode {
     inset-block: 0;
     inset-inline-start: 0;
     inline-size: 3px;
-    background: var(--petal-5);
+    background: var(--c-violet);
   }
 
-  &:nth-of-type(6n + 1)::before { background: var(--petal-1); }
-  &:nth-of-type(6n + 2)::before { background: var(--petal-2); }
-  &:nth-of-type(6n + 3)::before { background: var(--petal-3); }
-  &:nth-of-type(6n + 4)::before { background: var(--petal-4); }
-  &:nth-of-type(6n + 5)::before { background: var(--petal-5); }
-  &:nth-of-type(6n + 6)::before { background: var(--petal-6); }
+  &:nth-of-type(6n + 1)::before { background: var(--c-red); }
+  &:nth-of-type(6n + 2)::before { background: var(--c-yellow); }
+  &:nth-of-type(6n + 3)::before { background: var(--c-chartreuse); }
+  &:nth-of-type(6n + 4)::before { background: var(--c-blue); }
+  &:nth-of-type(6n + 5)::before { background: var(--c-violet); }
+  &:nth-of-type(6n + 6)::before { background: var(--c-magenta); }
 
   pre { background: transparent; }
 }
 
 code:not(.sourceCode) {
-  background: color-mix(in oklab, var(--petal-6) 10%, var(--paper-2));
-  color: color-mix(in oklab, var(--petal-6) 55%, var(--ink));
+  background: color-mix(in oklab, var(--c-magenta) 10%, var(--paper-2));
+  color: color-mix(in oklab, var(--c-magenta) 55%, var(--ink));
   padding: 0.12em 0.36em;
   border-radius: 0.3rem;
   font-size: 0.9em;
@@ -419,11 +423,11 @@ code:not(.sourceCode) {
 
 .code-copy-button {
   color: var(--ink-soft);
-  &:hover { color: var(--petal-5); }
+  &:hover { color: var(--c-violet); }
 }
 
 // ---------------------------------------------------------------------------
-// Callouts: a petal edge and a hairline, instead of a coloured slab.
+// Callouts: one logo colour on the edge and a hairline, not a coloured slab.
 // ---------------------------------------------------------------------------
 
 .callout {
@@ -435,11 +439,11 @@ code:not(.sourceCode) {
 }
 
 .callout.callout-style-default .callout-title { background: transparent; }
-.callout-note      { border-inline-start-color: var(--petal-4); }
-.callout-tip       { border-inline-start-color: var(--petal-3); }
-.callout-warning   { border-inline-start-color: var(--petal-2); }
-.callout-important { border-inline-start-color: var(--petal-1); }
-.callout-caution   { border-inline-start-color: var(--petal-6); }
+.callout-note      { border-inline-start-color: var(--c-blue); }
+.callout-tip       { border-inline-start-color: var(--c-chartreuse); }
+.callout-warning   { border-inline-start-color: var(--c-yellow); }
+.callout-important { border-inline-start-color: var(--c-red); }
+.callout-caution   { border-inline-start-color: var(--c-magenta); }
 
 // ---------------------------------------------------------------------------
 // Tables and figures
@@ -451,12 +455,12 @@ table {
 
   thead th {
     border-block-end: 2px solid transparent;
-    border-image: linear-gradient(90deg, var(--petal-5), var(--petal-4)) 1;
+    border-image: linear-gradient(90deg, var(--c-violet), var(--c-blue)) 1;
     font-weight: 640;
   }
 
   tbody tr:nth-child(odd) {
-    background: color-mix(in oklab, var(--petal-5) 3.5%, transparent);
+    background: color-mix(in oklab, var(--c-violet) 3.5%, transparent);
   }
 }
 
@@ -491,13 +495,13 @@ p:has(> a.colab-badge), .colab-badge {
 
   img {
     border: 0;
-    box-shadow: 0 2px 10px -3px color-mix(in oklab, var(--petal-2) 60%, transparent);
+    box-shadow: 0 2px 10px -3px color-mix(in oklab, var(--c-yellow) 60%, transparent);
     transition: translate 0.18s ease, box-shadow 0.18s ease;
   }
 
   a:hover img {
     translate: 0 -2px;
-    box-shadow: 0 8px 20px -6px color-mix(in oklab, var(--petal-2) 75%, transparent);
+    box-shadow: 0 8px 20px -6px color-mix(in oklab, var(--c-yellow) 75%, transparent);
   }
 }
 
@@ -510,7 +514,7 @@ p:has(> a.colab-badge), .colab-badge {
   color: var(--ink-soft);
 
   &.active {
-    border-inline-start-color: var(--petal-5);
+    border-inline-start-color: var(--c-violet);
     color: var(--ink);
     background: transparent;
   }
@@ -521,7 +525,7 @@ p:has(> a.colab-badge), .colab-badge {
   color: var(--ink-soft);
   background:
     linear-gradient(90deg,
-      color-mix(in oklab, var(--petal-5) 6%, transparent),
+      color-mix(in oklab, var(--c-violet) 6%, transparent),
       transparent 40%);
 }
 
@@ -545,8 +549,8 @@ p:has(> a.colab-badge), .colab-badge {
 // transparent, so fall back to the sRGB equivalents of the same six colours.
 @supports not (color: oklch(0.7 0.1 200)) {
   :root {
-    --petal-1: #f6623d; --petal-2: #b39600; --petal-3: #33b544;
-    --petal-4: #00aac6; --petal-5: #ac77fa; --petal-6: #ea5da9;
+    --c-red: #f6623d; --c-yellow: #b39600; --c-chartreuse: #33b544;
+    --c-blue: #00aac6; --c-violet: #ac77fa; --c-magenta: #ea5da9;
     --ink: #2b2733; --ink-soft: #6a6577; --paper: #fdfcff;
     --paper-2: #f6f4fa; --edge: #e2dfe9;
   }
