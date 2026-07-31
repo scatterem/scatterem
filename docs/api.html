@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>API reference – scatterem</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../favicon.png" rel="icon" type="image/png">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-3d8452ecfae8c3f85aebb8f64324aded.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-14d3a37b6f786b9d4fabbbc9e32de471.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-2b48bfed716cd1009407c6bd93c5d5f0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-de3dc527e4f651c90ddeeeff4b25752b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-dark"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = true;
+    const darkModeDefault = authorPrefersDark;
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../logo.png" alt="scatterem" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">scatterem</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../docs/install.html" aria-current="page"> 
+<span class="menu-text">Get started</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../docs/method.html"> 
+<span class="menu-text">The method</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../docs/figures.html"> 
+<span class="menu-text">Reproduce the paper</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../docs/api.html"> 
+<span class="menu-text">API</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/scatterem/scatterem"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../docs/figures.html">Reference</a></li><li class="breadcrumb-item"><a href="../docs/api.html">API reference</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scatterem</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Get started</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/install.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Install</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/quickstart.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quickstart</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Background</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/method.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/calibration.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Calibration</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reproduce the paper</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/api.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">API reference</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#container" id="toc-container" class="nav-link active" data-scroll-target="#container">Container</a>
+  <ul class="collapse">
+  <li><a href="#dataset4dstem" id="toc-dataset4dstem" class="nav-link" data-scroll-target="#dataset4dstem"><code>Dataset4dstem</code></a></li>
+  </ul></li>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a>
+  <ul class="collapse">
+  <li><a href="#datasetvirtualbrightfield4dstem" id="toc-datasetvirtualbrightfield4dstem" class="nav-link" data-scroll-target="#datasetvirtualbrightfield4dstem"><code>DatasetVirtualBrightField4dstem</code></a></li>
+  </ul></li>
+  <li><a href="#reconstruction" id="toc-reconstruction" class="nav-link" data-scroll-target="#reconstruction">Reconstruction</a>
+  <ul class="collapse">
+  <li><a href="#direct_ptychography" id="toc-direct_ptychography" class="nav-link" data-scroll-target="#direct_ptychography"><code>direct_ptychography</code></a></li>
+  <li><a href="#tilt_corrected_dark_field" id="toc-tilt_corrected_dark_field" class="nav-link" data-scroll-target="#tilt_corrected_dark_field"><code>tilt_corrected_dark_field</code></a></li>
+  <li><a href="#fused_full_field" id="toc-fused_full_field" class="nav-link" data-scroll-target="#fused_full_field"><code>fused_full_field</code></a></li>
+  </ul></li>
+  <li><a href="#named-datasets" id="toc-named-datasets" class="nav-link" data-scroll-target="#named-datasets">Named datasets</a>
+  <ul class="collapse">
+  <li><a href="#you2026carbon" id="toc-you2026carbon" class="nav-link" data-scroll-target="#you2026carbon"><code>You2026Carbon</code></a></li>
+  <li><a href="#you2026co3o4" id="toc-you2026co3o4" class="nav-link" data-scroll-target="#you2026co3o4"><code>You2026Co3O4</code></a></li>
+  <li><a href="#you2026aulowdose" id="toc-you2026aulowdose" class="nav-link" data-scroll-target="#you2026aulowdose"><code>You2026AuLowDose</code></a></li>
+  <li><a href="#you2026gd2o3" id="toc-you2026gd2o3" class="nav-link" data-scroll-target="#you2026gd2o3"><code>You2026Gd2O3</code></a></li>
+  </ul></li>
+  <li><a href="#metadata" id="toc-metadata" class="nav-link" data-scroll-target="#metadata">Metadata</a>
+  <ul class="collapse">
+  <li><a href="#metadata4dstem" id="toc-metadata4dstem" class="nav-link" data-scroll-target="#metadata4dstem"><code>Metadata4dstem</code></a></li>
+  </ul></li>
+  <li><a href="#aberrations" id="toc-aberrations" class="nav-link" data-scroll-target="#aberrations">Aberrations</a>
+  <ul class="collapse">
+  <li><a href="#cartesian_chi" id="toc-cartesian_chi" class="nav-link" data-scroll-target="#cartesian_chi"><code>cartesian_chi</code></a></li>
+  <li><a href="#cartesian_to_polar" id="toc-cartesian_to_polar" class="nav-link" data-scroll-target="#cartesian_to_polar"><code>cartesian_to_polar</code></a></li>
+  <li><a href="#polar_to_cartesian" id="toc-polar_to_cartesian" class="nav-link" data-scroll-target="#polar_to_cartesian"><code>polar_to_cartesian</code></a></li>
+  </ul></li>
+  <li><a href="#calibration-helpers" id="toc-calibration-helpers" class="nav-link" data-scroll-target="#calibration-helpers">Calibration helpers</a>
+  <ul class="collapse">
+  <li><a href="#fit_bright_field_disk" id="toc-fit_bright_field_disk" class="nav-link" data-scroll-target="#fit_bright_field_disk"><code>fit_bright_field_disk</code></a></li>
+  </ul></li>
+  <li><a href="#physics" id="toc-physics" class="nav-link" data-scroll-target="#physics">Physics</a>
+  <ul class="collapse">
+  <li><a href="#electron_wavelength" id="toc-electron_wavelength" class="nav-link" data-scroll-target="#electron_wavelength"><code>electron_wavelength</code></a></li>
+  </ul></li>
+  <li><a href="#grids" id="toc-grids" class="nav-link" data-scroll-target="#grids">Grids</a>
+  <ul class="collapse">
+  <li><a href="#fft_frequencies_2d" id="toc-fft_frequencies_2d" class="nav-link" data-scroll-target="#fft_frequencies_2d"><code>fft_frequencies_2d</code></a></li>
+  <li><a href="#radial_average" id="toc-radial_average" class="nav-link" data-scroll-target="#radial_average"><code>radial_average</code></a></li>
+  </ul></li>
+  <li><a href="#visualisation" id="toc-visualisation" class="nav-link" data-scroll-target="#visualisation">Visualisation</a>
+  <ul class="collapse">
+  <li><a href="#show_2d" id="toc-show_2d" class="nav-link" data-scroll-target="#show_2d"><code>show_2d</code></a></li>
+  </ul></li>
+  <li><a href="#colour" id="toc-colour" class="nav-link" data-scroll-target="#colour">Colour</a>
+  <ul class="collapse">
+  <li><a href="#complex_to_rgba" id="toc-complex_to_rgba" class="nav-link" data-scroll-target="#complex_to_rgba"><code>complex_to_rgba</code></a></li>
+  <li><a href="#phase_wheel" id="toc-phase_wheel" class="nav-link" data-scroll-target="#phase_wheel"><code>phase_wheel</code></a></li>
+  <li><a href="#tile_to_rgba" id="toc-tile_to_rgba" class="nav-link" data-scroll-target="#tile_to_rgba"><code>tile_to_rgba</code></a></li>
+  </ul></li>
+  <li><a href="#scale-bars" id="toc-scale-bars" class="nav-link" data-scroll-target="#scale-bars">Scale bars</a>
+  <ul class="collapse">
+  <li><a href="#reconstruction_sampling" id="toc-reconstruction_sampling" class="nav-link" data-scroll-target="#reconstruction_sampling"><code>reconstruction_sampling</code></a></li>
+  </ul></li>
+  <li><a href="#saving-and-loading" id="toc-saving-and-loading" class="nav-link" data-scroll-target="#saving-and-loading">Saving and loading</a>
+  <ul class="collapse">
+  <li><a href="#serializable" id="toc-serializable" class="nav-link" data-scroll-target="#serializable"><code>Serializable</code></a></li>
+  <li><a href="#read_schema" id="toc-read_schema" class="nav-link" data-scroll-target="#read_schema"><code>read_schema</code></a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/scatterem/scatterem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li><li><a href="https://github.com/scatterem/scatterem/blob/main/docs/api.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../docs/figures.html">Reference</a></li><li class="breadcrumb-item"><a href="../docs/api.html">API reference</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">API reference</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Generated from the source by <code>docs/_generate_api.py</code>, so it cannot drift from the code. Everything below is public; anything not listed here is internal and may change without notice.</p>
+<section id="container" class="level2">
+<h2 class="anchored" data-anchor-id="container">Container</h2>
+<p><code>scatterem.utils.data.datasets</code></p>
+<section id="dataset4dstem" class="level3">
+<h3 class="anchored" data-anchor-id="dataset4dstem"><code>Dataset4dstem</code></h3>
+<p><em>Undocumented.</em></p>
+<section id="dataset4dstem-from_array" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-from_array"><code>from_array</code></h4>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>from_array(array: Any, name: <span class="bu">str</span> <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>, origin: Union[numpy.ndarray[<span class="bu">tuple</span>[Any, ...], numpy.dtype[<span class="op">~</span>_ScalarT]], <span class="bu">tuple</span>, <span class="bu">list</span>, <span class="bu">float</span>, <span class="bu">int</span>, NoneType] <span class="op">=</span> <span class="va">None</span>, sampling: Union[numpy.ndarray[<span class="bu">tuple</span>[Any, ...], numpy.dtype[<span class="op">~</span>_ScalarT]], <span class="bu">tuple</span>, <span class="bu">list</span>, <span class="bu">float</span>, <span class="bu">int</span>, NoneType] <span class="op">=</span> <span class="va">None</span>, units: Union[<span class="bu">list</span>[<span class="bu">str</span>], <span class="bu">tuple</span>, <span class="bu">list</span>, NoneType] <span class="op">=</span> <span class="va">None</span>, signal_units: <span class="bu">str</span> <span class="op">=</span> <span class="st">'arb. units'</span>, meta: Optional[scatterem.utils.data.data_classes.Metadata4dstem] <span class="op">=</span> <span class="va">None</span>, transform_to_amplitudes: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, fourier_shift_dim: Tuple <span class="op">=</span> <span class="va">None</span>, normalize: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>, clip_neg_values: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>, copy: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>, device: torch.device <span class="op">=</span> device(<span class="bu">type</span><span class="op">=</span><span class="st">'cpu'</span>), is_cropped: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, out_of_core: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, ooc_row_block: <span class="bu">int</span> <span class="op">=</span> <span class="dv">8</span>, g_residency: <span class="bu">str</span> <span class="op">=</span> <span class="st">'auto'</span>, energy: <span class="bu">float</span> <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>, semiconvergence_angle: <span class="bu">float</span> <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>, scan_step: Union[<span class="bu">float</span>, <span class="bu">tuple</span>, <span class="bu">list</span>, numpy.ndarray[<span class="bu">tuple</span>[Any, ...], numpy.dtype[<span class="op">~</span>_ScalarT]], NoneType] <span class="op">=</span> <span class="va">None</span>, reciprocal_step: Union[<span class="bu">float</span>, <span class="bu">tuple</span>, <span class="bu">list</span>, numpy.ndarray[<span class="bu">tuple</span>[Any, ...], numpy.dtype[<span class="op">~</span>_ScalarT]], NoneType] <span class="op">=</span> <span class="va">None</span>, rotation: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, aberrations: Optional[ForwardRef(<span class="st">'Aberrations'</span>)] <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="st">'Dataset4dstem'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Validates and creates a Dataset from an array.</p>
+</section>
+</section>
+</section>
+<section id="parameters" class="level2">
+<h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
+<p>array: Any The array to validate and create a Dataset from. name: str | None The name of the Dataset. origin: Union[NDArray, tuple, list, float, int] | None The origin of the Dataset. sampling: Union[NDArray, tuple, list, float, int] | None The sampling of the Dataset. units: Union[list[str], tuple, list] | None The units of the Dataset. signal_units: str The units of the signal. out_of_core: bool Keep the raw (uint16) cube as a CPU numpy array/memmap and stream it; nothing is uploaded to <code>device</code> here. See <code>scatterem.utils.data.out_of_core</code>. ooc_row_block: int Scan-row block size for streamed reductions (out-of-core only). g_residency: str “gpu” | “vbf_gpu” | “cpu_pinned” | “auto” — where the streaming vBF provider keeps G (out-of-core only). energy, semiconvergence_angle, scan_step, reciprocal_step, rotation, aberrations: Physics convenience path: when <code>meta</code> is None and <code>energy</code> is given, a <code>Metadata4dstem</code> is built internally (shape derived from <code>array</code>, <code>sampling = (dr, dr, dk, dk)</code> with <code>dr</code> from <code>scan_step</code> and <code>dk</code> from <code>reciprocal_step</code> – both scalar or a length-2 pair, <code>dk</code> defaulting to a <code>(1.0, 1.0)</code> placeholder to be calibrated later, e.g.&nbsp;via <code>calibrate_reciprocal_from_bright_field</code>). <code>origin</code> defaults to the array center in this path when not given explicitly.</p>
+</section>
+<section id="returns" class="level2">
+<h2 class="anchored" data-anchor-id="returns">Returns</h2>
+<p>Dataset The container, with any unset axis metadata filled in from the array’s rank.</p>
+<section id="dataset4dstem-determine_aberrations_" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-determine_aberrations_"><code>determine_aberrations_</code></h4>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>determine_aberrations_(<span class="va">self</span>, correction_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'combined'</span>, fit_rotation: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, target_percentage_nonzero_pixels: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.75</span>, n_batches: <span class="bu">int</span> <span class="op">=</span> <span class="dv">25</span>, registration_upsample_factor: <span class="bu">int</span> <span class="op">=</span> <span class="dv">10</span>, lowpass_fwhm_bright_field: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>, bin_factors: <span class="bu">tuple</span>[<span class="bu">int</span>, ...] <span class="op">=</span> (<span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">1</span>), verbosity: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>, correct_order: <span class="bu">int</span> <span class="op">=</span> <span class="dv">1</span>, gradient_mask: Optional[torch.Tensor] <span class="op">=</span> <span class="va">None</span>, num_iterations: <span class="bu">int</span> <span class="op">=</span> <span class="dv">10</span>, lr: <span class="bu">float</span> <span class="op">=</span> <span class="dv">20</span>, bright_field_mask_threshold: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>, roi_shape: <span class="bu">tuple</span>[<span class="bu">int</span>, <span class="bu">int</span>] <span class="op">=</span> (<span class="dv">128</span>, <span class="dv">128</span>), roi_center: Union[<span class="bu">str</span>, <span class="bu">tuple</span>[<span class="bu">int</span>, <span class="bu">int</span>]] <span class="op">=</span> <span class="st">'center'</span>, upsample: Union[<span class="bu">int</span>, <span class="bu">str</span>] <span class="op">=</span> <span class="st">'nyquist'</span>, update_dataset: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>, n_center_indices: <span class="bu">int</span> <span class="op">=</span> <span class="dv">25</span>, phase_sign: <span class="bu">str</span> <span class="op">=</span> <span class="st">'positive'</span>, sharpness_metric: <span class="bu">str</span> <span class="op">=</span> <span class="st">'sparsity'</span>, reg_weight: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.05</span>, alignment_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'reference'</span>) <span class="op">-&gt;</span> <span class="va">None</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Determine the aberrations with the method given in correction_method.</p>
+<p>Args: correction_method: How to determine the aberrations. “combined” (default) chains the bright-field-shift low-order+rotation fit with the sharpness autofocus (higher orders, when correct_order&gt;=2); “bright-field-shifts” is low-order+rotation only; “autofocus” is the autofocus only (rotation fixed). The legacy “total-variation” is a deprecated alias for “autofocus”. sharpness_metric: Autofocus objective for the higher-order stage: “sparsity” (default, L4/kurtosis) or “tv”. reg_weight: L2 regularization (scaled units) toward the seed in the autofocus optimizer. fit_rotation: Whether to fit the rotation. target_percentage_nonzero_pixels: Target percentage of nonzero pixels for the bright field. n_batches: Number of batches for the bright field shifts. registration_upsample_factor: Upsampling factor for the registration. lowpass_fwhm_bright_field: FWHM of the lowpass filter for the bright field. bin_factors: Bin factors for the bright field. The default is (2, 1, 1). arrow_scale: Scale for the arrows in the plot. verbosity: Verbosity level. lr: Learning rate for the optimizer. Used for the autofocus stage. bright_field_mask_threshold: Threshold for the bright field. Used for bright field shifts. roi_shape: Shape of the region of interest. Used for bright field shifts. roi_center: Center of the region of interest. upsample: Upsampling factor for the diffraction pattern. Used for bright field shifts. correct_order: Order of the aberrations to correct. Used for the autofocus stage. num_iterations: Number of optimization iterations. Used for the autofocus stage. n_center_indices: Number of center indices to use for the bright field shifts. The default is 25.</p>
+</section>
+<section id="dataset4dstem-direct_ptychography" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-direct_ptychography"><code>direct_ptychography</code></h4>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>direct_ptychography(<span class="va">self</span>, upsample: Union[<span class="bu">float</span>, <span class="bu">str</span>] <span class="op">=</span> <span class="st">'nyquist'</span>, verbosity: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>, n_batches: <span class="bu">int</span> <span class="op">=</span> <span class="dv">25</span>, return_snr: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, phase_sign: <span class="bu">str</span> <span class="op">=</span> <span class="st">'positive'</span>, ssnr_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'analytical'</span>, <span class="op">**</span>kwargs) <span class="op">-&gt;</span> <span class="bu">tuple</span>[torch.Tensor, torch.Tensor <span class="op">|</span> <span class="va">None</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Perform direct ptychography reconstruction.</p>
+</section>
+<section id="dataset4dstem-tilt_corrected_dark_field" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-tilt_corrected_dark_field"><code>tilt_corrected_dark_field</code></h4>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>tilt_corrected_dark_field(<span class="va">self</span>, n_dark_field_segments: <span class="bu">int</span> <span class="op">=</span> <span class="dv">32</span>, verbosity: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>, bright_field_mask_threshold: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>, upsample: Union[<span class="bu">float</span>, <span class="bu">str</span>] <span class="op">=</span> <span class="st">'nyquist'</span>, return_snr: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, snr_blur_sigma: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, shift_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'drizzle'</span>, drizzle_pixfrac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span>, drizzle_kde_sigma: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>) <span class="op">-&gt;</span> <span class="bu">tuple</span>[torch.Tensor, torch.Tensor <span class="op">|</span> <span class="va">None</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Perform tilt corrected dark field reconstruction.</p>
+<p><code>shift_method</code> defaults to <code>"drizzle"</code> — a non-negative, ringing-free area-overlap splat (with <code>drizzle_pixfrac</code> / <code>drizzle_kde_sigma</code>), preferable for sparse/low-dose data. Pass <code>"fourier"</code> for the Fourier phase-ramp path (marginally sharper on dense, high-dose data).</p>
+</section>
+<section id="dataset4dstem-fused_full_field" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-fused_full_field"><code>fused_full_field</code></h4>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fused_full_field(<span class="va">self</span>, n_batches: <span class="bu">int</span> <span class="op">=</span> <span class="dv">32</span>, upsample: Union[<span class="bu">int</span>, <span class="bu">str</span>] <span class="op">=</span> <span class="st">'nyquist'</span>, verbosity: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>, bright_field_mask_threshold: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>, return_snr: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>, snr_blur_sigma: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, ssnr_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'analytical'</span>, ptycho_lowq_cutoff_frac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, tcdf_shift_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'drizzle'</span>, drizzle_pixfrac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span>, drizzle_kde_sigma: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, n_dark_field_segments: <span class="bu">int</span> <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="bu">tuple</span>[torch.Tensor, torch.Tensor, torch.Tensor]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Perform fused full field reconstruction. Combine direct ptychography and tilt corrected dark field with SSNR-weighted Fourier fusion.</p>
+<p><code>ptycho_lowq_cutoff_frac</code> &gt; 0 hands the low-q band (below this fraction of Nyquist) exclusively to the dark-field, removing the direct-ptychography low-frequency cupping halo that otherwise leaks into the fused image.</p>
+<p>Args: n_batches: Number of batches for processing. upsample: Upsampling factor for the diffraction pattern. verbosity: Verbosity level. bright_field_mask_threshold: Threshold for the bright field. return_snr: Whether to compute SSNR for weighting. snr_blur_sigma: Gaussian blur sigma for the empirical ptycho SSNR and the tcDF SSNR (the analytical ptycho SSNR ignores it). ssnr_method: How to compute the ptychography SSNR (“empirical” or “analytical”). Changing this invalidates the cached ptycho SSNR.</p>
+<p>Returns: tuple[torch.Tensor, torch.Tensor, torch.Tensor]: (fused, phase_weighted, tcdf_weighted)</p>
+</section>
+<section id="dataset4dstem-calibrate_reciprocal_from_bright_field" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-calibrate_reciprocal_from_bright_field"><code>calibrate_reciprocal_from_bright_field</code></h4>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>calibrate_reciprocal_from_bright_field(<span class="va">self</span>, semiconvergence_angle: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>, thresh_lower: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.1</span>, thresh_upper: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.99</span>, method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'area'</span>) <span class="op">-&gt;</span> <span class="bu">float</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Calibrate the reciprocal-space pixel size <code>dk</code> from the measured bright-field disk radius and the known semiconvergence angle.</p>
+<p>Encapsulates the crop -&gt; measure -&gt; <code>dk = alpha / rBF / wavelength</code> -&gt; <code>self.sampling = (dr, dr, dk, dk)</code> dance every demo repeats. <code>self</code> is updated in place (via the <code>sampling</code> setter, which propagates to <code>self.meta.sampling</code>); the crop used to measure the disk is a scratch object (<code>crop_brightfield_</code> returns a new dataset, built with <code>normalize=False, clip_neg_values=False</code> so it never writes back through its unclonded view into this dataset’s storage) and this dataset’s array is left untouched – only <code>self.origin</code>’s detector-plane entries are recentred and <code>self._radius_bright_field</code> is set, matching <code>crop_brightfield_</code>’s existing (self-mutating) behavior.</p>
+<p>Args: semiconvergence_angle: Beam convergence semi-angle in radians. Defaults to <code>self.meta.semiconvergence_angle</code>. thresh_lower, thresh_upper: Intensity-threshold sweep bounds used both for the bright-field crop and the radius measurement. method: Radius-measurement method, forwarded to <code>bright_field_radius_and_center_</code> (“area” or “circle”).</p>
+<p>Returns: float: The calibrated reciprocal-space sampling <code>dk</code>.</p>
+</section>
+<section id="dataset4dstem-bright_field_radius_and_center" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-bright_field_radius_and_center"><code>bright_field_radius_and_center</code></h4>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>bright_field_radius_and_center(<span class="va">self</span>, thresh_lower: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.1</span>, thresh_upper: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.6</span>, N: <span class="bu">int</span> <span class="op">=</span> <span class="dv">100</span>, method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'area'</span>, edge_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'canny'</span>, min_edge_points: <span class="bu">int</span> <span class="op">=</span> <span class="dv">100</span>, ransac_iterations: <span class="bu">int</span> <span class="op">=</span> <span class="dv">1000</span>, ransac_threshold: <span class="bu">float</span> <span class="op">=</span> <span class="fl">2.0</span>) <span class="op">-&gt;</span> Tuple[<span class="bu">float</span>, numpy.ndarray[<span class="bu">tuple</span>[Any, ...], numpy.dtype[<span class="op">~</span>_ScalarT]]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Center and radius of the bright-field disk in pixels; center is [y, x].</p>
+<p>Delegates to :func:<code>scatterem.utils.data.disk_fit.fit_bright_field_disk</code>. The <code>edge_method</code> and <code>ransac_*</code> arguments belong to a RANSAC circle fit that this release does not carry; they are accepted so callers forwarding the full argument list keep working, and are otherwise unused.</p>
+</section>
+<section id="serializable-save" class="level4">
+<h4 class="anchored" data-anchor-id="serializable-save"><code>save</code></h4>
+<div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>save(<span class="va">self</span>, path: <span class="st">'str | Path'</span>, <span class="op">*</span>, overwrite: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">False</span>) <span class="op">-&gt;</span> <span class="st">'Path'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Write to <code>path</code>. Returns the path written.</p>
+</section>
+<section id="serializable-load" class="level4">
+<h4 class="anchored" data-anchor-id="serializable-load"><code>load</code></h4>
+<div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>load(path: <span class="st">'str | Path'</span>, <span class="op">*</span>, device: <span class="st">'str | torch.device'</span> <span class="op">=</span> <span class="st">'cpu'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Read an instance of <code>cls</code> from <code>path</code>.</p>
+<p>Raises: SerializationError: the file holds a different class, a schema version this code cannot read, or a field list that does not match <code>cls.SERIAL_FIELDS</code>.</p>
+</section>
+<section id="datasetvirtualbrightfield4dstem" class="level3">
+<h3 class="anchored" data-anchor-id="datasetvirtualbrightfield4dstem"><code>DatasetVirtualBrightField4dstem</code></h3>
+<p>A virtual bright field 4D STEM dataset with metadata for electron diffraction patterns.</p>
+</section>
+</section>
+<section id="reconstruction" class="level2">
+<h2 class="anchored" data-anchor-id="reconstruction">Reconstruction</h2>
+<p><code>scatterem.reconstruction</code></p>
+<section id="direct_ptychography" class="level3">
+<h3 class="anchored" data-anchor-id="direct_ptychography"><code>direct_ptychography</code></h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>direct_ptychography(dataset: scatterem.utils.data.datasets.Dataset4dstem <span class="op">|</span> scatterem.utils.data.datasets.DatasetVirtualBrightField4dstem, upsample: Union[<span class="bu">float</span>, <span class="bu">str</span>] <span class="op">=</span> <span class="st">'nyquist'</span>, bright_field_mask_threshold: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.5</span>, verbosity: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>, n_batches: <span class="bu">int</span> <span class="op">=</span> <span class="dv">25</span>, return_snr: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, phase_sign: Literal[<span class="st">'preserve'</span>, <span class="st">'positive'</span>, <span class="st">'negative'</span>] <span class="op">=</span> <span class="st">'positive'</span>, ssnr_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'analytical'</span>, <span class="op">**</span>kwargs) <span class="op">-&gt;</span> <span class="bu">tuple</span>[torch.Tensor, torch.Tensor <span class="op">|</span> <span class="va">None</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Performs a joint ptychography reconstruction and aberration determination. Args: dataset: Dataset4dstem or DatasetVirtualBrightField4dstem object containing the diffraction pattern. upsample: Upsampling factor for the diffraction pattern. bright_field_mask_threshold: Threshold for the bright field. verbosity: Verbosity level. n_batches: Number of batches for the vBF. return_snr: Whether to compute the ptychography SSNR (method selected by ssnr_method). phase_sign: Resolve the global phase sign ambiguity. “positive” flips negative-skew phase images so atom columns are positive, “negative” enforces the opposite sign, and “preserve” leaves the raw direct-ptycho sign unchanged. ssnr_method: How to compute the SSNR when return_snr is True. “analytical” (default) uses the phase-contrast-transfer-function noise model (CTF-aware: ptycho SSNR -&gt; 0 at low q, no DC/low-q transfer); “empirical” reconstructs a checkerboard BF half-split and forms the raw half-difference power ratio (data-driven, better at high dose).</p>
+<p>Returns: torch.Tensor: The reconstructed phase image (Imaginary part). torch.Tensor | None: The SNR of the reconstructed phase image if return_snr is True, otherwise None.</p>
+<p>Raises: ValueError: If the dataset is not a valid Dataset4dstem object. ValueError: If the upsample is invalid.</p>
+</section>
+<section id="tilt_corrected_dark_field" class="level3">
+<h3 class="anchored" data-anchor-id="tilt_corrected_dark_field"><code>tilt_corrected_dark_field</code></h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>tilt_corrected_dark_field(dataset: scatterem.utils.data.datasets.Dataset4dstem, n_dark_field_segments: <span class="bu">int</span> <span class="op">=</span> <span class="dv">32</span>, verbosity: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>, bright_field_mask_threshold: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.3</span>, upsample: Union[<span class="bu">float</span>, <span class="bu">str</span>] <span class="op">=</span> <span class="st">'nyquist'</span>, return_snr: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, snr_blur_sigma: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, shift_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'drizzle'</span>, drizzle_pixfrac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span>, drizzle_kde_sigma: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>) <span class="op">-&gt;</span> <span class="bu">tuple</span>[torch.Tensor, torch.Tensor <span class="op">|</span> <span class="va">None</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Tilt-corrected dark-field reconstruction.</p>
+<p><code>shift_method</code> selects how each azimuthal dark-field segment is sub-pixel shifted (by its parallax shift) and accumulated onto the up-sampled grid:</p>
+<ul>
+<li><code>"drizzle"</code> (default) — area-overlap drizzle (box splat + hit-map normalization). Non-negative and ringing-free, which is the physically correct behaviour for counting data: at low dose the segment images are single electron counts and Fourier shifting turns each into a sinc with ~20% negative side-lobes. <code>drizzle_pixfrac</code> sets the drop size (fraction of an input pixel; 1.0 fills the grid from one frame) and <code>drizzle_kde_sigma</code> optionally Nadaraya-Watson-smooths sparse holes.</li>
+<li><code>"fourier"</code> — Fourier zero-pad upsample + phase-ramp shift. Marginally sharper on dense, well-sampled (high-dose) data, but rings on sparse data.</li>
+</ul>
+</section>
+<section id="fused_full_field" class="level3">
+<h3 class="anchored" data-anchor-id="fused_full_field"><code>fused_full_field</code></h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fused_full_field(dataset: scatterem.utils.data.datasets.Dataset4dstem, ptycho_image: torch.Tensor, tcdf_image: torch.Tensor, ptycho_ssnr: torch.Tensor, tcdf_ssnr: torch.Tensor, verbosity<span class="op">=</span><span class="dv">0</span>, taper: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, q_soft_start_frac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.5</span>, q_soft_end_frac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.7</span>, q_hard_cutoff_frac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span>, ptycho_lowq_cutoff_frac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>) <span class="op">-&gt;</span> torch.Tensor</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><em>Undocumented.</em></p>
+</section>
+</section>
+<section id="named-datasets" class="level2">
+<h2 class="anchored" data-anchor-id="named-datasets">Named datasets</h2>
+<p><code>scatterem.datasets</code></p>
+<section id="you2026carbon" class="level3">
+<h3 class="anchored" data-anchor-id="you2026carbon"><code>You2026Carbon</code></h3>
+<p>Amorphous carbon, 300 kV (paper Figure 2).</p>
+</section>
+<section id="you2026co3o4" class="level3">
+<h3 class="anchored" data-anchor-id="you2026co3o4"><code>You2026Co3O4</code></h3>
+<p>Co3O4, 200 kV (paper Figure 2).</p>
+</section>
+<section id="you2026aulowdose" class="level3">
+<h3 class="anchored" data-anchor-id="you2026aulowdose"><code>You2026AuLowDose</code></h3>
+<p>Au nanoparticle, 200 kV, low dose (paper Figure 4).</p>
+<p>Three files: the Dectris master plus its two external data blocks. The 180 deg rotation is this acquisition’s known scan/detector offset.</p>
+<p>Args: repair_bad_pixels: Replace the known-bad 2x2 detector patch with the nanmean of its surrounding ring. Default <code>True</code>. scan_edge_crop: Number of scan rows/columns to drop from each edge. Default <code>128</code>.</p>
+</section>
+<section id="you2026gd2o3" class="level3">
+<h3 class="anchored" data-anchor-id="you2026gd2o3"><code>You2026Gd2O3</code></h3>
+<p>Gd2O3 nanoparticles, 60 kV (paper Figure 1).</p>
+<p><code>(512, 512, 112, 112)</code> uint16, ~6.5 GB. The 84 deg scan rotation is load-bearing: the bright-field-shift parallax auto-fit is unreliable on this low-dose data, and without the correct rotation the aberration autofocus absorbs the error into a spurious ~85 A astigmatism.</p>
+</section>
+</section>
+<section id="metadata" class="level2">
+<h2 class="anchored" data-anchor-id="metadata">Metadata</h2>
+<p><code>scatterem.utils.data.data_classes</code></p>
+<section id="metadata4dstem" class="level3">
+<h3 class="anchored" data-anchor-id="metadata4dstem"><code>Metadata4dstem</code></h3>
+<p>Metadata4dstem(energy: float, semiconvergence_angle: float, sampling: Union[numpy.ndarray[tuple[Any, …], numpy.dtype[~_ScalarT]], tuple, list, float, int], shape: numpy.ndarray[tuple[typing.Any, …], numpy.dtype[~_ScalarT]], units: Union[list[str], tuple, list, NoneType] = None, rotation: Optional[float] = 0, defocus_guess: Optional[float] = 0, aberrations: Optional[scatterem.utils.data.aberrations.Aberrations] = None, slice_thickness: Optional[float] = 0, sample_thickness_guess: Optional[float] = 0, vacuum_probe: Optional[torch.Tensor] = None, scan_affine: Optional[torch.Tensor] = None)</p>
+</section>
+</section>
+<section id="aberrations" class="level2">
+<h2 class="anchored" data-anchor-id="aberrations">Aberrations</h2>
+<p><code>scatterem.utils.aberration_basis</code></p>
+<section id="cartesian_chi" class="level3">
+<h3 class="anchored" data-anchor-id="cartesian_chi"><code>cartesian_chi</code></h3>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>cartesian_chi(qy: <span class="st">'Tensor'</span>, qx: <span class="st">'Tensor'</span>, wavelength: <span class="st">'float'</span>, coefficients: <span class="st">'Sequence[float] | Tensor'</span>) <span class="op">-&gt;</span> <span class="st">'Tensor'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Evaluate the aberration phase <code>chi</code> in radians.</p>
+<p>Args: qy: reciprocal-space y coordinates, in inverse Angstrom. qx: reciprocal-space x coordinates, same shape as <code>qy</code>. wavelength: electron wavelength in Angstrom (see :func:<code>scatterem.utils.physics.electron_wavelength</code>). coefficients: the 12 cartesian coefficients in :data:<code>COEFFICIENT_NAMES</code> order, in Angstrom.</p>
+<p>Returns: <code>chi</code> with the broadcast shape of <code>qy</code> and <code>qx</code>.</p>
+</section>
+<section id="cartesian_to_polar" class="level3">
+<h3 class="anchored" data-anchor-id="cartesian_to_polar"><code>cartesian_to_polar</code></h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>cartesian_to_polar(cartesian: <span class="st">'Dict[str, float]'</span>) <span class="op">-&gt;</span> <span class="st">'Dict[str, float]'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Convert cartesian aberration pairs to magnitude and angle.</p>
+<p>The magnitude is non-negative and the angle is the one that satisfies <code>C * cos(m * (phi - phi_m)) == Ca * cos(m*phi) + Cb * sin(m*phi)</code>, so the returned pair describes the same wavefront as its input. Missing entries are taken as zero.</p>
+<p>The angle is only determined modulo <code>2*pi/m</code> – an <code>m</code>-fold term is physically unchanged by such a rotation – and is returned in the branch <code>atan2</code> gives, i.e.&nbsp;within <code>+-pi/m</code>.</p>
+</section>
+<section id="polar_to_cartesian" class="level3">
+<h3 class="anchored" data-anchor-id="polar_to_cartesian"><code>polar_to_cartesian</code></h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>polar_to_cartesian(polar: <span class="st">'Dict[str, float]'</span>) <span class="op">-&gt;</span> <span class="st">'Dict[str, float]'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Convert magnitude/angle aberrations to the cartesian pairs.</p>
+<p>Missing entries are taken as zero, so a caller may pass only the coefficients it cares about.</p>
+</section>
+</section>
+<section id="calibration-helpers" class="level2">
+<h2 class="anchored" data-anchor-id="calibration-helpers">Calibration helpers</h2>
+<p><code>scatterem.utils.data.disk_fit</code></p>
+<section id="fit_bright_field_disk" class="level3">
+<h3 class="anchored" data-anchor-id="fit_bright_field_disk"><code>fit_bright_field_disk</code></h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fit_bright_field_disk(dp, <span class="op">*</span>, threshold_range: <span class="st">'Tuple[float, float]'</span> <span class="op">=</span> (<span class="fl">0.25</span>, <span class="fl">0.75</span>), n_thresholds: <span class="st">'int'</span> <span class="op">=</span> <span class="dv">100</span>, max_radius_fraction: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">0.4</span>, min_contrast: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">3.0</span>) <span class="op">-&gt;</span> <span class="st">'Tuple[float, NDArray]'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Radius and centre of the central bright-field disk, in pixels.</p>
+<p>Args: dp: 2D averaged diffraction pattern (torch tensor or numpy array). threshold_range: low and high sweep limits as fractions of the spike-free maximum. Keep it <strong>symmetric about 0.5</strong> – that symmetry is what makes the median unbiased. Widen it for a very soft edge. n_thresholds: number of thresholds in the sweep. max_radius_fraction: reject a fit whose radius exceeds this fraction of the smaller detector dimension. Guards against “fitting” a pattern that has no compact disk, where the sweep returns a radius of order the detector itself. min_contrast: reject a fit whose median intensity inside the disk is not at least this many times the median outside it.</p>
+<p>Returns: <code>(radius, centre)</code> with <code>radius</code> in pixels as a <code>float</code> and <code>centre</code> as a 2-element <code>numpy</code> array ordered <code>[y, x]</code>.</p>
+<p>Raises: ValueError: if <code>dp</code> is not 2D, or if the pattern contains no identifiable bright-field disk.</p>
+</section>
+</section>
+<section id="physics" class="level2">
+<h2 class="anchored" data-anchor-id="physics">Physics</h2>
+<p><code>scatterem.utils.physics</code></p>
+<section id="electron_wavelength" class="level3">
+<h3 class="anchored" data-anchor-id="electron_wavelength"><code>electron_wavelength</code></h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>electron_wavelength(accelerating_voltage: <span class="st">'float'</span>) <span class="op">-&gt;</span> <span class="st">'float'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Return the relativistic electron wavelength in Angstrom.</p>
+<p>An electron accelerated through <code>V</code> volts gains kinetic energy <code>eV</code>. Its momentum follows from the relativistic energy-momentum relation, and the de Broglie relation turns that into a wavelength::</p>
+<pre><code>lambda = h / sqrt(2 m0 e V (1 + e V / (2 m0 c^2)))</code></pre>
+<p>The bracketed factor is the relativistic correction; it is negligible below a few hundred volts and reaches ~1.2 at 200 kV, where ignoring it would overstate the wavelength by roughly 10%.</p>
+<p>Args: accelerating_voltage: the accelerating voltage in volts (e.g.&nbsp;<code>200e3</code> for a 200 kV microscope). Must be positive.</p>
+<p>Returns: The wavelength in Angstrom.</p>
+<p>Raises: ValueError: if <code>accelerating_voltage</code> is not positive.</p>
+</section>
+</section>
+<section id="grids" class="level2">
+<h2 class="anchored" data-anchor-id="grids">Grids</h2>
+<p><code>scatterem.utils.grids</code></p>
+<section id="fft_frequencies_2d" class="level3">
+<h3 class="anchored" data-anchor-id="fft_frequencies_2d"><code>fft_frequencies_2d</code></h3>
+<div class="sourceCode" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>fft_frequencies_2d(shape: <span class="st">'Sequence[int]'</span>, sampling: <span class="st">'Sequence[float]'</span> <span class="op">=</span> (<span class="fl">1.0</span>, <span class="fl">1.0</span>), half_pixel_shift: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">False</span>, device: <span class="st">'str | torch.device'</span> <span class="op">=</span> <span class="st">'cpu'</span>, dtype: <span class="st">'torch.dtype | None'</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="st">'Tensor'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Stacked <code>(qy, qx)</code> FFT frequencies for a 2D grid.</p>
+<p>Args: shape: grid dimensions <code>(ny, nx)</code>. sampling: real-space pixel size <code>(dy, dx)</code>; frequencies come out in the reciprocal of whatever unit this is given in. half_pixel_shift: offset both axes by half a frequency bin. Use for quantities defined on pixel centres rather than pixel edges. device: device for the returned tensor. dtype: floating dtype for the returned tensor; <code>torch</code>’s default if omitted.</p>
+<p>Returns: A tensor of shape <code>(2, ny, nx)</code> whose first slice is <code>qy</code> and second is <code>qx</code>, matching <code>torch.fft</code> axis order.</p>
+</section>
+<section id="radial_average" class="level3">
+<h3 class="anchored" data-anchor-id="radial_average"><code>radial_average</code></h3>
+<div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>radial_average(image, sampling: <span class="st">'Sequence[float]'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Radial average of a corner-origin 2D array, over FFT frequency bins.</p>
+<p>Replaces <code>utils/utils.radial_average2</code>, which is a py4DSTEM (GPL-3.0) derivative. Written here from the definition instead.</p>
+<p>Each pixel contributes to the two bins its <code>|q|</code> falls between, in proportion to how close it lies to each — a linear (area-weighted) partition rather than nearest-bin assignment, which is what keeps a radial profile from developing sawtooth ripple at small radii where few pixels land per bin. The two contributions are accumulated in one pass by concatenating them, so the normalising count and the weighted sum each need a single <code>bincount</code>.</p>
+<p>Args: image: 2D array with the zero frequency at <code>[0, 0]</code>, as <code>torch.fft</code> produces. numpy array or torch tensor. sampling: real-space pixel size <code>(dy, dx)</code>; the returned frequencies are in the reciprocal of that unit.</p>
+<p>Returns: <code>(q_bins, profile)</code>, truncated to the largest frequency represented on both axes so the tail is not built from corner pixels alone.</p>
+<p>One deliberate difference from the replaced function: it truncated at the <code>x</code> axis maximum only, so with <strong>anisotropic</strong> sampling it returned bins past the shorter axis’ Nyquist, where a “ring” is really a pair of corner wedges. This truncates at the smaller of the two. On a square grid with equal sampling — every case the published figures use — the two agree to machine precision (measured max abs difference 2e-15, same bin count); with anisotropic sampling this returns a shorter profile, which matters to a caller slicing the result by index.</p>
+</section>
+</section>
+<section id="visualisation" class="level2">
+<h2 class="anchored" data-anchor-id="visualisation">Visualisation</h2>
+<p><code>scatterem.vis.visualization</code></p>
+<section id="show_2d" class="level3">
+<h3 class="anchored" data-anchor-id="show_2d"><code>show_2d</code></h3>
+<div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>show_2d(array, <span class="op">*</span>, sampling<span class="op">=</span><span class="va">None</span>, scalebar<span class="op">=</span><span class="st">'auto'</span>, figax<span class="op">=</span><span class="va">None</span>, axsize<span class="op">=</span>(<span class="dv">4</span>, <span class="dv">4</span>), tight_layout<span class="op">=</span><span class="va">True</span>, combine_images<span class="op">=</span><span class="va">False</span>, clip_percentile: Optional[Tuple[<span class="bu">float</span>, <span class="bu">float</span>]] <span class="op">=</span> <span class="va">None</span>, <span class="op">**</span>kwargs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Display one or more 2D arrays in a grid.</p>
+<p>Accepts a numpy array, a torch tensor, or a (nested) sequence of either. <code>sampling</code> (a :class:<code>Sampling</code> or a dict of its fields) drives the physical scale bar; if omitted, the object’s <code>.sampling_meta</code> is used if present, otherwise the bar falls back to <code>a.u.</code>.</p>
+<p><code>scalebar</code>: <code>"auto"</code> (default) draws a bar; <code>False</code>/<code>None</code> disables it; a dict/<code>ScalebarConfig</code> configures it explicitly.</p>
+<p><code>clip_percentile</code>: optional <code>(low, high)</code> percentiles (0-100). When given, the display vmin/vmax are computed from those percentiles of each array’s finite values, absorbing the common <code>p02 = quantile(...); img -= p02</code> boilerplate.</p>
+</section>
+</section>
+<section id="colour" class="level2">
+<h2 class="anchored" data-anchor-id="colour">Colour</h2>
+<p><code>scatterem.vis.complex_color</code></p>
+<section id="complex_to_rgba" class="level3">
+<h3 class="anchored" data-anchor-id="complex_to_rgba"><code>complex_to_rgba</code></h3>
+<div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>complex_to_rgba(amplitude: <span class="st">'NDArray'</span>, phase: <span class="st">'NDArray | None'</span> <span class="op">=</span> <span class="va">None</span>, <span class="op">*</span>, cmap: <span class="st">'str'</span> <span class="op">=</span> <span class="st">'gray'</span>, chroma: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">0.13</span>) <span class="op">-&gt;</span> <span class="st">'NDArray'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Colour an image, using <code>phase</code> as hue when it is given.</p>
+<p>Args: amplitude: values in <code>[0, 1]</code> (normalise before calling). phase: angles in radians. When None, <code>cmap</code> is applied and the result is an ordinary colormapped image. cmap: matplotlib colormap name, used only when <code>phase</code> is None. chroma: Oklab chroma for the phase wheel. The default is a compromise – high enough for hue to read, low enough to stay in gamut across most of the lightness range.</p>
+<p>Returns: <code>(..., 4)</code> RGBA in <code>[0, 1]</code>, alpha fully opaque.</p>
+</section>
+<section id="phase_wheel" class="level3">
+<h3 class="anchored" data-anchor-id="phase_wheel"><code>phase_wheel</code></h3>
+<div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>phase_wheel(n: <span class="st">'int'</span> <span class="op">=</span> <span class="dv">256</span>, <span class="op">*</span>, lightness: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">0.72</span>, chroma: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">0.13</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>(colors, angles)</code> for a phase colorbar: one full turn of hue.</p>
+<p><code>lightness</code> is fixed so the bar reads as hue alone. The default sits near the middle of the range where the sRGB gamut is widest, so the wheel keeps its chroma all the way round instead of desaturating at some hues.</p>
+</section>
+<section id="tile_to_rgba" class="level3">
+<h3 class="anchored" data-anchor-id="tile_to_rgba"><code>tile_to_rgba</code></h3>
+<div class="sourceCode" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>tile_to_rgba(rows, <span class="op">*</span>, norm<span class="op">=</span><span class="va">None</span>, cmap: <span class="st">'str'</span> <span class="op">=</span> <span class="st">'gray'</span>, chroma: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">0.13</span>) <span class="op">-&gt;</span> <span class="st">'NDArray'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Composite a grid of same-shaped images into one RGBA mosaic.</p>
+<p>Replaces <code>list_of_arrays_to_rgba</code>. Each entry is coloured independently and the results are tiled, so a bright panel cannot darken its neighbours – the alternative, one normalisation across the whole grid, makes every panel but the brightest unreadable.</p>
+<p>Args: rows: sequence of rows, each a sequence of same-shaped 2D arrays. norm: callable mapping amplitude to <code>[0, 1]</code>, applied to each panel. If omitted, each panel is scaled by its own finite min and max.</p>
+<pre><code>    This argument is not optional in spirit: :func:`complex_to_rgba`
+    requires ``[0, 1]`` and *clips*, so handing it raw data silently
+    renders a 0..1000 image as 99.9% pure white. An earlier version of
+    this function did exactly that.
+cmap: colormap for real-valued panels.
+chroma: Oklab chroma for the phase hue of complex panels.</code></pre>
+</section>
+</section>
+<section id="scale-bars" class="level2">
+<h2 class="anchored" data-anchor-id="scale-bars">Scale bars</h2>
+<p><code>scatterem.vis.reconstruction_sampling</code></p>
+<section id="reconstruction_sampling" class="level3">
+<h3 class="anchored" data-anchor-id="reconstruction_sampling"><code>reconstruction_sampling</code></h3>
+<div class="sourceCode" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>reconstruction_sampling(dataset: <span class="st">'Any'</span>, image: <span class="st">'Any'</span> <span class="op">=</span> <span class="va">None</span>, <span class="op">*</span>, shape: <span class="st">'Sequence[int] | None'</span> <span class="op">=</span> <span class="va">None</span>, units: <span class="st">'tuple[str, str]'</span> <span class="op">=</span> (<span class="st">'Å'</span>, <span class="st">'Å'</span>)) <span class="op">-&gt;</span> <span class="st">'Sampling'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>Sampling</code> describing one pixel of a reconstructed image.</p>
+<p>The scan covered <code>scan_px * scan_step</code> of specimen; the reconstruction represents that same extent with <code>image_px</code> pixels, so::</p>
+<pre><code>pixel_size = scan_step * scan_px / image_px</code></pre>
+<p>which needs no knowledge of the upsample factor that was requested – it reads the factor off the result. That matters because <code>upsample="nyquist"</code> picks the factor from the data, so the caller may not know what it was.</p>
+<p>Args: dataset: the dataset the reconstruction came from. image: the reconstruction. Its last two dimensions give the output shape. shape: output shape, if you would rather pass it than the image. units: axis unit labels for the returned <code>Sampling</code>.</p>
+<p>Returns: A :class:<code>~scatterem.utils.data.sampling.Sampling</code> for the two real-space axes.</p>
+<p>Raises: ValueError: neither <code>image</code> nor <code>shape</code> was given, or the shape is not two-dimensional.</p>
+</section>
+</section>
+<section id="saving-and-loading" class="level2">
+<h2 class="anchored" data-anchor-id="saving-and-loading">Saving and loading</h2>
+<p><code>scatterem.io.store</code></p>
+<section id="serializable" class="level3">
+<h3 class="anchored" data-anchor-id="serializable"><code>Serializable</code></h3>
+<p>Mixin giving :meth:<code>save</code> and :meth:<code>load</code> to a class with a declared schema.</p>
+<p>Subclasses set :attr:<code>SERIAL_FIELDS</code> to the attribute names to persist, and must be constructible from those names as keyword arguments – or override :meth:<code>_from_fields</code> if construction needs more than that.</p>
+</section>
+<section id="read_schema" class="level3">
+<h3 class="anchored" data-anchor-id="read_schema"><code>read_schema</code></h3>
+<div class="sourceCode" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>read_schema(path: <span class="st">'str | Path'</span>) <span class="op">-&gt;</span> <span class="st">'dict[str, Any]'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The class, version and field list of a file, without constructing anything.</p>
+<p>Useful for telling why a load was refused.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scatterem\.github\.io\/scatterem");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Apache-2.0</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/scatterem/scatterem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li><li><a href="https://github.com/scatterem/scatterem/blob/main/docs/api.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p>Built with <a href="https://quarto.org">Quarto</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

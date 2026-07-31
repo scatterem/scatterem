@@ -1,0 +1,586 @@
+[
+  {
+    "objectID": "docs/quickstart.html",
+    "href": "docs/quickstart.html",
+    "title": "Quickstart",
+    "section": "",
+    "text": "The container needs the acquisition geometry, because every reconstruction here is calibrated — the fusion weights are functions of spatial frequency, so the code has to know what a pixel is worth.\nimport numpy as np\nfrom scatterem import Dataset4dstem\n\narray = np.load(\"my_4dstem.npy\")   # (scan_y, scan_x, det_y, det_x)\n\ndataset = Dataset4dstem.from_array(\n    array,\n    energy=300e3,                   # accelerating voltage, eV\n    semiconvergence_angle=19.7e-3,  # convergence semi-angle, rad\n    scan_step=0.25,                 # scan pitch, Angstrom\n    device=\"cuda\",\n)\nscan_step may be a scalar or a (dy, dx) pair. The reciprocal pixel size dk is measured from the bright-field disk rather than taken on faith — see Calibration, which is where most reconstruction problems actually live.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/quickstart.html#from-an-array",
+    "href": "docs/quickstart.html#from-an-array",
+    "title": "Quickstart",
+    "section": "",
+    "text": "The container needs the acquisition geometry, because every reconstruction here is calibrated — the fusion weights are functions of spatial frequency, so the code has to know what a pixel is worth.\nimport numpy as np\nfrom scatterem import Dataset4dstem\n\narray = np.load(\"my_4dstem.npy\")   # (scan_y, scan_x, det_y, det_x)\n\ndataset = Dataset4dstem.from_array(\n    array,\n    energy=300e3,                   # accelerating voltage, eV\n    semiconvergence_angle=19.7e-3,  # convergence semi-angle, rad\n    scan_step=0.25,                 # scan pitch, Angstrom\n    device=\"cuda\",\n)\nscan_step may be a scalar or a (dy, dx) pair. The reciprocal pixel size dk is measured from the bright-field disk rather than taken on faith — see Calibration, which is where most reconstruction problems actually live.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/quickstart.html#fit-the-aberrations",
+    "href": "docs/quickstart.html#fit-the-aberrations",
+    "title": "Quickstart",
+    "section": "Fit the aberrations",
+    "text": "Fit the aberrations\nThe reconstruction needs a decent aberration estimate, and the autofocus finds one by maximising image sharpness. It is a local optimisation, so it needs a starting point:\ndataset.meta.aberrations.array[0] = -50.0   # defocus, Angstrom\ndataset.determine_aberrations_(correct_order=2)\n\n\n\n\n\n\nGive it a defocus\n\n\n\nWith meta.aberrations all zero the autofocus has nothing to descend from, and it raises rather than silently returning something arbitrary. Any estimate within a factor of two or so of the truth is enough; the sign matters more than the magnitude.\nIndex 0 is C10, and defocus == -C10.\n\n\ncorrect_order=2 fits up to second order (defocus, two-fold astigmatism, coma, three-fold astigmatism). Raise it to reach spherical aberration; the higher orders need more signal to constrain.\nThe autofocus holds the scan rotation fixed, so meta.rotation must already be right on the way in. If you do not know it, see Calibration.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/quickstart.html#reconstruct",
+    "href": "docs/quickstart.html#reconstruct",
+    "title": "Quickstart",
+    "section": "Reconstruct",
+    "text": "Reconstruct\nptycho     = dataset.direct_ptychography()\ndark_field = dataset.tilt_corrected_dark_field()\nfused      = dataset.fused_full_field()\nEach takes upsample, which defaults to \"nyquist\" — the factor that brings the output pitch to the resolution the data can actually support, rather than a round number someone picked. Pass a float to override.\nAll three cache on the dataset, so fused_full_field() reuses the two channel reconstructions if you already ran them with the same parameters.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/quickstart.html#look-at-the-result",
+    "href": "docs/quickstart.html#look-at-the-result",
+    "title": "Quickstart",
+    "section": "Look at the result",
+    "text": "Look at the result\nfrom scatterem.vis.reconstruction_sampling import reconstruction_sampling\nfrom scatterem.vis.visualization import show_2d\n\nfig, ax = show_2d(fused, sampling=reconstruction_sampling(dataset, fused))\nfig.savefig(\"fused.png\", dpi=150, bbox_inches=\"tight\")\nPassing the sampling is what makes the scale bar read in Ångström instead of a.u. — and it must be the reconstruction’s sampling, not the dataset’s. The output is upsampled, so dataset.sampling would overstate the bar by the upsample factor: four-fold on the paper’s Fig. 4.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/quickstart.html#save-and-reload",
+    "href": "docs/quickstart.html#save-and-reload",
+    "title": "Quickstart",
+    "section": "Save and reload",
+    "text": "Save and reload\ndataset.save(\"carbon.h5\")\nsame = Dataset4dstem.load(\"carbon.h5\", device=\"cuda\")\nThe file records which fields it contains. If you later add or rename a field on the class, loading an old file fails and names the difference, rather than handing you a half-populated object. See scatterem.io.store.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/quickstart.html#the-named-datasets",
+    "href": "docs/quickstart.html#the-named-datasets",
+    "title": "Quickstart",
+    "section": "The named datasets",
+    "text": "The named datasets\nThe four specimens from the paper download themselves, verified by md5:\nfrom scatterem import You2026Carbon\n\ndataset = You2026Carbon(root=\"~/ffstem-data\", download=True, device=\"cuda\")\nThey arrive already calibrated. See Reproduce the paper.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/install.html",
+    "href": "docs/install.html",
+    "title": "Install",
+    "section": "",
+    "text": "pip install git+https://github.com/scatterem/scatterem\nPython 3.10 or newer. Ten runtime dependencies, all from PyPI.",
+    "crumbs": [
+      "Get started",
+      "Install"
+    ]
+  },
+  {
+    "objectID": "docs/install.html#about-the-gpu",
+    "href": "docs/install.html#about-the-gpu",
+    "title": "Install",
+    "section": "About the GPU",
+    "text": "About the GPU\nA CUDA GPU is not optional in practice. The reconstructions are FFT- and kernel-bound, and the NVIDIA Warp kernels that do the direct-ptychography work need one for anything past a small test. Everything runs on CPU, just slowly enough that you would not want to.\nIf the default torch wheel does not match your driver, install torch first from the index that does, then install this package — pip will leave your existing torch alone:\npip install torch --index-url https://download.pytorch.org/whl/cu128\npip install git+https://github.com/scatterem/scatterem\nimport scatterem initialises Warp, which compiles a few kernels the first time and prints a short banner. That is expected, and it is cached afterwards.\n\n\n\n\n\n\nTwo side effects on import\n\n\n\nimport scatterem sets torch.set_float32_matmul_precision(\"medium\") (TF32) and calls warp.init(). Both are inherited from the library the published reconstructions ran under, so results match — but if your own code depends on matmul precision, set it again after importing.",
+    "crumbs": [
+      "Get started",
+      "Install"
+    ]
+  },
+  {
+    "objectID": "docs/install.html#how-much-gpu-memory",
+    "href": "docs/install.html#how-much-gpu-memory",
+    "title": "Install",
+    "section": "How much GPU memory",
+    "text": "How much GPU memory\nPeak memory is set by the output grid, so it grows with scan size and upsampling rather than with detector size. Measured with torch.cuda.max_memory_allocated:\n\n\n\nReconstruction\nScan\nOutput\nPeak\n\n\n\n\nAmorphous carbon\n96²\n96²\n~1.2 GiB\n\n\nAu, low dose, reduced scan\n128²\n512²\n4.4 GiB\n\n\nAu, low dose, paper configuration\n256²\n1024²\n17.6 GiB\n\n\nGd₂O₃\n—\n1024²\n~19.6 GiB\n\n\n\n\n\n\n\n\n\nRaising n_batches does not reduce memory\n\n\n\nIt increases it. Measured on the Au reconstruction: n_batches of 15, 60 and 150 gave 17.6, 21.0 and 24.5 GiB, with bit-identical output. Halving upsample made it slightly worse too.\nShrinking the scan is the only effective lever. Pass scan_edge_crop to the named datasets, or crop your own array before constructing.",
+    "crumbs": [
+      "Get started",
+      "Install"
+    ]
+  },
+  {
+    "objectID": "docs/install.html#colab",
+    "href": "docs/install.html#colab",
+    "title": "Install",
+    "section": "Colab",
+    "text": "Colab\n\nThe notebook runs the Au low-dose reconstruction end to end on a free T4, at a reduced scan size that fits in 4.4 GiB. It needs a GPU runtime (Runtime → Change runtime type → T4 GPU) and nothing else — the code and the data are both public, and the dataset downloads itself, md5-verified.",
+    "crumbs": [
+      "Get started",
+      "Install"
+    ]
+  },
+  {
+    "objectID": "docs/install.html#from-source",
+    "href": "docs/install.html#from-source",
+    "title": "Install",
+    "section": "From source",
+    "text": "From source\ngit clone https://github.com/scatterem/scatterem\ncd scatterem\npip install -e \".[dev]\"\npytest",
+    "crumbs": [
+      "Get started",
+      "Install"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html",
+    "href": "docs/calibration.html",
+    "title": "Calibration",
+    "section": "",
+    "text": "Most reconstruction problems are calibration problems. The fusion weights are functions of spatial frequency, so if the mapping from detector pixels to reciprocal space is wrong, the weights are wrong, and the result is a plausible image that is quietly incorrect. This page is the short list of things to get right.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html#the-reciprocal-pixel-size-dk",
+    "href": "docs/calibration.html#the-reciprocal-pixel-size-dk",
+    "title": "Calibration",
+    "section": "The reciprocal pixel size, dk",
+    "text": "The reciprocal pixel size, dk\ndk is measured, not assumed. The bright-field disk has a known angular radius — the convergence semi-angle you supplied — so fitting its radius in pixels gives the conversion directly:\n\\[ dk = \\frac{\\alpha}{r_{\\mathrm{BF}}\\,\\lambda} \\]\nwith \\(r_\\mathrm{BF}\\) the fitted radius in pixels and \\(\\lambda\\) the relativistic electron wavelength. Dataset4dstem.from_array runs this fit during construction, and the named datasets arrive already calibrated.\nThe fit sweeps a set of intensity thresholds and takes the median radius, which is what makes it insensitive to where exactly you consider the disk edge to be. It refuses rather than guesses when the pattern has no compact bright region — a fit whose radius exceeds 40% of the detector usually means the input was not an averaged diffraction pattern at all.\ndk = dataset.calibrate_reciprocal_from_bright_field()\nprint(dataset.sampling)   # (dy, dx, dky, dkx)\n\n\n\n\n\n\nCounting detectors: pass a hot-pixel threshold\n\n\n\nOn an event-counting detector a single stuck pixel can dominate the maximum the threshold sweep is relative to, and the fit then locks onto that one pixel. If your detector counts, pass hot_pixel_threshold and check the fitted radius is physically sensible before trusting it.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html#the-scan-rotation",
+    "href": "docs/calibration.html#the-scan-rotation",
+    "title": "Calibration",
+    "section": "The scan rotation",
+    "text": "The scan rotation\nThe angle between the scan axes and the detector axes has to be right, and nothing downstream can infer it: the autofocus holds rotation fixed while it fits aberrations. A wrong rotation shows up as a reconstruction that is sharp along one direction and smeared along the other, or as a fused image with directional artefacts that no amount of aberration fitting removes.\nIf you know it from the microscope, set it:\ndataset.meta.rotation = 84.0   # degrees\nIf you do not, the centre-of-mass field of the bright-field disk determines it: the correct rotation is the one that makes that field a gradient — curl-free — because it is the gradient of the projected potential.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html#detector-orientation",
+    "href": "docs/calibration.html#detector-orientation",
+    "title": "Calibration",
+    "section": "Detector orientation",
+    "text": "Detector orientation\nWorth checking early, because it is easy to miss and it produces a specific, recognisable failure. If the detector’s axes are flipped relative to the scan, the parallax shifts come out with the wrong handedness, defocus fits toward zero, and the aberration fit reports a suspiciously small C10 regardless of the real defocus. A defocus that will not move off zero is worth suspecting a flip rather than a fitting problem.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html#the-aberration-starting-guess",
+    "href": "docs/calibration.html#the-aberration-starting-guess",
+    "title": "Calibration",
+    "section": "The aberration starting guess",
+    "text": "The aberration starting guess\nThe autofocus is a local optimisation. It needs a starting defocus, and it raises if meta.aberrations is all zero rather than descending from nothing:\ndataset.meta.aberrations.array[0] = -50.0   # C10, Angstrom; defocus == -C10\ndataset.determine_aberrations_(correct_order=2)\nThe sign matters more than the magnitude — an estimate within a factor of two is plenty, but the wrong sign can settle into a mirror-image solution with inverted contrast. Through-focus contrast inversion in direct ptychography is physical, not a bug, so a reconstruction that looks inverted may simply be on the other side of focus.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html#scan-step-and-upsampling",
+    "href": "docs/calibration.html#scan-step-and-upsampling",
+    "title": "Calibration",
+    "section": "Scan step and upsampling",
+    "text": "Scan step and upsampling\nscan_step is the pitch of the scan, in Ångström. The reconstruction is upsampled relative to it, by default to the factor that brings the output pitch to what the data can support (upsample=\"nyquist\").\nThat upsampling is why a scale bar needs the reconstruction’s sampling, not the dataset’s:\nfrom scatterem.vis.reconstruction_sampling import reconstruction_sampling\n\nsampling = reconstruction_sampling(dataset, fused)\nGetting this wrong overstates the bar by the upsample factor — four-fold on the paper’s Fig. 4, which is the difference between a correct figure and a wrong one.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html#sanity-checks-worth-running",
+    "href": "docs/calibration.html#sanity-checks-worth-running",
+    "title": "Calibration",
+    "section": "Sanity checks worth running",
+    "text": "Sanity checks worth running\n\ndk is not the placeholder. If dataset.sampling[2] is exactly 1.0, the bright-field fit fell back and everything downstream is in detector pixels, not inverse Ångström.\nThe reconstruction is finite. A NaN anywhere usually means a division by a zero SSNR, which in turn means an empty channel.\nThe bright-field radius is plausible. Print it. A radius near the detector half-width, or a couple of pixels, both mean the fit found the wrong thing.\nBoth channels look sensible on their own before you read the fused result. Fusion cannot rescue a channel that failed; it will just weight it down and leave a band with nothing in it.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "scatterem",
+    "section": "",
+    "text": "A 4D-STEM dataset holds more information than any single reconstruction recovers. Direct ptychography reads the phase gradient encoded in the bright-field disk and recovers low and mid spatial frequencies with high efficiency, but its transfer falls away past the disk. Tilt-corrected dark field reads the parallax shift of scattering outside the disk and recovers high frequencies, but carries almost nothing at low ones. Neither channel spans the band on its own, and used alone each leaves a gap where the other is strong.\nFused full-field STEM combines them as an SSNR-weighted Wiener fusion, so each spatial frequency is taken from whichever channel measures it better. The result is one image with no missing band.\nRun it now on a free GPU: the notebook installs the package, fetches one dataset from Zenodo and reconstructs it, with nothing to set up locally.\nThat is the whole pipeline. Each channel is also available on its own — dataset.direct_ptychography() and dataset.tilt_corrected_dark_field() — and all three share one calibration, so they land on the same grid.",
+    "crumbs": [
+      "Get started",
+      "scatterem"
+    ]
+  },
+  {
+    "objectID": "index.html#where-to-go-next",
+    "href": "index.html#where-to-go-next",
+    "title": "scatterem",
+    "section": "Where to go next",
+    "text": "Where to go next\n\n\n\nInstall\none pip install, plus what to know about GPUs\n\n\nQuickstart\nyour own data, from array to fused image\n\n\nThe method\nwhat each channel measures, and why fusing them works\n\n\nCalibration\nthe parameters that decide whether a reconstruction is correct\n\n\nReproduce the paper\nfour specimens, downloaded automatically\n\n\nAPI\nreference, generated from the source",
+    "crumbs": [
+      "Get started",
+      "scatterem"
+    ]
+  },
+  {
+    "objectID": "index.html#citing-this",
+    "href": "index.html#citing-this",
+    "title": "scatterem",
+    "section": "Citing this",
+    "text": "Citing this\nThe method is described in:\n\nS. You, G. Varnavides, S. Khavnekar, N. Palatkin, S. Shao, M. Wu, D. Stroppa, D. Chernikova, B. Zhu, R. Egoavil, S. Vespucci, D. Krishnan, X. Ye, F. K. M. Schur, E. Spiecker, P. Pelz. Gap-Free Information Transfer in 4D-STEM via Fusion of Complementary Scattering Channels. Advanced Science (2026) e76620. doi:10.1002/advs.76620\n\nCITATION.cff in the repository carries the same metadata in machine-readable form. The datasets are on Zenodo under 10.5281/zenodo.18008901, CC-BY-4.0 — please cite the record as well as the paper if you use them.",
+    "crumbs": [
+      "Get started",
+      "scatterem"
+    ]
+  },
+  {
+    "objectID": "index.html#scope",
+    "href": "index.html#scope",
+    "title": "scatterem",
+    "section": "Scope",
+    "text": "Scope\nThis repository is the FF-STEM pipeline: direct ptychography, tilt-corrected dark field, their fusion, and the calibration and I/O they need. The wider scatterem codebase covers iterative ptychography, tomography and multislice simulation; those parts accompany their own publications and are released with them.",
+    "crumbs": [
+      "Get started",
+      "scatterem"
+    ]
+  },
+  {
+    "objectID": "docs/api.html",
+    "href": "docs/api.html",
+    "title": "API reference",
+    "section": "",
+    "text": "Generated from the source by docs/_generate_api.py, so it cannot drift from the code. Everything below is public; anything not listed here is internal and may change without notice.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#container",
+    "href": "docs/api.html#container",
+    "title": "API reference",
+    "section": "Container",
+    "text": "Container\nscatterem.utils.data.datasets\n\nDataset4dstem\nUndocumented.\n\nfrom_array\nfrom_array(array: Any, name: str | None = None, origin: Union[numpy.ndarray[tuple[Any, ...], numpy.dtype[~_ScalarT]], tuple, list, float, int, NoneType] = None, sampling: Union[numpy.ndarray[tuple[Any, ...], numpy.dtype[~_ScalarT]], tuple, list, float, int, NoneType] = None, units: Union[list[str], tuple, list, NoneType] = None, signal_units: str = 'arb. units', meta: Optional[scatterem.utils.data.data_classes.Metadata4dstem] = None, transform_to_amplitudes: bool = False, fourier_shift_dim: Tuple = None, normalize: bool = True, clip_neg_values: bool = True, copy: bool = True, device: torch.device = device(type='cpu'), is_cropped: bool = False, out_of_core: bool = False, ooc_row_block: int = 8, g_residency: str = 'auto', energy: float | None = None, semiconvergence_angle: float | None = None, scan_step: Union[float, tuple, list, numpy.ndarray[tuple[Any, ...], numpy.dtype[~_ScalarT]], NoneType] = None, reciprocal_step: Union[float, tuple, list, numpy.ndarray[tuple[Any, ...], numpy.dtype[~_ScalarT]], NoneType] = None, rotation: float = 0.0, aberrations: Optional[ForwardRef('Aberrations')] = None) -&gt; 'Dataset4dstem'\nValidates and creates a Dataset from an array.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters",
+    "href": "docs/api.html#parameters",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\narray: Any The array to validate and create a Dataset from. name: str | None The name of the Dataset. origin: Union[NDArray, tuple, list, float, int] | None The origin of the Dataset. sampling: Union[NDArray, tuple, list, float, int] | None The sampling of the Dataset. units: Union[list[str], tuple, list] | None The units of the Dataset. signal_units: str The units of the signal. out_of_core: bool Keep the raw (uint16) cube as a CPU numpy array/memmap and stream it; nothing is uploaded to device here. See scatterem.utils.data.out_of_core. ooc_row_block: int Scan-row block size for streamed reductions (out-of-core only). g_residency: str “gpu” | “vbf_gpu” | “cpu_pinned” | “auto” — where the streaming vBF provider keeps G (out-of-core only). energy, semiconvergence_angle, scan_step, reciprocal_step, rotation, aberrations: Physics convenience path: when meta is None and energy is given, a Metadata4dstem is built internally (shape derived from array, sampling = (dr, dr, dk, dk) with dr from scan_step and dk from reciprocal_step – both scalar or a length-2 pair, dk defaulting to a (1.0, 1.0) placeholder to be calibrated later, e.g. via calibrate_reciprocal_from_bright_field). origin defaults to the array center in this path when not given explicitly.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#returns",
+    "href": "docs/api.html#returns",
+    "title": "API reference",
+    "section": "Returns",
+    "text": "Returns\nDataset The container, with any unset axis metadata filled in from the array’s rank.\n\ndetermine_aberrations_\ndetermine_aberrations_(self, correction_method: str = 'combined', fit_rotation: bool = False, target_percentage_nonzero_pixels: float = 0.75, n_batches: int = 25, registration_upsample_factor: int = 10, lowpass_fwhm_bright_field: Optional[float] = None, bin_factors: tuple[int, ...] = (2, 1, 1), verbosity: int = 0, correct_order: int = 1, gradient_mask: Optional[torch.Tensor] = None, num_iterations: int = 10, lr: float = 20, bright_field_mask_threshold: Optional[float] = None, roi_shape: tuple[int, int] = (128, 128), roi_center: Union[str, tuple[int, int]] = 'center', upsample: Union[int, str] = 'nyquist', update_dataset: bool = True, n_center_indices: int = 25, phase_sign: str = 'positive', sharpness_metric: str = 'sparsity', reg_weight: float = 0.05, alignment_method: str = 'reference') -&gt; None\nDetermine the aberrations with the method given in correction_method.\nArgs: correction_method: How to determine the aberrations. “combined” (default) chains the bright-field-shift low-order+rotation fit with the sharpness autofocus (higher orders, when correct_order&gt;=2); “bright-field-shifts” is low-order+rotation only; “autofocus” is the autofocus only (rotation fixed). The legacy “total-variation” is a deprecated alias for “autofocus”. sharpness_metric: Autofocus objective for the higher-order stage: “sparsity” (default, L4/kurtosis) or “tv”. reg_weight: L2 regularization (scaled units) toward the seed in the autofocus optimizer. fit_rotation: Whether to fit the rotation. target_percentage_nonzero_pixels: Target percentage of nonzero pixels for the bright field. n_batches: Number of batches for the bright field shifts. registration_upsample_factor: Upsampling factor for the registration. lowpass_fwhm_bright_field: FWHM of the lowpass filter for the bright field. bin_factors: Bin factors for the bright field. The default is (2, 1, 1). arrow_scale: Scale for the arrows in the plot. verbosity: Verbosity level. lr: Learning rate for the optimizer. Used for the autofocus stage. bright_field_mask_threshold: Threshold for the bright field. Used for bright field shifts. roi_shape: Shape of the region of interest. Used for bright field shifts. roi_center: Center of the region of interest. upsample: Upsampling factor for the diffraction pattern. Used for bright field shifts. correct_order: Order of the aberrations to correct. Used for the autofocus stage. num_iterations: Number of optimization iterations. Used for the autofocus stage. n_center_indices: Number of center indices to use for the bright field shifts. The default is 25.\n\n\ndirect_ptychography\ndirect_ptychography(self, upsample: Union[float, str] = 'nyquist', verbosity: int = 0, n_batches: int = 25, return_snr: bool = False, phase_sign: str = 'positive', ssnr_method: str = 'analytical', **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor | None]\nPerform direct ptychography reconstruction.\n\n\ntilt_corrected_dark_field\ntilt_corrected_dark_field(self, n_dark_field_segments: int = 32, verbosity: int = 0, bright_field_mask_threshold: Optional[float] = None, upsample: Union[float, str] = 'nyquist', return_snr: bool = False, snr_blur_sigma: float = 0.0, shift_method: str = 'drizzle', drizzle_pixfrac: float = 1.0, drizzle_kde_sigma: float = 0.0) -&gt; tuple[torch.Tensor, torch.Tensor | None]\nPerform tilt corrected dark field reconstruction.\nshift_method defaults to \"drizzle\" — a non-negative, ringing-free area-overlap splat (with drizzle_pixfrac / drizzle_kde_sigma), preferable for sparse/low-dose data. Pass \"fourier\" for the Fourier phase-ramp path (marginally sharper on dense, high-dose data).\n\n\nfused_full_field\nfused_full_field(self, n_batches: int = 32, upsample: Union[int, str] = 'nyquist', verbosity: int = 0, bright_field_mask_threshold: Optional[float] = None, return_snr: bool = True, snr_blur_sigma: float = 0.0, ssnr_method: str = 'analytical', ptycho_lowq_cutoff_frac: float = 0.0, tcdf_shift_method: str = 'drizzle', drizzle_pixfrac: float = 1.0, drizzle_kde_sigma: float = 0.0, n_dark_field_segments: int | None = None) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor]\nPerform fused full field reconstruction. Combine direct ptychography and tilt corrected dark field with SSNR-weighted Fourier fusion.\nptycho_lowq_cutoff_frac &gt; 0 hands the low-q band (below this fraction of Nyquist) exclusively to the dark-field, removing the direct-ptychography low-frequency cupping halo that otherwise leaks into the fused image.\nArgs: n_batches: Number of batches for processing. upsample: Upsampling factor for the diffraction pattern. verbosity: Verbosity level. bright_field_mask_threshold: Threshold for the bright field. return_snr: Whether to compute SSNR for weighting. snr_blur_sigma: Gaussian blur sigma for the empirical ptycho SSNR and the tcDF SSNR (the analytical ptycho SSNR ignores it). ssnr_method: How to compute the ptychography SSNR (“empirical” or “analytical”). Changing this invalidates the cached ptycho SSNR.\nReturns: tuple[torch.Tensor, torch.Tensor, torch.Tensor]: (fused, phase_weighted, tcdf_weighted)\n\n\ncalibrate_reciprocal_from_bright_field\ncalibrate_reciprocal_from_bright_field(self, semiconvergence_angle: Optional[float] = None, thresh_lower: float = 0.1, thresh_upper: float = 0.99, method: str = 'area') -&gt; float\nCalibrate the reciprocal-space pixel size dk from the measured bright-field disk radius and the known semiconvergence angle.\nEncapsulates the crop -&gt; measure -&gt; dk = alpha / rBF / wavelength -&gt; self.sampling = (dr, dr, dk, dk) dance every demo repeats. self is updated in place (via the sampling setter, which propagates to self.meta.sampling); the crop used to measure the disk is a scratch object (crop_brightfield_ returns a new dataset, built with normalize=False, clip_neg_values=False so it never writes back through its unclonded view into this dataset’s storage) and this dataset’s array is left untouched – only self.origin’s detector-plane entries are recentred and self._radius_bright_field is set, matching crop_brightfield_’s existing (self-mutating) behavior.\nArgs: semiconvergence_angle: Beam convergence semi-angle in radians. Defaults to self.meta.semiconvergence_angle. thresh_lower, thresh_upper: Intensity-threshold sweep bounds used both for the bright-field crop and the radius measurement. method: Radius-measurement method, forwarded to bright_field_radius_and_center_ (“area” or “circle”).\nReturns: float: The calibrated reciprocal-space sampling dk.\n\n\nbright_field_radius_and_center\nbright_field_radius_and_center(self, thresh_lower: float = 0.1, thresh_upper: float = 0.6, N: int = 100, method: str = 'area', edge_method: str = 'canny', min_edge_points: int = 100, ransac_iterations: int = 1000, ransac_threshold: float = 2.0) -&gt; Tuple[float, numpy.ndarray[tuple[Any, ...], numpy.dtype[~_ScalarT]]]\nCenter and radius of the bright-field disk in pixels; center is [y, x].\nDelegates to :func:scatterem.utils.data.disk_fit.fit_bright_field_disk. The edge_method and ransac_* arguments belong to a RANSAC circle fit that this release does not carry; they are accepted so callers forwarding the full argument list keep working, and are otherwise unused.\n\n\nsave\nsave(self, path: 'str | Path', *, overwrite: 'bool' = False) -&gt; 'Path'\nWrite to path. Returns the path written.\n\n\nload\nload(path: 'str | Path', *, device: 'str | torch.device' = 'cpu')\nRead an instance of cls from path.\nRaises: SerializationError: the file holds a different class, a schema version this code cannot read, or a field list that does not match cls.SERIAL_FIELDS.\n\n\nDatasetVirtualBrightField4dstem\nA virtual bright field 4D STEM dataset with metadata for electron diffraction patterns.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#reconstruction",
+    "href": "docs/api.html#reconstruction",
+    "title": "API reference",
+    "section": "Reconstruction",
+    "text": "Reconstruction\nscatterem.reconstruction\n\ndirect_ptychography\ndirect_ptychography(dataset: scatterem.utils.data.datasets.Dataset4dstem | scatterem.utils.data.datasets.DatasetVirtualBrightField4dstem, upsample: Union[float, str] = 'nyquist', bright_field_mask_threshold: float = 0.5, verbosity: int = 0, n_batches: int = 25, return_snr: bool = False, phase_sign: Literal['preserve', 'positive', 'negative'] = 'positive', ssnr_method: str = 'analytical', **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor | None]\nPerforms a joint ptychography reconstruction and aberration determination. Args: dataset: Dataset4dstem or DatasetVirtualBrightField4dstem object containing the diffraction pattern. upsample: Upsampling factor for the diffraction pattern. bright_field_mask_threshold: Threshold for the bright field. verbosity: Verbosity level. n_batches: Number of batches for the vBF. return_snr: Whether to compute the ptychography SSNR (method selected by ssnr_method). phase_sign: Resolve the global phase sign ambiguity. “positive” flips negative-skew phase images so atom columns are positive, “negative” enforces the opposite sign, and “preserve” leaves the raw direct-ptycho sign unchanged. ssnr_method: How to compute the SSNR when return_snr is True. “analytical” (default) uses the phase-contrast-transfer-function noise model (CTF-aware: ptycho SSNR -&gt; 0 at low q, no DC/low-q transfer); “empirical” reconstructs a checkerboard BF half-split and forms the raw half-difference power ratio (data-driven, better at high dose).\nReturns: torch.Tensor: The reconstructed phase image (Imaginary part). torch.Tensor | None: The SNR of the reconstructed phase image if return_snr is True, otherwise None.\nRaises: ValueError: If the dataset is not a valid Dataset4dstem object. ValueError: If the upsample is invalid.\n\n\ntilt_corrected_dark_field\ntilt_corrected_dark_field(dataset: scatterem.utils.data.datasets.Dataset4dstem, n_dark_field_segments: int = 32, verbosity: int = 0, bright_field_mask_threshold: float = 0.3, upsample: Union[float, str] = 'nyquist', return_snr: bool = False, snr_blur_sigma: float = 0.0, shift_method: str = 'drizzle', drizzle_pixfrac: float = 1.0, drizzle_kde_sigma: float = 0.0) -&gt; tuple[torch.Tensor, torch.Tensor | None]\nTilt-corrected dark-field reconstruction.\nshift_method selects how each azimuthal dark-field segment is sub-pixel shifted (by its parallax shift) and accumulated onto the up-sampled grid:\n\n\"drizzle\" (default) — area-overlap drizzle (box splat + hit-map normalization). Non-negative and ringing-free, which is the physically correct behaviour for counting data: at low dose the segment images are single electron counts and Fourier shifting turns each into a sinc with ~20% negative side-lobes. drizzle_pixfrac sets the drop size (fraction of an input pixel; 1.0 fills the grid from one frame) and drizzle_kde_sigma optionally Nadaraya-Watson-smooths sparse holes.\n\"fourier\" — Fourier zero-pad upsample + phase-ramp shift. Marginally sharper on dense, well-sampled (high-dose) data, but rings on sparse data.\n\n\n\nfused_full_field\nfused_full_field(dataset: scatterem.utils.data.datasets.Dataset4dstem, ptycho_image: torch.Tensor, tcdf_image: torch.Tensor, ptycho_ssnr: torch.Tensor, tcdf_ssnr: torch.Tensor, verbosity=0, taper: bool = False, q_soft_start_frac: float = 0.5, q_soft_end_frac: float = 0.7, q_hard_cutoff_frac: float = 1.0, ptycho_lowq_cutoff_frac: float = 0.0) -&gt; torch.Tensor\nUndocumented.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#named-datasets",
+    "href": "docs/api.html#named-datasets",
+    "title": "API reference",
+    "section": "Named datasets",
+    "text": "Named datasets\nscatterem.datasets\n\nYou2026Carbon\nAmorphous carbon, 300 kV (paper Figure 2).\n\n\nYou2026Co3O4\nCo3O4, 200 kV (paper Figure 2).\n\n\nYou2026AuLowDose\nAu nanoparticle, 200 kV, low dose (paper Figure 4).\nThree files: the Dectris master plus its two external data blocks. The 180 deg rotation is this acquisition’s known scan/detector offset.\nArgs: repair_bad_pixels: Replace the known-bad 2x2 detector patch with the nanmean of its surrounding ring. Default True. scan_edge_crop: Number of scan rows/columns to drop from each edge. Default 128.\n\n\nYou2026Gd2O3\nGd2O3 nanoparticles, 60 kV (paper Figure 1).\n(512, 512, 112, 112) uint16, ~6.5 GB. The 84 deg scan rotation is load-bearing: the bright-field-shift parallax auto-fit is unreliable on this low-dose data, and without the correct rotation the aberration autofocus absorbs the error into a spurious ~85 A astigmatism.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#metadata",
+    "href": "docs/api.html#metadata",
+    "title": "API reference",
+    "section": "Metadata",
+    "text": "Metadata\nscatterem.utils.data.data_classes\n\nMetadata4dstem\nMetadata4dstem(energy: float, semiconvergence_angle: float, sampling: Union[numpy.ndarray[tuple[Any, …], numpy.dtype[~_ScalarT]], tuple, list, float, int], shape: numpy.ndarray[tuple[typing.Any, …], numpy.dtype[~_ScalarT]], units: Union[list[str], tuple, list, NoneType] = None, rotation: Optional[float] = 0, defocus_guess: Optional[float] = 0, aberrations: Optional[scatterem.utils.data.aberrations.Aberrations] = None, slice_thickness: Optional[float] = 0, sample_thickness_guess: Optional[float] = 0, vacuum_probe: Optional[torch.Tensor] = None, scan_affine: Optional[torch.Tensor] = None)",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#aberrations",
+    "href": "docs/api.html#aberrations",
+    "title": "API reference",
+    "section": "Aberrations",
+    "text": "Aberrations\nscatterem.utils.aberration_basis\n\ncartesian_chi\ncartesian_chi(qy: 'Tensor', qx: 'Tensor', wavelength: 'float', coefficients: 'Sequence[float] | Tensor') -&gt; 'Tensor'\nEvaluate the aberration phase chi in radians.\nArgs: qy: reciprocal-space y coordinates, in inverse Angstrom. qx: reciprocal-space x coordinates, same shape as qy. wavelength: electron wavelength in Angstrom (see :func:scatterem.utils.physics.electron_wavelength). coefficients: the 12 cartesian coefficients in :data:COEFFICIENT_NAMES order, in Angstrom.\nReturns: chi with the broadcast shape of qy and qx.\n\n\ncartesian_to_polar\ncartesian_to_polar(cartesian: 'Dict[str, float]') -&gt; 'Dict[str, float]'\nConvert cartesian aberration pairs to magnitude and angle.\nThe magnitude is non-negative and the angle is the one that satisfies C * cos(m * (phi - phi_m)) == Ca * cos(m*phi) + Cb * sin(m*phi), so the returned pair describes the same wavefront as its input. Missing entries are taken as zero.\nThe angle is only determined modulo 2*pi/m – an m-fold term is physically unchanged by such a rotation – and is returned in the branch atan2 gives, i.e. within +-pi/m.\n\n\npolar_to_cartesian\npolar_to_cartesian(polar: 'Dict[str, float]') -&gt; 'Dict[str, float]'\nConvert magnitude/angle aberrations to the cartesian pairs.\nMissing entries are taken as zero, so a caller may pass only the coefficients it cares about.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#calibration-helpers",
+    "href": "docs/api.html#calibration-helpers",
+    "title": "API reference",
+    "section": "Calibration helpers",
+    "text": "Calibration helpers\nscatterem.utils.data.disk_fit\n\nfit_bright_field_disk\nfit_bright_field_disk(dp, *, threshold_range: 'Tuple[float, float]' = (0.25, 0.75), n_thresholds: 'int' = 100, max_radius_fraction: 'float' = 0.4, min_contrast: 'float' = 3.0) -&gt; 'Tuple[float, NDArray]'\nRadius and centre of the central bright-field disk, in pixels.\nArgs: dp: 2D averaged diffraction pattern (torch tensor or numpy array). threshold_range: low and high sweep limits as fractions of the spike-free maximum. Keep it symmetric about 0.5 – that symmetry is what makes the median unbiased. Widen it for a very soft edge. n_thresholds: number of thresholds in the sweep. max_radius_fraction: reject a fit whose radius exceeds this fraction of the smaller detector dimension. Guards against “fitting” a pattern that has no compact disk, where the sweep returns a radius of order the detector itself. min_contrast: reject a fit whose median intensity inside the disk is not at least this many times the median outside it.\nReturns: (radius, centre) with radius in pixels as a float and centre as a 2-element numpy array ordered [y, x].\nRaises: ValueError: if dp is not 2D, or if the pattern contains no identifiable bright-field disk.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#physics",
+    "href": "docs/api.html#physics",
+    "title": "API reference",
+    "section": "Physics",
+    "text": "Physics\nscatterem.utils.physics\n\nelectron_wavelength\nelectron_wavelength(accelerating_voltage: 'float') -&gt; 'float'\nReturn the relativistic electron wavelength in Angstrom.\nAn electron accelerated through V volts gains kinetic energy eV. Its momentum follows from the relativistic energy-momentum relation, and the de Broglie relation turns that into a wavelength::\nlambda = h / sqrt(2 m0 e V (1 + e V / (2 m0 c^2)))\nThe bracketed factor is the relativistic correction; it is negligible below a few hundred volts and reaches ~1.2 at 200 kV, where ignoring it would overstate the wavelength by roughly 10%.\nArgs: accelerating_voltage: the accelerating voltage in volts (e.g. 200e3 for a 200 kV microscope). Must be positive.\nReturns: The wavelength in Angstrom.\nRaises: ValueError: if accelerating_voltage is not positive.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#grids",
+    "href": "docs/api.html#grids",
+    "title": "API reference",
+    "section": "Grids",
+    "text": "Grids\nscatterem.utils.grids\n\nfft_frequencies_2d\nfft_frequencies_2d(shape: 'Sequence[int]', sampling: 'Sequence[float]' = (1.0, 1.0), half_pixel_shift: 'bool' = False, device: 'str | torch.device' = 'cpu', dtype: 'torch.dtype | None' = None) -&gt; 'Tensor'\nStacked (qy, qx) FFT frequencies for a 2D grid.\nArgs: shape: grid dimensions (ny, nx). sampling: real-space pixel size (dy, dx); frequencies come out in the reciprocal of whatever unit this is given in. half_pixel_shift: offset both axes by half a frequency bin. Use for quantities defined on pixel centres rather than pixel edges. device: device for the returned tensor. dtype: floating dtype for the returned tensor; torch’s default if omitted.\nReturns: A tensor of shape (2, ny, nx) whose first slice is qy and second is qx, matching torch.fft axis order.\n\n\nradial_average\nradial_average(image, sampling: 'Sequence[float]')\nRadial average of a corner-origin 2D array, over FFT frequency bins.\nReplaces utils/utils.radial_average2, which is a py4DSTEM (GPL-3.0) derivative. Written here from the definition instead.\nEach pixel contributes to the two bins its |q| falls between, in proportion to how close it lies to each — a linear (area-weighted) partition rather than nearest-bin assignment, which is what keeps a radial profile from developing sawtooth ripple at small radii where few pixels land per bin. The two contributions are accumulated in one pass by concatenating them, so the normalising count and the weighted sum each need a single bincount.\nArgs: image: 2D array with the zero frequency at [0, 0], as torch.fft produces. numpy array or torch tensor. sampling: real-space pixel size (dy, dx); the returned frequencies are in the reciprocal of that unit.\nReturns: (q_bins, profile), truncated to the largest frequency represented on both axes so the tail is not built from corner pixels alone.\nOne deliberate difference from the replaced function: it truncated at the x axis maximum only, so with anisotropic sampling it returned bins past the shorter axis’ Nyquist, where a “ring” is really a pair of corner wedges. This truncates at the smaller of the two. On a square grid with equal sampling — every case the published figures use — the two agree to machine precision (measured max abs difference 2e-15, same bin count); with anisotropic sampling this returns a shorter profile, which matters to a caller slicing the result by index.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#visualisation",
+    "href": "docs/api.html#visualisation",
+    "title": "API reference",
+    "section": "Visualisation",
+    "text": "Visualisation\nscatterem.vis.visualization\n\nshow_2d\nshow_2d(array, *, sampling=None, scalebar='auto', figax=None, axsize=(4, 4), tight_layout=True, combine_images=False, clip_percentile: Optional[Tuple[float, float]] = None, **kwargs)\nDisplay one or more 2D arrays in a grid.\nAccepts a numpy array, a torch tensor, or a (nested) sequence of either. sampling (a :class:Sampling or a dict of its fields) drives the physical scale bar; if omitted, the object’s .sampling_meta is used if present, otherwise the bar falls back to a.u..\nscalebar: \"auto\" (default) draws a bar; False/None disables it; a dict/ScalebarConfig configures it explicitly.\nclip_percentile: optional (low, high) percentiles (0-100). When given, the display vmin/vmax are computed from those percentiles of each array’s finite values, absorbing the common p02 = quantile(...); img -= p02 boilerplate.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#colour",
+    "href": "docs/api.html#colour",
+    "title": "API reference",
+    "section": "Colour",
+    "text": "Colour\nscatterem.vis.complex_color\n\ncomplex_to_rgba\ncomplex_to_rgba(amplitude: 'NDArray', phase: 'NDArray | None' = None, *, cmap: 'str' = 'gray', chroma: 'float' = 0.13) -&gt; 'NDArray'\nColour an image, using phase as hue when it is given.\nArgs: amplitude: values in [0, 1] (normalise before calling). phase: angles in radians. When None, cmap is applied and the result is an ordinary colormapped image. cmap: matplotlib colormap name, used only when phase is None. chroma: Oklab chroma for the phase wheel. The default is a compromise – high enough for hue to read, low enough to stay in gamut across most of the lightness range.\nReturns: (..., 4) RGBA in [0, 1], alpha fully opaque.\n\n\nphase_wheel\nphase_wheel(n: 'int' = 256, *, lightness: 'float' = 0.72, chroma: 'float' = 0.13)\n(colors, angles) for a phase colorbar: one full turn of hue.\nlightness is fixed so the bar reads as hue alone. The default sits near the middle of the range where the sRGB gamut is widest, so the wheel keeps its chroma all the way round instead of desaturating at some hues.\n\n\ntile_to_rgba\ntile_to_rgba(rows, *, norm=None, cmap: 'str' = 'gray', chroma: 'float' = 0.13) -&gt; 'NDArray'\nComposite a grid of same-shaped images into one RGBA mosaic.\nReplaces list_of_arrays_to_rgba. Each entry is coloured independently and the results are tiled, so a bright panel cannot darken its neighbours – the alternative, one normalisation across the whole grid, makes every panel but the brightest unreadable.\nArgs: rows: sequence of rows, each a sequence of same-shaped 2D arrays. norm: callable mapping amplitude to [0, 1], applied to each panel. If omitted, each panel is scaled by its own finite min and max.\n    This argument is not optional in spirit: :func:`complex_to_rgba`\n    requires ``[0, 1]`` and *clips*, so handing it raw data silently\n    renders a 0..1000 image as 99.9% pure white. An earlier version of\n    this function did exactly that.\ncmap: colormap for real-valued panels.\nchroma: Oklab chroma for the phase hue of complex panels.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#scale-bars",
+    "href": "docs/api.html#scale-bars",
+    "title": "API reference",
+    "section": "Scale bars",
+    "text": "Scale bars\nscatterem.vis.reconstruction_sampling\n\nreconstruction_sampling\nreconstruction_sampling(dataset: 'Any', image: 'Any' = None, *, shape: 'Sequence[int] | None' = None, units: 'tuple[str, str]' = ('Å', 'Å')) -&gt; 'Sampling'\nSampling describing one pixel of a reconstructed image.\nThe scan covered scan_px * scan_step of specimen; the reconstruction represents that same extent with image_px pixels, so::\npixel_size = scan_step * scan_px / image_px\nwhich needs no knowledge of the upsample factor that was requested – it reads the factor off the result. That matters because upsample=\"nyquist\" picks the factor from the data, so the caller may not know what it was.\nArgs: dataset: the dataset the reconstruction came from. image: the reconstruction. Its last two dimensions give the output shape. shape: output shape, if you would rather pass it than the image. units: axis unit labels for the returned Sampling.\nReturns: A :class:~scatterem.utils.data.sampling.Sampling for the two real-space axes.\nRaises: ValueError: neither image nor shape was given, or the shape is not two-dimensional.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#saving-and-loading",
+    "href": "docs/api.html#saving-and-loading",
+    "title": "API reference",
+    "section": "Saving and loading",
+    "text": "Saving and loading\nscatterem.io.store\n\nSerializable\nMixin giving :meth:save and :meth:load to a class with a declared schema.\nSubclasses set :attr:SERIAL_FIELDS to the attribute names to persist, and must be constructible from those names as keyword arguments – or override :meth:_from_fields if construction needs more than that.\n\n\nread_schema\nread_schema(path: 'str | Path') -&gt; 'dict[str, Any]'\nThe class, version and field list of a file, without constructing anything.\nUseful for telling why a load was refused.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/figures.html",
+    "href": "docs/figures.html",
+    "title": "Reproduce the paper",
+    "section": "",
+    "text": "Four scripts under experiments/ff_stem/, one per specimen. Each downloads its dataset from Zenodo on first run and verifies it by md5, so the only thing to decide is where the data should live:\nEach writes .png and .npy for all three channels into experiments/ff_stem/outputs/.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "Reproduce the paper"
+    ]
+  },
+  {
+    "objectID": "docs/figures.html#the-specimens",
+    "href": "docs/figures.html#the-specimens",
+    "title": "Reproduce the paper",
+    "section": "The specimens",
+    "text": "The specimens\n\n\n\nScript\nSpecimen\nDownload\nOutput\nPeak GPU\n\n\n\n\nFig2_carbon.py\namorphous carbon\n0.34 GB\n96²\n~1.2 GiB\n\n\nFig2_Co3O4.py\nCo₃O₄\n0.56 GB\n185²\n—\n\n\nFig4_diffraction.py\nAu, low dose\n0.50 GB\n1024²\n17.6 GiB\n\n\nFig1_Gd2O3.py\nGd₂O₃\n6.6 GB\n1024²\n~19.6 GiB\n\n\n\nCarbon is the one to run first: smallest download, about a second of reconstruction, and it exercises the whole pipeline.\n\n\n\n\n\n\nFitting a smaller GPU\n\n\n\nFig4_diffraction.py takes scan_edge_crop, which trims the scan and so shrinks the output. The paper uses 128 (256² scan → 1024² output, 17.6 GiB); 192 gives 128² → 512² at 4.4 GiB, which is what the Colab notebook runs; 224 gives 64² → 256² at 2.5 GiB.\nReducing the scan is the lever that works. Raising n_batches increases peak memory — measured 17.6, 21.0 and 24.5 GiB for 15, 60 and 150 batches, with bit-identical output.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "Reproduce the paper"
+    ]
+  },
+  {
+    "objectID": "docs/figures.html#what-each-script-does",
+    "href": "docs/figures.html#what-each-script-does",
+    "title": "Reproduce the paper",
+    "section": "What each script does",
+    "text": "What each script does\nThe same five steps, with per-specimen parameters:\n\nConstruct the named dataset, which downloads, verifies, and calibrates dk from the bright-field disk.\nSet the scan rotation, and a starting defocus for the autofocus.\ndetermine_aberrations_ — fit aberrations by sharpness, rotation held fixed.\nReconstruct all three channels.\nSave each with a physical scale bar.\n\nReading one script is enough to see how to apply the pipeline to your own data; Quickstart is the same thing without the paper’s parameters.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "Reproduce the paper"
+    ]
+  },
+  {
+    "objectID": "docs/figures.html#verifying-your-run",
+    "href": "docs/figures.html#verifying-your-run",
+    "title": "Reproduce the paper",
+    "section": "Verifying your run",
+    "text": "Verifying your run\nEach script prints a summary line and asserts the things that quietly go wrong:\n[Fig2-carbon] OK: dp(96, 96) tcdf(96, 96) fff(96, 96) dk=0.042126 finite=True\ndk must not be 1.0 — that is the uncalibrated placeholder, and it means the bright-field fit fell back. finite=True means no NaNs, which otherwise indicate a channel that produced nothing and a division by a zero SSNR.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "Reproduce the paper"
+    ]
+  },
+  {
+    "objectID": "docs/figures.html#comparison-plots",
+    "href": "docs/figures.html#comparison-plots",
+    "title": "Reproduce the paper",
+    "section": "Comparison plots",
+    "text": "Comparison plots\nWhere a reference is available — a simulated potential for carbon, a phantom for Co₃O₄ — the scripts also emit a side-by-side comparison. Those references are not in the Zenodo record, so the scripts skip that step and say so rather than failing:\n[Fig2-carbon] reference carbon72_potential.npy not found; skipping comparison plot.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "Reproduce the paper"
+    ]
+  },
+  {
+    "objectID": "docs/figures.html#numerical-differences-from-the-published-figures",
+    "href": "docs/figures.html#numerical-differences-from-the-published-figures",
+    "title": "Reproduce the paper",
+    "section": "Numerical differences from the published figures",
+    "text": "Numerical differences from the published figures\nTwo are worth knowing about.\nThe bright-field disk fit is an independent implementation, and end to end through the crop-and-refit it lands within 0.152% of the original dk. That shifts the reciprocal scale by well under the uncertainty on the convergence angle itself, but it is not bit-identical.\nScale-bar lengths are chosen on a 1-2-5 ladder, so a bar may be a different round number than in the paper — 10 Å where the paper shows 5 Å on the same field, for instance. The bar is correct; only which round number it picks differs.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "Reproduce the paper"
+    ]
+  },
+  {
+    "objectID": "docs/method.html",
+    "href": "docs/method.html",
+    "title": "The method",
+    "section": "",
+    "text": "A converged probe illuminates a specimen and a pixelated detector records the full diffraction pattern at every scan position. What reaches the detector splits naturally in two, and the split is where the method starts.\nInside the bright-field disk, the transmitted beam interferes with itself. Weak-phase scattering shifts the intensity distribution across the disk in proportion to the local phase gradient, which is what single-side-band ptychography reads. That works beautifully at low and mid spatial frequencies — each frequency is measured by a pair of overlapping beams, and the overlap is large — but the overlap shrinks as the spatial frequency approaches twice the convergence angle, and past it there is none. Transfer falls to zero.\nOutside the disk, scattering is incoherent to good approximation, and a dark-field detector segment sees an image that shifts with defocus and with the segment’s angle — a parallax. Correcting those shifts and summing recovers high spatial frequencies well. But a dark-field segment carries almost no low-frequency information: at low frequency the parallax shift is small and the signal is dominated by thickness and composition rather than phase.\nSo each channel is strong exactly where the other is weak. Neither spans the band.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "The method"
+    ]
+  },
+  {
+    "objectID": "docs/method.html#two-channels-two-halves-of-the-band",
+    "href": "docs/method.html#two-channels-two-halves-of-the-band",
+    "title": "The method",
+    "section": "",
+    "text": "A converged probe illuminates a specimen and a pixelated detector records the full diffraction pattern at every scan position. What reaches the detector splits naturally in two, and the split is where the method starts.\nInside the bright-field disk, the transmitted beam interferes with itself. Weak-phase scattering shifts the intensity distribution across the disk in proportion to the local phase gradient, which is what single-side-band ptychography reads. That works beautifully at low and mid spatial frequencies — each frequency is measured by a pair of overlapping beams, and the overlap is large — but the overlap shrinks as the spatial frequency approaches twice the convergence angle, and past it there is none. Transfer falls to zero.\nOutside the disk, scattering is incoherent to good approximation, and a dark-field detector segment sees an image that shifts with defocus and with the segment’s angle — a parallax. Correcting those shifts and summing recovers high spatial frequencies well. But a dark-field segment carries almost no low-frequency information: at low frequency the parallax shift is small and the signal is dominated by thickness and composition rather than phase.\nSo each channel is strong exactly where the other is weak. Neither spans the band.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "The method"
+    ]
+  },
+  {
+    "objectID": "docs/method.html#fusing-them",
+    "href": "docs/method.html#fusing-them",
+    "title": "The method",
+    "section": "Fusing them",
+    "text": "Fusing them\nThe fusion is a Wiener combination in the Fourier domain. Writing \\(P(\\mathbf{q})\\) and \\(D(\\mathbf{q})\\) for the two channels’ spectra and \\(\\mathrm{SSNR}_P, \\mathrm{SSNR}_D\\) for their spectral signal-to-noise ratios,\n\\[\nF(\\mathbf{q}) \\;=\\;\n\\frac{\\mathrm{SSNR}_P(\\mathbf{q})\\, P(\\mathbf{q})\n    + \\mathrm{SSNR}_D(\\mathbf{q})\\, D(\\mathbf{q})}\n     {\\mathrm{SSNR}_P(\\mathbf{q}) + \\mathrm{SSNR}_D(\\mathbf{q})}\n\\]\nwhich is the minimum-variance linear estimator when the two channels’ noise is independent. Each frequency is taken from whichever channel measures it better, with the crossover placed by the data rather than by a chosen cutoff. Where one SSNR vanishes the sum reduces to the other channel; where both are finite the result is better than either.\nThe SSNR estimates are what make this more than a heuristic blend, and they are measured, not assumed: the scan is split into two interleaved half-sets in a checkerboard, each is reconstructed independently, and their difference gives the noise power while their mean gives the signal power, frequency by frequency. That costs two reconstructions per channel instead of one, and it means the weights adapt to dose, thickness and specimen without a parameter to tune.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "The method"
+    ]
+  },
+  {
+    "objectID": "docs/method.html#sub-pixel-accumulation",
+    "href": "docs/method.html#sub-pixel-accumulation",
+    "title": "The method",
+    "section": "Sub-pixel accumulation",
+    "text": "Sub-pixel accumulation\nTilt-corrected dark field shifts each azimuthal segment by its parallax shift and accumulates. How that shift is applied matters at low dose, and there are two options.\nshift_method=\"fourier\" zero-pads and applies a phase ramp. It is exact for dense, band-limited signals.\nshift_method=\"drizzle\" (the default) treats each input pixel as a small square drop, places it at the shifted position, and distributes its flux to the output pixels it overlaps by area — the drizzle of Fruchter & Hook (2002), specialised to pure translations on a regular grid. Because every weight is non-negative, the result is non-negative for non-negative input, and flux is conserved exactly.\nThe difference shows up when the frames are sparse. At very low dose a segment image is a handful of single electron counts, and Fourier shifting turns each isolated count into a sinc: roughly 20% negative side-lobes, with energy spread across the whole frame. Drizzle has no ringing to spread.\n\n\n\n\n\n\nNote\n\n\n\nThe paper’s figures were produced with the Fourier path; drizzle came afterwards. Both are available, and on dense high-dose data they agree closely — on amorphous carbon the fused images correlate to 0.9992.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "The method"
+    ]
+  },
+  {
+    "objectID": "docs/method.html#what-this-is-not",
+    "href": "docs/method.html#what-this-is-not",
+    "title": "The method",
+    "section": "What this is not",
+    "text": "What this is not\nThe direct ptychography here is non-iterative. It is a single linear inversion of the bright-field intensity, not a phase-retrieval loop, so it has no convergence behaviour, no step size and no initialisation beyond the aberration estimate. That is why it runs in under a second on a 96² scan. It also means it inherits the weak- phase approximation: strong scatterers and thick specimens depart from it, and an iterative multislice reconstruction will do better there.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "The method"
+    ]
+  },
+  {
+    "objectID": "docs/method.html#reading-further",
+    "href": "docs/method.html#reading-further",
+    "title": "The method",
+    "section": "Reading further",
+    "text": "Reading further\n\nThe paper: doi:10.1002/advs.76620\nSingle-side-band ptychography: Rodenburg & Bates (1992); Pennycook et al. (2015)\nTilt-corrected bright/dark field and parallax: Ophus et al. (2016)\nDrizzle: Fruchter & Hook, PASP 114, 144 (2002)\nSub-pixel registration: Guizar-Sicairos, Thurman & Fienup, Opt. Lett. 33, 156 (2008)",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "The method"
+    ]
+  }
+]
