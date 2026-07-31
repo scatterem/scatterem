@@ -47,8 +47,8 @@ website:
 format:
   html:
     theme:
-      light: cosmo
-      dark: darkly
+      light: [cosmo, theme.scss]
+      dark: [darkly, theme.scss]
     toc: true
     code-copy: true
     code-overflow: wrap

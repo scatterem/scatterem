@@ -1,0 +1,553 @@
+/*-- scss:defaults --*/
+
+// The palette is not decoration: it is this software's own phase wheel.
+// vis/complex_color.py colours a complex image by putting amplitude in Oklab
+// lightness and phase in hue, with chroma reduced only where sRGB cannot hold it.
+// The six petals of the logo are that wheel sampled every 60 degrees, and these
+// values come out of the repository's own `oklch_to_srgb` and
+// `_max_in_gamut_chroma` at L = 0.68 with a chroma ceiling of 0.19.
+//
+//   orange  oklch(0.68 0.190  35)      teal     oklch(0.68 0.120 215)
+//   amber   oklch(0.68 0.140  95)      violet   oklch(0.68 0.190 300)
+//   green   oklch(0.68 0.190 145)      magenta  oklch(0.68 0.190 350)
+//
+// Written in oklch() rather than hex so that every tint below is a perceptually
+// even step, and so `color-mix` interpolates without the muddy midpoints sRGB
+// gives you.
+
+// Quarto's Bootstrap layer runs colour maths on these ($primary and friends feed
+// its contrast function, which calls sass:color.red and accepts legacy sRGB only),
+// so the SCSS variables are hex. They are not hand-picked hex: each is the sRGB
+// form of the oklch() value in the comment above, produced by this repository's own
+// gamut mapper. The oklch() originals live in the custom properties below, where
+// the browser evaluates them and no preprocessor is involved.
+
+$petal-orange:  #f6623d;  // oklch(0.68 0.190  35)
+$petal-amber:   #b39600;  // oklch(0.68 0.140  95)
+$petal-green:   #33b544;  // oklch(0.68 0.190 145)
+$petal-teal:    #00aac6;  // oklch(0.68 0.120 215)
+$petal-violet:  #ac77fa;  // oklch(0.68 0.190 300)
+$petal-magenta: #ea5da9;  // oklch(0.68 0.190 350)
+
+$primary:   $petal-violet;
+$secondary: $petal-teal;
+$success:   $petal-green;
+$warning:   $petal-amber;
+$danger:    $petal-orange;
+$info:      $petal-magenta;
+
+$link-color: #8d55e0;     // violet, darkened for text contrast on paper
+$body-bg:    #fefdff;     // oklch(0.995 0.004 300)
+$body-color: #211d27;     // oklch(0.24  0.020 300)
+
+$font-family-sans-serif: "Inter var", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+$font-family-monospace: "JetBrains Mono", "SF Mono", ui-monospace, "Cascadia Code", monospace;
+$headings-font-weight: 640;
+$border-radius: 0.65rem;
+
+$code-bg: #f7f6fb;        // oklch(0.975 0.008 300)
+$code-color: #772473;     // oklch(0.42  0.150 330)
+
+/*-- scss:rules --*/
+
+// ---------------------------------------------------------------------------
+// The wheel, as custom properties. @property makes --spin animatable, which a
+// plain custom property is not: an un-registered property has no type, so the
+// browser cannot interpolate it and a conic-gradient rotation just snaps.
+// ---------------------------------------------------------------------------
+
+@property --spin {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --sheen {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+:root {
+  --petal-1: oklch(0.68 0.190  35);
+  --petal-2: oklch(0.68 0.140  95);
+  --petal-3: oklch(0.68 0.190 145);
+  --petal-4: oklch(0.68 0.120 215);
+  --petal-5: oklch(0.68 0.190 300);
+  --petal-6: oklch(0.68 0.190 350);
+
+  --ink:      oklch(0.24 0.020 300);
+  --ink-soft: oklch(0.48 0.020 300);
+  --paper:    oklch(0.995 0.004 300);
+  --paper-2:  oklch(0.975 0.008 300);
+  --edge:     oklch(0.90 0.010 300);
+
+  // One wheel definition, reused by the mark, the rules and the code accents.
+  --wheel: conic-gradient(
+    from var(--spin),
+    var(--petal-1), var(--petal-2), var(--petal-3),
+    var(--petal-4), var(--petal-5), var(--petal-6), var(--petal-1)
+  );
+
+  --rhythm: clamp(1rem, 0.6rem + 1.4vw, 1.75rem);
+
+  color-scheme: light dark;
+  scrollbar-color: color-mix(in oklab, var(--petal-5) 45%, var(--edge)) transparent;
+  scrollbar-gutter: stable;
+  accent-color: var(--petal-5);
+}
+
+// Dark mode, hand-tuned rather than inverted: lightness moves, hue does not, so
+// the wheel stays the same wheel.
+.quarto-dark {
+  --ink:      oklch(0.94 0.014 300);
+  --ink-soft: oklch(0.72 0.018 300);
+  --paper:    oklch(0.17 0.022 300);
+  --paper-2:  oklch(0.22 0.026 300);
+  --edge:     oklch(0.32 0.024 300);
+
+  --petal-1: oklch(0.76 0.180  35);
+  --petal-2: oklch(0.80 0.150  95);
+  --petal-3: oklch(0.78 0.180 145);
+  --petal-4: oklch(0.78 0.130 215);
+  --petal-5: oklch(0.78 0.170 300);
+  --petal-6: oklch(0.76 0.180 350);
+
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  // A whisper of the wheel behind everything, at the corners the eye ignores.
+  background-image:
+    radial-gradient(60rem 40rem at 8% -10%, color-mix(in oklab, var(--petal-5) 9%, transparent), transparent 70%),
+    radial-gradient(50rem 36rem at 100% 4%, color-mix(in oklab, var(--petal-4) 8%, transparent), transparent 70%);
+  background-attachment: fixed;
+}
+
+// ---------------------------------------------------------------------------
+// Cross-document view transitions. Two lines, and every navigation in the site
+// cross-fades instead of flashing white. Ignored where unsupported.
+// ---------------------------------------------------------------------------
+
+@view-transition {
+  navigation: auto;
+}
+
+// ---------------------------------------------------------------------------
+// Reading progress, driven by scroll position rather than by script. The
+// animation's timeline IS the scroller, so there is no scroll listener and
+// nothing to throttle.
+// ---------------------------------------------------------------------------
+
+body::before {
+  content: "";
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 2000;
+  block-size: 2px;
+  background: var(--wheel);
+  transform-origin: 0 50%;
+  scale: 0 1;
+  animation: read linear both;
+  animation-timeline: scroll(root block);
+}
+
+@keyframes read {
+  to { scale: 1 1; }
+}
+
+// ---------------------------------------------------------------------------
+// The mark. The logo rebuilt in CSS: six petals as a conic gradient, punched
+// into a rosette by a radial mask, turning slowly. No image request, scales to
+// any size, and it recolours with the theme because it is the same wheel.
+// ---------------------------------------------------------------------------
+
+.navbar-brand-container::before {
+  content: "";
+  inline-size: 1.6em;
+  aspect-ratio: 1;
+  margin-inline-end: 0.55em;
+  border-radius: 50%;
+  background: var(--wheel);
+  // Six lobes: a repeating conic hard-stop pattern, softened, intersected with
+  // a ring so the middle stays open like the logo's.
+  mask-image:
+    repeating-conic-gradient(from 0deg, #000 0deg 42deg, transparent 42deg 60deg),
+    radial-gradient(circle, transparent 26%, #000 30% 92%, transparent 96%);
+  mask-composite: intersect;
+  filter: saturate(1.15);
+  animation: turn 24s linear infinite;
+}
+
+@keyframes turn {
+  to { --spin: 360deg; }
+}
+
+.navbar-brand-container:hover::before {
+  animation-duration: 3s;
+}
+
+// ---------------------------------------------------------------------------
+// Chrome: navbar and sidebar
+// ---------------------------------------------------------------------------
+
+.navbar {
+  background: color-mix(in oklab, var(--paper) 72%, transparent);
+  backdrop-filter: blur(14px) saturate(1.3);
+  border-block-end: 1px solid var(--edge);
+  box-shadow: none;
+
+  .navbar-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    // Gradient wordmark. background-clip:text needs a transparent fill to show.
+    background: var(--wheel);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: drift 18s linear infinite alternate;
+  }
+}
+
+@keyframes drift {
+  to { background-position: 100% 0; }
+}
+
+.navbar .nav-link {
+  position: relative;
+  color: var(--ink-soft);
+  font-weight: 520;
+  transition: color 0.18s ease;
+
+  // Underline that grows from the centre, coloured per position so the nav
+  // reads left-to-right around the wheel.
+  &::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0.55rem;
+    inset-block-end: 0.25rem;
+    block-size: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    scale: 0 1;
+    transition: scale 0.22s cubic-bezier(0.2, 0.9, 0.2, 1);
+  }
+
+  &:hover, &:focus-visible { color: var(--ink); }
+  &:hover::after, &:focus-visible::after { scale: 1 1; }
+}
+
+// The current section. cosmo paints .nav-link.active white, for the dark navbar
+// it assumes; this navbar is glass over paper, so white is invisible. Specificity
+// has to match theirs (.navbar-nav .nav-link.active) to win, and while we are here
+// the active item may as well carry its underline permanently.
+.navbar .navbar-nav .nav-link.active {
+  color: var(--ink);
+  font-weight: 620;
+
+  &::after {
+    scale: 1 1;
+    background: var(--wheel);
+  }
+}
+
+.navbar .navbar-nav > .nav-item:nth-child(1) .nav-link:hover { color: var(--petal-3); }
+.navbar .navbar-nav > .nav-item:nth-child(2) .nav-link:hover { color: var(--petal-4); }
+.navbar .navbar-nav > .nav-item:nth-child(3) .nav-link:hover { color: var(--petal-5); }
+.navbar .navbar-nav > .nav-item:nth-child(4) .nav-link:hover { color: var(--petal-6); }
+
+#quarto-sidebar {
+  background: transparent;
+
+  .sidebar-item-text { transition: color 0.16s ease; }
+
+  .sidebar-link {
+    border-radius: 0.4rem;
+    padding-inline: 0.5rem;
+    color: var(--ink-soft);
+
+    &:hover {
+      background: color-mix(in oklab, var(--petal-5) 8%, transparent);
+      color: var(--ink);
+    }
+  }
+
+  // The active page gets a petal-coloured bar. :has() lets the container react
+  // to its own descendant's state, which previously needed a class on the parent.
+  .sidebar-item:has(.active) {
+    position: relative;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset-block: 0.1rem;
+      inset-inline-start: -0.55rem;
+      inline-size: 3px;
+      border-radius: 3px;
+      background: var(--wheel);
+    }
+  }
+
+  .sidebar-item .active {
+    color: var(--ink);
+    font-weight: 640;
+  }
+
+  .sidebar-item-section > .sidebar-item-container .sidebar-item-text {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: color-mix(in oklab, var(--ink-soft) 80%, var(--petal-5));
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Type
+// ---------------------------------------------------------------------------
+
+h1, .title {
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+p, li { text-wrap: pretty; }
+
+#title-block-header .title {
+  font-size: clamp(2.1rem, 1.2rem + 3.4vw, 3.4rem);
+  line-height: 1.04;
+  // The wheel read as a line rather than a circle: ink into violet into teal,
+  // so the title carries the mark's colour without competing with it.
+  background: linear-gradient(
+    100deg,
+    var(--ink) 8%,
+    color-mix(in oklab, var(--petal-5) 85%, var(--ink)) 48%,
+    color-mix(in oklab, var(--petal-4) 88%, var(--ink)) 78%,
+    color-mix(in oklab, var(--petal-3) 80%, var(--ink))
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+#title-block-header .subtitle {
+  color: var(--ink-soft);
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  text-wrap: balance;
+}
+
+h2 {
+  margin-block-start: calc(var(--rhythm) * 1.6);
+  padding-block-end: 0.3rem;
+  border-block-end: 1px solid transparent;
+  // A rule that fades out rather than stopping dead.
+  border-image: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--petal-5) 55%, transparent),
+      transparent 65%
+    ) 1;
+}
+
+// Section numbers as petals, cycling the wheel down the page.
+h2, h3 { scroll-margin-block-start: 5rem; }
+
+a:not(.nav-link):not(.sidebar-link):not(.btn) {
+  color: color-mix(in oklab, var(--petal-5) 82%, var(--ink));
+  text-decoration-color: color-mix(in oklab, var(--petal-5) 40%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color 0.16s ease, color 0.16s ease;
+
+  &:hover {
+    color: var(--petal-6);
+    text-decoration-color: currentColor;
+  }
+}
+
+::selection {
+  background: color-mix(in oklab, var(--petal-4) 30%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--petal-5);
+  outline-offset: 3px;
+  border-radius: 0.25rem;
+}
+
+// ---------------------------------------------------------------------------
+// Code. The accent cycles the wheel so consecutive blocks are distinguishable
+// at a glance when you are scanning for the one you were reading.
+// ---------------------------------------------------------------------------
+
+div.sourceCode {
+  position: relative;
+  border: 1px solid var(--edge);
+  border-radius: 0.75rem;
+  background: var(--paper-2);
+  overflow: clip;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    inline-size: 3px;
+    background: var(--petal-5);
+  }
+
+  &:nth-of-type(6n + 1)::before { background: var(--petal-1); }
+  &:nth-of-type(6n + 2)::before { background: var(--petal-2); }
+  &:nth-of-type(6n + 3)::before { background: var(--petal-3); }
+  &:nth-of-type(6n + 4)::before { background: var(--petal-4); }
+  &:nth-of-type(6n + 5)::before { background: var(--petal-5); }
+  &:nth-of-type(6n + 6)::before { background: var(--petal-6); }
+
+  pre { background: transparent; }
+}
+
+code:not(.sourceCode) {
+  background: color-mix(in oklab, var(--petal-6) 10%, var(--paper-2));
+  color: color-mix(in oklab, var(--petal-6) 55%, var(--ink));
+  padding: 0.12em 0.36em;
+  border-radius: 0.3rem;
+  font-size: 0.9em;
+}
+
+.code-copy-button {
+  color: var(--ink-soft);
+  &:hover { color: var(--petal-5); }
+}
+
+// ---------------------------------------------------------------------------
+// Callouts: a petal edge and a hairline, instead of a coloured slab.
+// ---------------------------------------------------------------------------
+
+.callout {
+  border: 1px solid var(--edge);
+  border-radius: 0.75rem;
+  border-inline-start-width: 3px;
+  background: color-mix(in oklab, var(--paper-2) 70%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.callout.callout-style-default .callout-title { background: transparent; }
+.callout-note      { border-inline-start-color: var(--petal-4); }
+.callout-tip       { border-inline-start-color: var(--petal-3); }
+.callout-warning   { border-inline-start-color: var(--petal-2); }
+.callout-important { border-inline-start-color: var(--petal-1); }
+.callout-caution   { border-inline-start-color: var(--petal-6); }
+
+// ---------------------------------------------------------------------------
+// Tables and figures
+// ---------------------------------------------------------------------------
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+
+  thead th {
+    border-block-end: 2px solid transparent;
+    border-image: linear-gradient(90deg, var(--petal-5), var(--petal-4)) 1;
+    font-weight: 640;
+  }
+
+  tbody tr:nth-child(odd) {
+    background: color-mix(in oklab, var(--petal-5) 3.5%, transparent);
+  }
+}
+
+.quarto-figure img, p > img {
+  border-radius: 0.6rem;
+  border: 1px solid var(--edge);
+  // Reconstructions are mostly dark; a soft halo keeps them off the page edge.
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.05), 0 8px 24px -12px oklch(0 0 0 / 0.25);
+}
+
+// Container queries, not viewport queries: the figure grid reflows on the width
+// of the column it is in, which is what actually decides whether two fit.
+#quarto-document-content {
+  container-type: inline-size;
+  container-name: doc;
+}
+
+@container doc (min-width: 46rem) {
+  .cell-output-display:has(> p > img + img) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    gap: var(--rhythm);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The landing page's Colab badge, given room to breathe
+// ---------------------------------------------------------------------------
+
+p:has(> a.colab-badge), .colab-badge {
+  margin-block: calc(var(--rhythm) * 1.1);
+
+  img {
+    border: 0;
+    box-shadow: 0 2px 10px -3px color-mix(in oklab, var(--petal-2) 60%, transparent);
+    transition: translate 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  a:hover img {
+    translate: 0 -2px;
+    box-shadow: 0 8px 20px -6px color-mix(in oklab, var(--petal-2) 75%, transparent);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Footer and TOC
+// ---------------------------------------------------------------------------
+
+#quarto-margin-sidebar .nav-link {
+  border-inline-start: 2px solid var(--edge);
+  color: var(--ink-soft);
+
+  &.active {
+    border-inline-start-color: var(--petal-5);
+    color: var(--ink);
+    background: transparent;
+  }
+}
+
+.nav-footer {
+  border-block-start: 1px solid var(--edge);
+  color: var(--ink-soft);
+  background:
+    linear-gradient(90deg,
+      color-mix(in oklab, var(--petal-5) 6%, transparent),
+      transparent 40%);
+}
+
+// ---------------------------------------------------------------------------
+// Motion is decoration. Anyone who has asked for less of it gets none.
+// ---------------------------------------------------------------------------
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+  }
+
+  body::before { scale: 1 1; }
+
+  @view-transition { navigation: none; }
+}
+
+// Where oklch() is not understood the whole palette would collapse to
+// transparent, so fall back to the sRGB equivalents of the same six colours.
+@supports not (color: oklch(0.7 0.1 200)) {
+  :root {
+    --petal-1: #f6623d; --petal-2: #b39600; --petal-3: #33b544;
+    --petal-4: #00aac6; --petal-5: #ac77fa; --petal-6: #ea5da9;
+    --ink: #2b2733; --ink-soft: #6a6577; --paper: #fdfcff;
+    --paper-2: #f6f4fa; --edge: #e2dfe9;
+  }
+}

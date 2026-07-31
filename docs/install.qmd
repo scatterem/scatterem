@@ -62,7 +62,7 @@ named datasets, or crop your own array before constructing.
 
 ## Colab
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb)
+<a href="https://colab.research.google.com/github/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb" class="colab-badge"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open the demo notebook in Google Colab"></a>
 
 The [notebook](https://github.com/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb)
 runs the Au low-dose reconstruction end to end on a free T4, at a reduced scan
