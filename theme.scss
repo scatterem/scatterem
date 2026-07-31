@@ -73,6 +73,15 @@ $code-color: #8a2172;
 }
 
 :root {
+  // ---------------------------------------------------------------------------
+  // The light palette is the BASE and dark is the override below. Both are
+  // declared on :root -- the same element -- deliberately:
+  // custom properties inherit, so a value on `body` would beat one on `:root` for
+  // everything inside body by proximity, no matter the specificity. Keeping both
+  // on one element means specificity alone decides, which is what the override
+  // below relies on.
+  // ---------------------------------------------------------------------------
+
   --c-red:        oklch(0.635 0.209  34.7);
   --c-orange:     oklch(0.735 0.176  55.9);
   --c-yellow:     oklch(0.903 0.176  98.2);
@@ -87,8 +96,10 @@ $code-color: #8a2172;
   --paper-2:  oklch(0.972 0.008 302);
   --edge:     oklch(0.895 0.010 302);
 
-  // The logo's own sweep, in its own order: the warm run, then the cool one. Used
-  // for rules, accents and the progress bar, so they all read as the same object.
+  --logo-ring: var(--edge);
+  --chip-bg:   color-mix(in oklab, var(--c-magenta) 14%, var(--paper-2));
+  --chip-fg:   color-mix(in oklab, var(--c-magenta) 60%, var(--ink));
+
   --sweep: linear-gradient(
     90deg,
     var(--c-red), var(--c-orange), var(--c-yellow), var(--c-chartreuse),
@@ -108,6 +119,44 @@ $code-color: #8a2172;
   scrollbar-color: color-mix(in oklab, var(--c-violet) 45%, var(--edge)) transparent;
   scrollbar-gutter: stable;
   accent-color: var(--c-violet);
+}
+
+// ---------------------------------------------------------------------------
+// Dark. This is what a first-time visitor sees: listing `dark:` before `light:` in
+// _quarto.yml sets Quarto's `authorPrefersDark`, which makes the page start in the
+// alternate scheme. The toggle then switches to light.
+//
+// Not keyed on `.quarto-dark`/`.quarto-light`: Quarto labels every stylesheet link
+// data-mode="light" when a theme is a list containing a custom .scss, so the body
+// class never changes and anything hanging off it is dead. Keyed instead on the
+// state Quarto really does change -- it flips the alternate stylesheet's `rel`
+// between "stylesheet" and "disabled-stylesheet" -- which :has() can see.
+//
+// Because it reads the live DOM rather than a build-time label, this is also immune
+// to which bundle Quarto decides is primary, and to the third never-disabled copy
+// of the primary bundle it emits with class quarto-color-scheme-extra. All three
+// bundles carry these same rules, so whichever wins the cascade, they agree.
+//
+// The selector's specificity comfortably beats the :root above; both are on the
+// same element, so specificity is what decides.
+// ---------------------------------------------------------------------------
+
+:root:has(link#quarto-bootstrap.quarto-color-alternate[rel="stylesheet"]) {
+  --c-red:        oklch(0.700 0.200  34.7);
+  --c-orange:     oklch(0.780 0.170  55.9);
+  --c-yellow:     oklch(0.900 0.170  98.2);
+  --c-chartreuse: oklch(0.800 0.180 126.8);
+  --c-blue:       oklch(0.720 0.150 246.3);
+  --c-violet:     oklch(0.680 0.190 302.0);
+  --c-magenta:    oklch(0.700 0.190 334.1);
+
+  --ink:      oklch(0.94 0.014 302);
+  --ink-soft: oklch(0.72 0.018 302);
+  --paper:    oklch(0.17 0.022 302);
+  --paper-2:  oklch(0.22 0.026 302);
+  --edge:     oklch(0.32 0.024 302);
+
+  --logo-ring: color-mix(in oklab, var(--edge) 70%, transparent);
 }
 
 // Dark mode lives in theme-dark.scss, which is listed only in the dark theme so
@@ -177,7 +226,7 @@ body::before {
   border-radius: 0.3em;
   margin-inline-end: 0.5em;
   // The logo is dark; on paper it needs an edge, and in dark mode it needs none.
-  box-shadow: 0 0 0 1px var(--edge), 0 1px 3px -1px oklch(0 0 0 / 0.3);
+  box-shadow: 0 0 0 1px var(--logo-ring), 0 1px 3px -1px oklch(0 0 0 / 0.3);
   transition: scale 0.2s cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 0.2s ease;
 }
 
@@ -414,8 +463,8 @@ div.sourceCode {
 }
 
 code:not(.sourceCode) {
-  background: color-mix(in oklab, var(--c-magenta) 10%, var(--paper-2));
-  color: color-mix(in oklab, var(--c-magenta) 55%, var(--ink));
+  background: var(--chip-bg);
+  color: var(--chip-fg);
   padding: 0.12em 0.36em;
   border-radius: 0.3rem;
   font-size: 0.9em;

@@ -49,9 +49,15 @@ website:
 
 format:
   html:
+    # Listing `dark` FIRST is what makes it the default: Quarto reads the order of
+    # these keys to emit `authorPrefersDark`, which decides the scheme a first-time
+    # visitor gets. The keys keep their honest meaning, so Quarto still pairs the
+    # syntax-highlighting sheets correctly -- putting the dark bootswatch in the
+    # `light` slot instead does make the page dark, but then the light syntax
+    # colours land on dark paper and the code becomes unreadable.
     theme:
+      dark: [darkly, theme.scss]
       light: [cosmo, theme.scss]
-      dark: [darkly, theme.scss, theme-dark.scss]
     toc: true
     code-copy: true
     code-overflow: wrap
