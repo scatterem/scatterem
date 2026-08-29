@@ -97,7 +97,7 @@ same = Dataset4dstem.load("carbon.h5", device="cuda")
 The file records which fields it contains. If you later add or rename a field on
 the class, loading an old file **fails** and names the difference, rather than
 handing you a half-populated object. See
-[`scatterem.io.store`](api.qmd#scatteremiostore).
+[`scatterem.io.store`](api.qmd#saving-and-loading).
 
 ## The named datasets
 

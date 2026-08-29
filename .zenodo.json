@@ -43,6 +43,12 @@
       "identifier": "10.1002/advs.76620",
       "scheme": "doi",
       "resource_type": "publication-article"
+    },
+    {
+      "relation": "isSupplementTo",
+      "identifier": "arXiv:2607.00756",
+      "scheme": "arxiv",
+      "resource_type": "publication-preprint"
     }
   ]
 }

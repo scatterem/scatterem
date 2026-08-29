@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "scatterem"
 version = "0.2.0"
-description = "Fused full-field STEM: direct ptychography, tilt-corrected dark field, and their SSNR-weighted fusion"
+description = "Fused full-field 4D-STEM reconstruction, and BiP-PRISM core-loss STEM-EELS simulation"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
@@ -20,6 +20,10 @@ keywords = [
     "ptychography",
     "dark field",
     "phase retrieval",
+    "EELS",
+    "multislice",
+    "PRISM",
+    "simulation",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

@@ -8,7 +8,7 @@ project:
 website:
   title: "scatterem"
   favicon: favicon.png
-  description: "Fused full-field STEM: gap-free information transfer in 4D-STEM"
+  description: "Fused full-field 4D-STEM reconstruction, and BiP-PRISM core-loss STEM-EELS simulation"
   site-url: "https://scatterem.github.io/scatterem"
   repo-url: "https://github.com/scatterem/scatterem"
   repo-actions: [issue, source]
@@ -20,6 +20,8 @@ website:
         href: docs/install.qmd
       - text: "The method"
         href: docs/method.qmd
+      - text: "Simulate STEM-EELS"
+        href: docs/eels.qmd
       - text: "Reproduce the paper"
         href: docs/figures.qmd
       - text: "API"
@@ -39,6 +41,10 @@ website:
         contents:
           - docs/method.qmd
           - docs/calibration.qmd
+      - section: "Simulation"
+        contents:
+          - docs/eels.qmd
+          - docs/bip-prism.qmd
       - section: "Reference"
         contents:
           - docs/figures.qmd

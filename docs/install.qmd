@@ -36,6 +36,24 @@ reconstructions ran under, so results match — but if your own code depends on
 matmul precision, set it again after importing.
 :::
 
+## For STEM-EELS simulation
+
+The simulation code needs nothing beyond the above to run, but it needs `gpaw` to
+be *quantitative*: it supplies the all-electron bound and continuum radial
+wavefunctions the ionization transition potentials are built from.
+
+```bash
+pip install gpaw gpaw-data
+```
+
+Prebuilt wheels are available, so this does not normally need libxc, MPI or a
+Fortran toolchain. Without it the code falls back to hydrogenic orbitals and a
+free continuum, which exercise the whole pipeline but do not give accurate
+cross-sections — see [Simulate STEM-EELS](eels.qmd#transition-potentials-and-the-gpaw-question).
+
+Atomic wavefunctions and transition potentials are cached on disk once computed.
+Set `SCATTEREM_EELS_CACHE` to put that somewhere with room.
+
 ## How much GPU memory
 
 Peak memory is set by the *output* grid, so it grows with scan size and

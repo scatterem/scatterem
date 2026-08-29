@@ -1,0 +1,213 @@
+---
+title: "BiP-PRISM"
+---
+
+## What makes core-loss EELS expensive
+
+A core-loss STEM-EELS simulation is a double-channelling problem. The probe has to
+be propagated dynamically *to* an atom that ionizes, the ionization event has to be
+applied there, and the inelastically scattered wave has to be propagated
+dynamically *from* that atom to the detector. Both legs are multislice.
+
+Written out, the conventional transition-potential multislice does this for every
+combination of scan position, ionized atom and transition channel. With $P$ scan
+positions, $N_a$ atoms of the ionized element and $N_t$ channels, that is
+$P N_a N_t$ exit-wave propagations. The scan is the painful factor: it is the one
+that grows when you ask for the atomic-resolution map you actually wanted.
+
+## The scattering matrix removes the scan
+
+PRISM's idea is that the entrance leg does not depend on where the probe is. A
+converged probe is a sum of plane waves over the aperture, and multislice is
+linear, so propagating each of the $B$ aperture beams once gives a basis
+$\mathcal{S}_1$ from which the probe at *any* scan position is recovered as a
+linear combination — the coefficients are the aperture's phase ramps. One
+propagation of $B$ columns replaces $P$ propagations of one probe.
+
+The exit leg yields to the same argument, and this is the step that makes
+detector-integrated maps cheap. Everything after the transition potential is
+linear too, so
+
+$$
+\psi_{\text{exit}}(\boldsymbol{\rho}) \;=\;
+\mathcal{S}_2\Big[\,H_{n0}\sum_b c_b(\boldsymbol{\rho})\,\mathcal{S}_{1,b}\Big]
+\;=\;
+\sum_b c_b(\boldsymbol{\rho})\;\mathcal{S}_2\big[\,H_{n0}\,\mathcal{S}_{1,b}\big] .
+$$
+
+The expensive operator acts on the $B$ columns, not on the $P$ probes, and the
+scan is synthesised afterwards by the same coefficients that formed it. For a
+detector-integrated map $\mathcal{S}_2$ can be built once per slice as a
+*transpose* multislice of the detector-accepted output beams — by reciprocity,
+running the detector backwards is the same calculation as running the source
+forwards — and then reused across every atom in that slice. The per-scan exit
+propagation disappears entirely. This is the dual-matrix algorithm of Brown,
+Ciston & Ophus.
+
+## What is left is memory
+
+Having traded time for structure, the cost reappears as storage. $\mathcal{S}_1$
+is $B$ complex arrays on the full $N \times N$ grid; $\mathcal{S}_2$ is $n_{\text{det}}$
+of them, and the detector is usually the wider aperture of the two. Both are
+resident. On the FePt nanoparticle below, the exact dual matrix needs 63 GB — more
+than any consumer card, and more than most cluster cards.
+
+## Partitioning both matrices
+
+Beam partitioning attacks exactly this. Neighbouring beams in the aperture differ
+only by a small tilt, so their columns, once de-tilted, are locally similar. Build
+the matrix on a sparse set of $B_p \ll B$ *parent* beams, and reconstruct the
+column you need for any beam by natural-neighbour interpolation of the parents —
+de-tilt, combine with the interpolation weights, re-tilt.
+
+The reconstruction is only ever needed **locally**, and that is the point. The
+ionization operator $H_{n0}(\mathbf{r} - \boldsymbol{\tau})$ has sub-ångström
+support around the atom at $\boldsymbol{\tau}$, so it *is* the crop: the columns
+only have to be right inside a small window, never across the whole grid.
+
+**BiP-PRISM** — bi-partitioned PRISM — applies this to both matrices at once:
+$\mathcal{S}_1$ on parent aperture beams, $\mathcal{S}_2$ on parent detector
+beams, each reconstructed on the crop window around the ionized atom immediately
+before the contraction
+
+$$
+\big[\mathcal{S}H_{n0}\big]_{db}
+\;=\;
+\sum_{\mathbf{r}\,\in\,\Omega_\tau}
+\mathcal{S}_{2,d}(\mathbf{r})\,H_{n0}(\mathbf{r}-\boldsymbol{\tau})\,\mathcal{S}_{1,b}(\mathbf{r}) .
+$$
+
+Both reconstructions resolve *before* the contraction, on the window, and the
+window is small — so the resident matrices shrink from $B$ and $n_{\text{det}}$
+columns to $B_p$ each, while the arithmetic that consumes them is unchanged.
+
+::: {.callout-note}
+## Why the 4D cube only partitions $\mathcal{S}_1$
+
+`prism_transition_potential` keeps the full exit diffraction pattern, so it makes
+no detector reduction and $\mathcal{S}_2$ never becomes a matrix to partition — it
+stays an on-the-fly multislice of the column basis. `partition` there applies to
+$\mathcal{S}_1$ alone; `interpolation_factor` is the lever for the exit leg. Only
+the detector-integrated map (`prism_eels_image`) has two matrices to partition,
+and that is where the large savings are.
+:::
+
+## The locality result, and when it fails
+
+Because the reconstruction is used only where $H_{n0}$ is non-zero, the error of
+the whole simulation is governed entirely by the reconstruction error *on the
+atom*. Nothing else in the algorithm approximates anything: the parent
+propagations are exact multislice, the contraction is exact, the scan synthesis is
+exact. This is what makes the approximation predictable rather than merely
+empirical — there is one quantity to watch, and it is local.
+
+The paper characterises this by sweeping a single column's conditions against an
+exact-PRISM oracle, and the consequences are narrower than one might guess:
+
+**Thickness is the binding failure mode.** The on-atom reconstruction error grows
+with the propagation distance the parents have travelled before the ionization
+plane, and the map error tracks it. Deep atoms in thick specimens are where more
+parents are needed.
+
+**Defocus and edge choice are not.** Cube and map error stay near 1% out to 200 Å
+of defocus, and across edges from O-K to Cu-L. An earlier reading of the on-atom
+diagnostic suggested defocus was a failure mode; that turned out to be an artefact
+of the fixed diagnostic box — a defocused probe delocalises out of it and collapses
+the normalisation. The full-grid error is stable, so the box diagnostic is an
+in-focus instrument while the method itself tolerates defocus.
+
+## Accuracy, and the one caveat worth knowing
+
+Increasing the parent count reduces the error monotonically toward the exact
+result, but the two kinds of error do not converge at the same rate.
+
+*Pattern* fidelity is excellent almost immediately. *Absolute scale* converges
+more slowly, and the reason is coherent: the de-tilted parent columns are combined
+as complex numbers, and averaging phases that have partly decohered gives
+$|\sum_p w_p T_p| < \sum_p w_p |T_p|$, so the reconstruction loses amplitude.
+
+Measured here on a Ti-L map of a 6×6×16-cell SrTiO₃ slab (256² grid, 576 ionized
+atoms, 64² scan), against the exact dual matrix at the same interpolation factor:
+
+| | Correlation | Intensity vs exact | Scale-normalised RMS |
+|---|---|---|---|
+| `n_radial=2` | 0.980 | 0.51× | 0.17 |
+| `n_radial=4` | 0.987 | 0.61× | 0.14 |
+| `n_radial=8` | 0.9997 | 0.95× | 0.02 |
+
+At sparse partitions the map is pattern-faithful and roughly a factor of two too
+small. Splitting the two sides at `n_radial=4` shows where that comes from:
+
+| | Correlation | Intensity vs exact |
+|---|---|---|
+| $\mathcal{S}_1$ only | 0.99997 | 0.97× |
+| $\mathcal{S}_2$ only | 0.987 | 0.63× |
+
+Essentially all of it is the detector matrix. $\mathcal{S}_2$ is back-propagated
+through the remaining thickness, which makes its columns far harder to
+interpolate than the probe-side ones, so it is the side to spend parents on.
+
+::: {.callout-important}
+## Take relative maps at face value; scale-check absolute cross-sections
+
+If you are comparing intensities *within* a map, or to experiment after
+normalisation, the sparse partitions are fine. If you need an absolute
+cross-section, raise `n_radial` — on the detector side first — until the total
+signal stops moving, and check it against `partition=None` on a smaller cell.
+`partition` and `partition_s2` take independent dictionaries precisely so you can
+spend parents where they are needed.
+:::
+
+::: {.callout-note}
+## Not the same fix as elastic PRISM
+
+Pelz *et al.* recover the partitioning error in elastic 4D-STEM by
+back-propagating to the probe-crossover plane before interpolating. That does not
+transfer here.
+The Fresnel propagator is unitary and commutes through the interpolation sum, so
+back-propagation changes the reconstruction error by nothing measurable; the
+elastic gain comes from the crop applied *at* the crossover plane, and the
+EELS analogue of that crop is $H_{n0}$, which pins the contraction to the atom
+plane instead.
+:::
+
+## What it buys, and when
+
+Memory is the headline. On the FePt-nanoparticle Fe-L benchmark at 936² sampling,
+the paper reports the exact dual matrix at 63 GB against 1.2–8 GB partitioned —
+8–50×, and the difference between needing a cluster node and needing one card.
+The *time* saving is more modest, typically a small factor, and that is structural
+rather than disappointing: the per-atom window contraction is shared between the
+exact and partitioned paths, so Amdahl's law caps what partitioning can do to the
+runtime. What partitioning changes is the build, the residency, and therefore
+which simulations are possible at all.
+
+::: {.callout-warning}
+## On a small problem, partitioning buys nothing
+
+The saving is in the resident matrices, $B$ and $n_{\text{det}}$ columns of an
+$N \times N$ grid each. They only dominate once the grid and the beam count are
+large. On the SrTiO₃ slab above — 256², 793 aperture beams — peak memory is set by
+the per-atom contraction intermediate instead, which partitioning does not touch,
+and the measured result is 2.06 GB exact against 1.89–2.04 GB partitioned, with
+the partitioned runs 10–15% *slower* from the reconstruction overhead.
+
+Reach for `partition` when the matrices are what is filling the card. Below that,
+use the exact path and get the exact answer.
+:::
+
+## Reading further
+
+- The paper: P. Pelz, *The BiP-PRISM algorithm for fast and scalable core-loss
+  STEM-EELS simulations*, [arXiv:2607.00756](https://arxiv.org/abs/2607.00756)
+- Transition-potential multislice for EELS: Dwyer, *Ultramicroscopy* **104**, 141 (2005),
+  [doi:10.1016/j.ultramic.2005.03.005](https://doi.org/10.1016/j.ultramic.2005.03.005)
+- The dual scattering matrix: Brown, Ciston & Ophus, *Phys. Rev. Research* **1**,
+  033186 (2019),
+  [doi:10.1103/PhysRevResearch.1.033186](https://doi.org/10.1103/PhysRevResearch.1.033186)
+- PRISM: Ophus, *Adv. Struct. Chem. Imaging* **3**, 13 (2017),
+  [doi:10.1186/s40679-017-0046-1](https://doi.org/10.1186/s40679-017-0046-1)
+- Beam partitioning: Pelz *et al.*, *Microsc. Microanal.* **27**, 835 (2021),
+  [doi:10.1017/S1431927621012083](https://doi.org/10.1017/S1431927621012083)
+- Frozen phonons and specimen setup: Kirkland, *Advanced Computing in Electron
+  Microscopy*, 2nd ed. (2010)

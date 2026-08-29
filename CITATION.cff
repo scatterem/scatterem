@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: >-
   If you use this software, please cite the paper for the part you used. The
   preferred citation below is the 4D-STEM reconstruction paper; work using the
-  core-loss STEM-EELS simulation should cite the BiP-PRISM paper instead, which
-  will be added here once it has a DOI.
+  core-loss STEM-EELS simulation should cite the BiP-PRISM paper instead, listed
+  under references.
 title: "scatterem"
 abstract: >-
   Direct (single-side-band) ptychography, tilt-corrected dark-field imaging, and
@@ -71,3 +71,17 @@ preferred-citation:
       given-names: Erdmann
     - family-names: Pelz
       given-names: Philipp
+
+# The core-loss STEM-EELS simulation paper. Cite this one for work using
+# StemEelsSimulator / prism_eels_image rather than the reconstruction pipeline.
+references:
+  - type: article
+    title: "The BiP-PRISM algorithm for fast and scalable core-loss STEM-EELS simulations"
+    year: 2026
+    url: "https://arxiv.org/abs/2607.00756"
+    notes: "arXiv:2607.00756 [cond-mat.mtrl-sci]"
+    authors:
+      - family-names: Pelz
+        given-names: Philipp
+        email: philipp.pelz@fau.de
+        orcid: "https://orcid.org/0000-0002-8009-4515"

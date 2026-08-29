@@ -18,3 +18,10 @@ dist/
 # exactly what happened once.
 !logo.png
 !favicon.png
+
+# Quarto build artifacts. `docs/api.qmd` is generated from live docstrings by
+# docs/_generate_api.py (the CI regenerates it on every build), so committing it
+# would just be a copy that goes stale.
+/.quarto/
+/_site/
+/docs/api.qmd

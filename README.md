@@ -1,15 +1,26 @@
-# scatterem — fused full-field STEM
+# scatterem
 
-Reference implementation of the fused full-field (FF-STEM) reconstruction:
-direct (single-side-band) ptychography, tilt-corrected dark-field imaging, and
-their SSNR-weighted Wiener fusion into one image that carries both the
-low-frequency phase contrast of ptychography and the high-frequency detail of the
-dark field.
+Two reference implementations, each accompanying its own paper.
+
+**Fused full-field STEM (FF-STEM)** — the reconstruction side: direct
+(single-side-band) ptychography, tilt-corrected dark-field imaging, and their
+SSNR-weighted Wiener fusion into one image that carries both the low-frequency
+phase contrast of ptychography and the high-frequency detail of the dark field.
 
 S. You, G. Varnavides, S. Khavnekar, *et al.*, "Gap-Free Information Transfer in
 4D-STEM via Fusion of Complementary Scattering Channels", *Advanced Science*
 (2026) e76620. [doi.org/10.1002/advs.76620](https://doi.org/10.1002/advs.76620)
 
+**BiP-PRISM** — the simulation side: dynamical forward simulation of core-loss
+STEM-EELS by transition-potential multislice, by PRISM, and by the bi-partitioned
+algorithm that partitions both the probe-forming and the detector-propagating
+scattering matrix, putting full-resolution elemental maps on a single consumer
+GPU.
+
+P. Pelz, "The BiP-PRISM algorithm for fast and scalable core-loss STEM-EELS
+simulations" (2026). [arXiv:2607.00756](https://arxiv.org/abs/2607.00756)
+
+Documentation: [scatterem.github.io/scatterem](https://scatterem.github.io/scatterem)
 Data: [doi.org/10.5281/zenodo.18008901](https://doi.org/10.5281/zenodo.18008901) (CC-BY-4.0)
 Citation metadata: `CITATION.cff`
 
@@ -75,6 +86,47 @@ dark_field = dataset.tilt_corrected_dark_field(upsample=2.0)
 fused = dataset.fused_full_field(upsample=2.0)
 ```
 
+## Simulate core-loss STEM-EELS
+
+```python
+import numpy as np
+from scatterem.simulation import Structure, StemEelsSimulator
+
+sto = Structure(
+    np.array([3.905, 3.905, 3.905]),
+    np.array([                       # [x, y, z, Z], fractional
+        [0.0, 0.0, 0.0, 38],         # Sr
+        [0.5, 0.5, 0.5, 22],         # Ti
+        [0.5, 0.5, 0.0, 8],          # O
+        [0.5, 0.0, 0.5, 8],
+        [0.0, 0.5, 0.5, 8],
+    ]),
+    dwf=None,
+).tile(x=4, y=4, z=8)
+
+sim = StemEelsSimulator(
+    sto,
+    eV=100e3,
+    semiconvergence_angle=25.0,      # mrad -- note: NOT radians
+    pixels=(128, 128),
+    scan=(16, 16),
+    edge=(22, 2, 1),                 # Ti L: (Z, n, l)
+    epsilon=10.0,                    # eV above the ionization threshold
+    num_slices=16,
+    prism=True,
+    interpolation_factor=2,
+    device="cuda",
+)
+
+result = sim.simulate()              # result.cube: (16, 16, 128, 128)
+```
+
+Quantitative work needs the optional `gpaw` dependency, which supplies
+all-electron bound and continuum radial wavefunctions; without it the code falls
+back to hydrogenic orbitals, which run the whole pipeline but are not
+quantitatively accurate. See the
+[STEM-EELS documentation](https://scatterem.github.io/scatterem/docs/eels.html).
+
 ## Notes on this release
 
 * **Aberration correction is the sharpness autofocus.** It fits aberrations by
@@ -84,9 +136,10 @@ fused = dataset.fused_full_field(upsample=2.0)
   silently starting from nothing.
 * **Sub-pixel dark-field shifts use Fourier upsampling and a phase ramp**
   (`shift_method="fourier"`), which is what the paper used.
-* This is the FF-STEM pipeline only. The wider `scatterem` codebase covers
-  iterative ptychography, tomography, and multislice simulation; those parts
-  accompany their own publications and are not here.
+* **The STEM-EELS code is the forward simulation only** — there is no EELS
+  reconstruction here, and the released cut has no momentum-resolved (qEELS)
+  output. The wider `scatterem` codebase covers iterative ptychography and
+  tomography; those parts accompany their own publications and are not here.
 
 ## The `master` branch
 

@@ -45,6 +45,40 @@ SECTIONS: list[tuple[str, str, list[str]]] = [
         ["Metadata4dstem"],
     ),
     (
+        "STEM-EELS simulation",
+        "scatterem.simulation",
+        ["StemEelsSimulator", "StemEelsResult", "Structure"],
+    ),
+    (
+        "Transition potentials",
+        "scatterem.simulation",
+        [
+            "subshell_transitions",
+            "build_transition_potentials",
+            "TransitionPotentials",
+            "bound_wavefunction",
+            "continuum_wavefunction",
+            "gpaw_available",
+        ],
+    ),
+    (
+        "EELS algorithms",
+        "scatterem.simulation.eels",
+        [
+            "transition_potential_multislice",
+            "prism_transition_potential",
+            "prism_eels_image",
+            "ScatteringMatrix",
+            "PartitionedScatteringMatrix",
+            "DetectorExitSMatrix",
+        ],
+    ),
+    (
+        "Multislice substrate",
+        "scatterem.simulation",
+        ["make_potential", "make_transmission_functions", "interaction_constant"],
+    ),
+    (
         "Aberrations",
         "scatterem.utils.aberration_basis",
         ["cartesian_chi", "cartesian_to_polar", "polar_to_cartesian"],
@@ -86,19 +120,32 @@ SECTIONS: list[tuple[str, str, list[str]]] = [
     ),
 ]
 
-#: Methods worth documenting on the container. Its full surface is large and much
-#: of it is plumbing; these are the ones the pipeline is driven through.
-DATASET_METHODS = [
-    "from_array",
-    "determine_aberrations_",
-    "direct_ptychography",
-    "tilt_corrected_dark_field",
-    "fused_full_field",
-    "calibrate_reciprocal_from_bright_field",
-    "bright_field_radius_and_center",
-    "save",
-    "load",
-]
+#: Methods worth documenting, per class. A class not listed here renders its own
+#: docstring only. These surfaces are large and much of each is plumbing; the
+#: entries are the ones a pipeline is actually driven through.
+CLASS_METHODS: dict[str, list[str]] = {
+    "Dataset4dstem": [
+        "from_array",
+        "determine_aberrations_",
+        "direct_ptychography",
+        "tilt_corrected_dark_field",
+        "fused_full_field",
+        "calibrate_reciprocal_from_bright_field",
+        "bright_field_radius_and_center",
+        "save",
+        "load",
+    ],
+    "StemEelsSimulator": [
+        "simulate",
+        "simulate_window",
+        "simulate_edges",
+    ],
+    "Structure": [
+        "fromfile",
+        "tile",
+        "rotate",
+    ],
+}
 
 
 def _signature(obj) -> str:
@@ -164,8 +211,7 @@ def build() -> str:
                     f"Fix the name or the list in docs/_generate_api.py."
                 )
             if inspect.isclass(obj):
-                methods = DATASET_METHODS if name == "Dataset4dstem" else None
-                lines += _render_class(obj, 3, methods)
+                lines += _render_class(obj, 3, CLASS_METHODS.get(name))
             else:
                 lines += _render_callable(obj, 3)
     return "\n".join(lines) + "\n"

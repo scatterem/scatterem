@@ -51,11 +51,42 @@ all three share one calibration, so they land on the same grid.
 | [The method](docs/method.qmd) | what each channel measures, and why fusing them works |
 | [Calibration](docs/calibration.qmd) | the parameters that decide whether a reconstruction is correct |
 | [Reproduce the paper](docs/figures.qmd) | four specimens, downloaded automatically |
+| [Simulate STEM-EELS](docs/eels.qmd) | the forward simulation: cubes, maps, and what they cost |
+| [BiP-PRISM](docs/bip-prism.qmd) | how partitioning both scattering matrices makes that affordable |
 | [API](docs/api.qmd) | reference, generated from the source |
+
+## Simulating core-loss STEM-EELS
+
+The same package also runs the *forward* problem: dynamical simulation of
+core-loss STEM-EELS, by conventional transition-potential multislice, by PRISM,
+and by **BiP-PRISM**, which partitions both the probe-forming and the
+detector-propagating scattering matrix and so fits a full-resolution elemental map
+on one consumer GPU.
+
+```python
+from scatterem.simulation import StemEelsSimulator
+
+sim = StemEelsSimulator(
+    structure,                     # scatterem.simulation.Structure
+    eV=100e3,
+    semiconvergence_angle=25.0,    # mrad
+    pixels=(128, 128),
+    scan=(16, 16),
+    edge=(22, 2, 1),               # Ti L: (Z, n, l)
+    prism=True,
+    device="cuda",
+)
+
+result = sim.simulate()            # (scan_y, scan_x, det_y, det_x)
+```
+
+See [Simulate STEM-EELS](docs/eels.qmd) for the pipeline and
+[BiP-PRISM](docs/bip-prism.qmd) for the algorithm.
 
 ## Citing this
 
-The method is described in:
+Cite the paper for the part you used. The reconstruction methods are described
+in:
 
 > S. You, G. Varnavides, S. Khavnekar, N. Palatkin, S. Shao, M. Wu, D. Stroppa,
 > D. Chernikova, B. Zhu, R. Egoavil, S. Vespucci, D. Krishnan, X. Ye,
@@ -64,6 +95,12 @@ The method is described in:
 > Scattering Channels.* **Advanced Science** (2026) e76620.
 > [doi:10.1002/advs.76620](https://doi.org/10.1002/advs.76620)
 
+The STEM-EELS simulation is described in:
+
+> P. Pelz. *The BiP-PRISM algorithm for fast and scalable core-loss STEM-EELS
+> simulations.* (2026)
+> [arXiv:2607.00756](https://arxiv.org/abs/2607.00756)
+
 `CITATION.cff` in the repository carries the same metadata in machine-readable
 form. The datasets are on Zenodo under
 [10.5281/zenodo.18008901](https://doi.org/10.5281/zenodo.18008901), CC-BY-4.0 —
@@ -71,7 +108,9 @@ please cite the record as well as the paper if you use them.
 
 ## Scope
 
-This repository is the FF-STEM pipeline: direct ptychography, tilt-corrected dark
-field, their fusion, and the calibration and I/O they need. The wider `scatterem`
-codebase covers iterative ptychography, tomography and multislice simulation;
-those parts accompany their own publications and are released with them.
+Two things live here: the FF-STEM reconstruction pipeline — direct ptychography,
+tilt-corrected dark field, their fusion, and the calibration and I/O they need —
+and the core-loss STEM-EELS forward simulation. Each accompanies its own paper.
+
+The wider `scatterem` codebase covers iterative ptychography and tomography;
+those parts are released with their own publications.

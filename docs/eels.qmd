@@ -1,0 +1,336 @@
+---
+title: "Simulate STEM-EELS"
+---
+
+This is the forward problem: given a structure, produce the core-loss EELS signal
+a STEM would record. There is no EELS *reconstruction* here.
+
+Three algorithms compute the same physics at very different cost, and the one you
+want depends on what you want out:
+
+| You want | Use | Entry point |
+|---|---|---|
+| A reference to check the others against | conventional multislice | `StemEelsSimulator(prism=False)` |
+| An energy-filtered 4D cube on a real scan | PRISM | `StemEelsSimulator(prism=True)` |
+| A 2D elemental map at full resolution | BiP-PRISM | `prism_eels_image` |
+
+The cube keeps the whole diffraction pattern at every scan position, so it is the
+general output and the expensive one. The map integrates over an EELS collection
+aperture, and that reduction is what lets both scattering matrices be partitioned
+— see [BiP-PRISM](bip-prism.qmd) for why. If an elemental map is what you are
+after, do not simulate a cube and sum it.
+
+## A structure
+
+`Structure` is a plain NumPy container: orthorhombic cell edges in Ångström, and
+an `(n, 4)` table of fractional coordinates with atomic numbers.
+
+```python
+import numpy as np
+from scatterem.simulation import Structure
+
+a = 3.905
+sto = Structure(
+    np.array([a, a, a]),
+    np.array([                  # [x, y, z, Z], fractional coordinates
+        [0.0, 0.0, 0.0, 38],    # Sr
+        [0.5, 0.5, 0.5, 22],    # Ti
+        [0.5, 0.5, 0.0, 8],     # O
+        [0.5, 0.0, 0.5, 8],
+        [0.0, 0.5, 0.5, 8],
+    ]),
+    dwf=None,                   # <u^2> per atom; None gives every atom 0.01 A^2
+).tile(x=4, y=4, z=8)           # 15.6 x 15.6 x 31.2 A, 640 atoms
+```
+
+`Structure.fromfile` reads the three formats the simulation community uses —
+Prismatic `.xyz`, VESTA `.p1` and `.xtl`. A non-orthorhombic cell is converted to
+an orthorhombic supercell at construction, because that is the only cell the
+multislice understands.
+
+::: {.callout-note}
+## `dwf` is $\langle u^2 \rangle$, one-dimensional
+
+Column 5 of `Structure.atoms` holds the *one-dimensional* mean-square thermal
+displacement in Å², not the Debye-Waller $B$ and not the three-dimensional total.
+$B = 8\pi^2 \langle u^2 \rangle$. Getting the convention wrong makes the frozen-phonon
+smearing wrong by $\sqrt{3}$.
+:::
+
+## A cube
+
+```python
+from scatterem.simulation import StemEelsSimulator
+
+sim = StemEelsSimulator(
+    sto,
+    eV=100e3,                    # probe energy
+    semiconvergence_angle=25.0,  # mrad
+    pixels=(128, 128),           # real-space grid across the cell
+    scan=(16, 16),               # scan positions
+    edge=(22, 2, 1),             # Ti L: (Z, n, l) of the ionized subshell
+    epsilon=10.0,                # eV above the ionization threshold
+    num_slices=16,
+    prism=True,
+    interpolation_factor=2,
+    device="cuda",
+)
+
+result = sim.simulate()
+result.cube          # (16, 16, 128, 128), real, non-negative
+result.sampling      # detector (dky, dkx) in 1/A
+result.energy_losses # the per-transition losses summed into the cube, eV
+```
+
+`edge` names the *bound* orbital that is ionized, as `(Z, n, l)`: Ti L is
+`(22, 2, 1)`, O K is `(8, 1, 0)`, Fe L is `(26, 2, 1)`. Every atom of that `Z` in
+the structure ionizes; there is no site selection.
+
+`epsilon` is the energy of the ejected electron *above* the threshold, so it picks
+a point along the edge rather than an absolute energy loss. The onset is the
+binding energy, and the code reports the resulting loss in `result.energy_losses`.
+
+::: {.callout-important}
+## `semiconvergence_angle` is in **milliradians** here
+
+`Dataset4dstem.from_array` on the reconstruction side takes radians; the simulator
+takes mrad. The same is true of `detector_mrad` below. A factor of 1000 produces a
+probe that is either the whole grid or a single pixel, so the failure is loud —
+but it costs a run.
+:::
+
+The diffraction patterns are corner-origin, like everything else in reciprocal
+space here. `torch.fft.fftshift` before plotting.
+
+## An energy window, and several edges
+
+A single `epsilon` is one point on the edge. To integrate a real energy-filtered
+window, sweep it:
+
+```python
+result = sim.simulate_window((5.0, 45.0), n_energies=8)
+result.energy_range   # (onset + 5, onset + 45) eV
+```
+
+The continuum states are energy-normalised, so trapezoid-integrating over
+`epsilon` *is* the signal collected in that loss window. `eps_min` must be greater
+than zero — the energy-normalised continuum diverges at threshold.
+
+Several edges in one pass is much cheaper than several simulators, because the
+elastic transmission functions are the dynamical scattering of the whole structure
+and do not care which element ionizes:
+
+```python
+results = sim.simulate_edges([(22, 2, 1), (8, 1, 0)], energy_range=(5.0, 45.0))
+ti, o = results[(22, 2, 1)], results[(8, 1, 0)]
+```
+
+Transmissions and probes are shared across every edge and every frozen phonon;
+only the transition potentials are rebuilt. The cost is memory — all the edges'
+transition-potential stacks are resident at once so that one frozen-phonon sweep
+can serve them all.
+
+## Transition potentials, and the GPAW question
+
+The ionization operator $H_{n0}$ is built from atomic radial wavefunctions, and
+where those come from decides whether your numbers mean anything.
+
+```python
+from scatterem.simulation import gpaw_available
+gpaw_available()
+```
+
+**With `gpaw` installed** (`backend="auto"` finds it) bound states come from an
+all-electron atomic DFT calculation and continuum states from Numerov integration
+of the radial Schrödinger equation in that all-electron potential. This is the
+physically accurate path.
+
+**Without it** the code falls back to a hydrogenic bound state and a free
+spherical-Bessel continuum. That runs the entire pipeline and is what the test
+suite uses, but it is **not quantitatively accurate** — the selection rules and
+the shape of the pipeline are right, the cross-sections are not.
+
+```bash
+pip install gpaw gpaw-data
+```
+
+::: {.callout-warning}
+## `backend="auto"` will silently give you hydrogenic orbitals
+
+If GPAW is not importable, `"auto"` falls back rather than raising. Check
+`gpaw_available()` before a production run, or pass `backend="gpaw"` to make a
+missing install an error instead of a quiet loss of accuracy.
+:::
+
+Computed wavefunctions and potentials are cached on disk, keyed by their physical
+parameters, so a re-run does not redo the atomic calculations. Point the cache
+somewhere with room via `SCATTEREM_EELS_CACHE`.
+
+Two parameters worth knowing: `order` sets how many angular-momentum channels are
+summed (default 1 keeps the monopole and both dipole channels, which is what the
+published treatments use), and `potential_scale` is an empirical multiplier on the
+GPAW continuum potential — 1.0 is the Brown 2019 physics, abTEM uses 1.02, and it
+mostly moves the $l' = l$ monopole s-wave.
+
+## A full-resolution elemental map
+
+The map is the BiP-PRISM path, and it is a lower-level call: it takes the probe
+aperture, the transmission functions, the transition potentials and the scan
+directly, rather than being driven from `StemEelsSimulator`.
+
+```python
+import numpy as np
+import torch
+from scatterem.simulation import (
+    build_transition_potentials,
+    make_transmission_functions,
+    subshell_transitions,
+)
+from scatterem.simulation.eels import prism_eels_image
+from scatterem.utils.physics import electron_wavelength
+
+eV, pixels, num_slices, device = 100e3, (128, 128), 16, "cuda"
+wavelength = electron_wavelength(eV)
+gridsize = (float(sto.unitcell[0]), float(sto.unitcell[1]))
+sampling = (gridsize[0] / pixels[0], gridsize[1] / pixels[1])
+
+transmissions = make_transmission_functions(
+    sto, pixels, eV,
+    subslices=[(i + 1) / num_slices for i in range(num_slices)],
+    displacements=False, fftout=False, device=device,
+).to(torch.complex64)
+
+tp = build_transition_potentials(
+    subshell_transitions(22, 2, 1, 10.0),   # Ti L at 10 eV above threshold
+    22, pixels, sampling, eV, device=device,
+)
+
+# Probe-forming aperture, normalised to unit real-space intensity.
+qy = np.fft.fftfreq(pixels[0], d=sampling[0])
+qx = np.fft.fftfreq(pixels[1], d=sampling[1])
+q2 = qy[:, None] ** 2 + qx[None, :] ** 2
+probe_q = torch.as_tensor(
+    (q2 <= (25e-3 / wavelength) ** 2).astype(np.complex64), device=device
+)
+probe_q = probe_q / (probe_q.abs().pow(2).sum() / probe_q.numel()).sqrt()
+
+# Scan grid in pixels, and the sites that ionize.
+scan_shape = (32, 32)
+sy = (np.arange(scan_shape[0]) + 0.5) * pixels[0] / scan_shape[0]
+sx = (np.arange(scan_shape[1]) + 0.5) * pixels[1] / scan_shape[1]
+scan_pixels = torch.as_tensor(
+    np.stack(np.meshgrid(sy, sx, indexing="ij"), -1).reshape(-1, 2), device=device
+)
+sites = sto.atoms[np.round(sto.atoms[:, 3]).astype(int) == 22, :3]
+
+ti_map = prism_eels_image(
+    probe_q, transmissions, tp, sites, scan_pixels,
+    wavelength=wavelength,
+    gridsize=gridsize,
+    slice_distance=float(sto.unitcell[2]) / num_slices,
+    detector_mrad=25.0,               # EELS collection semi-angle
+    interpolation_factor=2,
+    inelastic_crop=4,
+    scan_shape=scan_shape,
+    partition=dict(n_radial=4),       # partition S1
+    partition_s2=dict(n_radial=4),    # ... and S2 -- this is the "Bi" in BiP
+)
+```
+
+Dropping both `partition` arguments gives the exact dual matrix, which is the
+oracle to check against on a small cell — and the thing that does not fit on one
+GPU at full resolution.
+
+::: {.callout-note}
+## There is no `simulate_map` convenience method yet
+
+`StemEelsSimulator` drives the cube paths only. The map is assembled from the
+public building blocks above, as shown. If you find yourself writing this more
+than once, wrap it.
+:::
+
+## What it costs, and the levers
+
+Four knobs, in rough order of how much they buy:
+
+**`partition` / `partition_s2`** (`dict(n_radial=N)`) build each scattering matrix
+on a sparse set of parent beams instead of every beam. This is the memory lever,
+and on a large map it is worth an order of magnitude or more — but only once the
+matrices are what is filling the card. On a small problem it saves nothing and
+costs a little time. It is also approximate, and the detector side is the
+demanding one: see
+[accuracy](bip-prism.qmd#accuracy-and-the-one-caveat-worth-knowing).
+
+**`interpolation_factor`** ($f$) subsamples the aperture beams by $f^2$. The
+condition for it to be valid is that the probe must fit inside a $1/f$ fraction of
+the cell around the atom; violate it and neighbouring periodic copies of the probe
+leak in. For the 4D cube it is the *only* lever on the exit leg, since
+partitioning there touches $\mathcal{S}_1$ alone. Mind the scale it carries — see
+below.
+
+**`inelastic_crop`** restricts the per-atom contraction to a
+`(Ny, Nx) // inelastic_crop` window. $H_{n0}$ has sub-ångström support, so a
+generous crop costs nothing in accuracy and saves the contraction's largest
+intermediate. `None` uses the full grid and is exact.
+
+**`num_frozen_phonons`** with `displacements=True` averages over thermal
+configurations. Cost is strictly linear in the count; one configuration is enough
+for a smoke test and wrong for anything quantitative.
+
+Two things that are *not* levers: the number of scan positions barely moves the
+PRISM and BiP-PRISM cost, which is the entire point of the scattering matrix, and
+raising the detector angle raises $n_{\text{det}}$ and therefore the $\mathcal{S}_2$
+build.
+
+## Checking your setup
+
+The approximations compose, so check them one at a time on a cell small enough
+that the exact answer is affordable:
+
+```python
+common = dict(
+    eV=100e3, semiconvergence_angle=25.0, pixels=(128, 128), scan=(8, 8),
+    edge=(22, 2, 1), epsilon=10.0, num_slices=16, device="cuda",
+)
+
+exact = StemEelsSimulator(sto, prism=False, **common).simulate().cube
+prism = StemEelsSimulator(sto, prism=True, interpolation_factor=1, **common).simulate().cube
+
+rel = float((prism - exact).norm() / exact.norm())
+```
+
+At $f = 1$ PRISM reproduces the conventional multislice to rounding. On the
+SrTiO₃ cell above — 4×4×8 cells, 128², Ti L — that is `rel-L2` $10^{-4}$ and a
+correlation of 1.000000, and a large residual there means something is wrong with
+the setup rather than with the method.
+
+::: {.callout-important}
+## `interpolation_factor` changes the absolute scale of the cube
+
+Raising $f$ preserves the pattern but multiplies the cube's intensity by roughly
+$f^2$. Measured on that same cell against the conventional result:
+
+| | `rel-L2` | intensity ratio | scale-normalised RMS | correlation |
+|---|---|---|---|---|
+| $f = 1$ | 0.0001 | 1.00 | 0.00004 | 1.000000 |
+| $f = 2$ | 3.15 | 4.15 | 0.058 | 0.998 |
+| $f = 4$ | 14.6 | 15.8 | 0.152 | 0.988 |
+
+So a raw relative error against an $f = 1$ reference is dominated by this factor
+and tells you almost nothing. **Hold $f$ fixed when you compare anything**, and
+take absolute cross-sections at $f = 1$ or calibrate the scale against it.
+:::
+
+Partitioning is separately approximate. Compare `partition=None` against your
+chosen `n_radial` at fixed $f$, and read the pattern correlation and the total
+signal as two different questions — for the 4D cube on that cell, `n_radial=2`
+is already within 2.7% and `n_radial=8` is exact to rounding, while for the *map*
+the detector-side partition is much more demanding. That case is worked through
+in [BiP-PRISM](bip-prism.qmd#accuracy-and-the-one-caveat-worth-knowing).
+
+## Reading further
+
+- [BiP-PRISM](bip-prism.qmd) — what the two scattering matrices are, why both can
+  be partitioned, and where the approximation breaks down
+- [API reference](api.qmd) — every symbol above, generated from the source
+- The paper: [arXiv:2607.00756](https://arxiv.org/abs/2607.00756)
