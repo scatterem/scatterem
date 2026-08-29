@@ -13,9 +13,14 @@ repository-code: "https://github.com/scatterem/scatterem"
 authors:
   - family-names: You
     given-names: Shengbo
+  - family-names: Palatkin
+    given-names: Nikita
+  - family-names: Shao
+    given-names: Sihan
   - family-names: Pelz
     given-names: Philipp
     email: philipp.pelz@fau.de
+    orcid: "https://orcid.org/0000-0002-8009-4515"
 
 preferred-citation:
   type: article
