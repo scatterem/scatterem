@@ -1,10 +1,8 @@
-"""Clean-room bright-field disk fitting.
+"""Bright-field disk fitting.
 
 Every assertion below is stated against a synthetic pattern whose disk geometry
-is known by construction, not against a previous implementation's output. That
-matters because the implementation being replaced
-(``utils/data/bright_field.py::_area_method``) is a port of a GPL-3.0 upstream
-and cannot ship in an Apache-2.0 release.
+is known by construction, rather than against a previous implementation's
+output.
 
 The hot-pixel test encodes a failure this lab has actually been bitten by: a
 single stuck pixel dominates the max used to normalise the threshold sweep, so
@@ -137,7 +135,7 @@ def test_radius_is_independent_of_edge_softness(blur):
 
 
 def test_edge_softness_bias_is_better_than_the_implementation_it_replaces():
-    """Documents *why* the replacement is not merely a licence workaround.
+    """Documents the accuracy gain over the earlier estimator.
 
     Not a competitive benchmark for its own sake: the replaced code is what the
     published figures were calibrated with, so the size and direction of the

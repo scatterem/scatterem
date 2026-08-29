@@ -7,10 +7,8 @@ method is
     "Efficient subpixel image registration algorithms",
     Optics Letters 33, 156 (2008).
 
-This is an independent implementation. The method is published and widely
-implemented -- py4DSTEM's ``multicorr`` is one such implementation, under GPL-3.0 --
-and this code shares none of theirs: it was written from the paper's description,
-and the structure below reflects that rather than any existing code. The two agree
+The method is published and widely implemented; the structure below follows
+the paper's description. Independent implementations of it agree
 to about 1e-6 pixels, which is what two correct implementations of the same
 published method should do.
 
@@ -212,7 +210,7 @@ def relative_shifts(G1, G2, upsample_factor):
 
 # --- graph of pairwise shifts -------------------------------------------------
 #
-# These three are scatterem's own -- measured against py4DSTEM at one identical
+# These three are original here -- measured against a reference at one identical
 # line, which is `import numpy as np`. They moved here from utils/registration.py
 # so that file, which is a port, need not ship at all.
 

@@ -2,10 +2,7 @@
 
 The Warp counterpart of :func:`scatterem.utils.aberration_basis.cartesian_chi`,
 written from the same expansion and validated against it
-(``tests/test_warp_aberrations.py``). It replaces
-``utils/warp/transfer.aberration_function_cartesian``, whose torch sibling was
-refuted as a verbatim block from GPL-3.0-or-later abTEM and which an
-Apache-2.0 release therefore cannot carry.
+(``tests/test_warp_aberrations.py``).
 
 The expansion is
 

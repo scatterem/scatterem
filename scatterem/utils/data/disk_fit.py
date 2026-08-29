@@ -1,12 +1,10 @@
 """Bright-field disk geometry from an averaged diffraction pattern.
 
-Written from the geometry rather than adapted from an existing implementation:
-``utils/data/bright_field.py::_area_method`` is a port of a GPL-3.0 upstream,
-which an Apache-2.0 release cannot distribute.
+Written from the geometry.
 
 The method is the natural one -- sweep an intensity threshold, convert the area
 above it into an equivalent-circle radius, and read the radius off the flattest
-part of that curve -- with two deliberate differences from the code it replaces:
+part of that curve -- with two deliberate refinements:
 
 1. **The threshold sweep is normalised by a median-filtered maximum**, not the
    raw maximum. A single stuck pixel is orders of magnitude brighter than the

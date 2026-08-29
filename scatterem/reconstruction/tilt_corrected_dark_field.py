@@ -140,45 +140,69 @@ def compute_ssnr_from_halfset_images(tcDF1, tcDF2, sampling, gaussian_sigma=0.0,
         plt.tight_layout()
     return SSNRq, q_rad, bin_idx
 
-def tilt_corrected_dark_field(
-        dataset : Dataset4dstem,  
-        n_dark_field_segments : int = 32, 
+class _SegmentGeometry:
+    """Everything in ``tilt_corrected_dark_field`` that does NOT depend on the
+    aberrations: the detector masks, the azimuthal segment membership, and the
+    per-segment images gathered from the 4D array.
+
+    The aberrations enter the reconstruction at exactly one place — ``shifts``
+    (:func:`aberrations_to_image_shifts`) — and from there only the per-segment
+    mean shift and the splat.  A caller that sweeps the aberrations (the depth
+    section, which walks ``aberrations.array[0]``) therefore recomputes this
+    object identically on every step, including the full pass over the
+    ``(ny, nx, M, M)`` array in ``gather_detector_group_means``.
+
+    The identifying parameters are carried so a reused instance FAILS CLOSED
+    rather than silently reconstructing from the wrong segments.
+    """
+
+    __slots__ = (
+        "dataset", "bright_field_mask_threshold", "n_dark_field_segments",
+        "upsample", "upsample_int", "vdf_stack1", "vdf_stack2",
+        "specific_radius_masks1", "specific_radius_masks2",
+        "seg_px1", "seg_px2",
+    )
+
+    def __init__(self, **kw):
+        for k, v in kw.items():
+            setattr(self, k, v)
+
+    def _check(self, dataset, bright_field_mask_threshold, n_dark_field_segments,
+               upsample) -> None:
+        if (
+            dataset is not self.dataset
+            or bright_field_mask_threshold != self.bright_field_mask_threshold
+            or n_dark_field_segments != self.n_dark_field_segments
+            or upsample != self.upsample
+        ):
+            raise ValueError(
+                "precomputed tcDF segment geometry does not match this call "
+                "(dataset / bright_field_mask_threshold / n_dark_field_segments / "
+                "upsample must all be the ones it was built with)"
+            )
+
+
+def _tcdf_segment_geometry(
+        dataset : Dataset4dstem,
+        n_dark_field_segments : int = 32,
         verbosity : int = 0,
         bright_field_mask_threshold : float = 0.3,
         upsample: Union[float, str] = "nyquist",
-        return_snr: bool = False,
-        snr_blur_sigma: float = 0.0,
-        shift_method: str = "drizzle",
-        drizzle_pixfrac: float = 1.0,
-        drizzle_kde_sigma: float = 0.0,
-        ) -> tuple[torch.Tensor, torch.Tensor | None]:
-    """Tilt-corrected dark-field reconstruction.
+        ) -> "_SegmentGeometry":
+    """Build the aberration-independent half of :func:`tilt_corrected_dark_field`.
 
-    ``shift_method`` selects how each azimuthal dark-field segment is sub-pixel
-    shifted (by its parallax shift) and accumulated onto the up-sampled grid:
-
-    * ``"drizzle"`` (default) — area-overlap drizzle (box splat + hit-map
-      normalization). Non-negative and ringing-free, which is the physically
-      correct behaviour for counting data: at low dose the segment images are
-      single electron counts and Fourier shifting turns each into a sinc with
-      ~20% negative side-lobes. ``drizzle_pixfrac`` sets the drop size (fraction
-      of an input pixel; 1.0 fills the grid from one frame) and
-      ``drizzle_kde_sigma`` optionally Nadaraya-Watson-smooths sparse holes.
-    * ``"fourier"`` — Fourier zero-pad upsample + phase-ramp shift. Marginally
-      sharper on dense, well-sampled (high-dose) data, but rings on sparse data.
+    Lifted VERBATIM out of that function — same statements, same order — so a
+    caller that reuses the result runs the identical arithmetic on the identical
+    inputs.  See :class:`_SegmentGeometry` for why a sweep over the aberrations
+    wants it.
     """
-
     from scatterem.reconstruction.direct_ptychography import _resolve_upsample_int
 
     # tcDF uses ONE isotropic factor (max over the per-axis factors).
     upsample_int = np.max(_resolve_upsample_int(dataset, upsample, verbosity=verbosity))
-    aberrations_array = dataset.meta.aberrations.array.detach().clone()
     device = dataset.device
     wavelength = dataset.meta.wavelength
     semiangle_cutoff = dataset.meta.semiconvergence_angle
-    # set everything above and including C21 to 0
-    # aberrations_array[0] = -200
-    aberrations_array[3:] = 0
     # Polymorphic: the eager dataset computes this from its resident array,
     # the out-of-core dataset serves its streamed Pass-0 statistic.
     diff_mean = dataset.mean_cbed_tcdf.to(device)
@@ -218,15 +242,8 @@ def tilt_corrected_dark_field(
     
     angles = torch.atan2(y_coords - center[0], x_coords - center[1])
     angles = (angles + torch.pi) / (2 * torch.pi)  # Normalize to [0,1]
-    segment_size = 1.0 / n_dark_field_segments 
-    shifts = aberrations_to_image_shifts(
-        aberrations_array=aberrations_array,
-        rotation=torch.tensor([dataset.meta.rotation], device=device),
-        sampling=dataset.dr,
-        wavelength=wavelength,
-        shape=dataset.shape[-2:],
-    )
- 
+    segment_size = 1.0 / n_dark_field_segments
+
     inner_radius = semiangle_cutoff / wavelength * 2/3
     outer_radius= inner_radius + dataset.sampling[-1] * 1.3
     ny,nx = dataset.shape[-2:]
@@ -275,21 +292,135 @@ def tilt_corrected_dark_field(
  
     specific_radius_masks1 = torch.stack(specific_radius_masks1)
     specific_radius_masks2 = torch.stack(specific_radius_masks2)
- 
+
+    # Flat member-pixel indices of each wedge, so the per-segment mean shift can
+    # be taken with an ``index_select`` instead of re-running boolean-mask
+    # indexing (a ``nonzero``, hence a host sync) on every call.  ``nonzero``
+    # returns ascending flat indices, which is the same order a bool mask
+    # produces, so ``shifts.reshape(-1, 2).index_select(0, idx)`` is the same
+    # tensor -- same values, same shape, same strides -- as ``shifts[mask]``.
+    # ``None`` marks a wedge with no detector pixels (see ``_seg_mean``); the
+    # emptiness is decided HERE, once, rather than by a ``bool(mask.any())``
+    # sync per wedge per call.
+    def _member_px(masks):
+        out = []
+        for m in masks:
+            idx = torch.nonzero(m.reshape(-1), as_tuple=False).squeeze(1)
+            out.append(idx if idx.numel() else None)
+        return out
+
+    return _SegmentGeometry(
+        dataset=dataset,
+        bright_field_mask_threshold=bright_field_mask_threshold,
+        n_dark_field_segments=n_dark_field_segments,
+        upsample=upsample,
+        upsample_int=upsample_int,
+        vdf_stack1=vdf_stack1,
+        vdf_stack2=vdf_stack2,
+        specific_radius_masks1=specific_radius_masks1,
+        specific_radius_masks2=specific_radius_masks2,
+        seg_px1=_member_px(specific_radius_masks1),
+        seg_px2=_member_px(specific_radius_masks2),
+    )
+
+
+def tilt_corrected_dark_field(
+        dataset : Dataset4dstem,
+        n_dark_field_segments : int = 32,
+        verbosity : int = 0,
+        bright_field_mask_threshold : float = 0.3,
+        upsample: Union[float, str] = "nyquist",
+        return_snr: bool = False,
+        snr_blur_sigma: float = 0.0,
+        shift_method: str = "drizzle",
+        drizzle_pixfrac: float = 1.0,
+        drizzle_kde_sigma: float = 0.0,
+        _segment_geometry: "_SegmentGeometry | None" = None,
+        ) -> tuple[torch.Tensor, torch.Tensor | None]:
+    """Tilt-corrected dark-field reconstruction.
+
+    ``shift_method`` selects how each azimuthal dark-field segment is sub-pixel
+    shifted (by its parallax shift) and accumulated onto the up-sampled grid:
+
+    * ``"drizzle"`` (default) — area-overlap drizzle (box splat + hit-map
+      normalization). Non-negative and ringing-free, which is the physically
+      correct behaviour for counting data: at low dose the segment images are
+      single electron counts and Fourier shifting turns each into a sinc with
+      ~20% negative side-lobes. ``drizzle_pixfrac`` sets the drop size (fraction
+      of an input pixel; 1.0 fills the grid from one frame) and
+      ``drizzle_kde_sigma`` optionally Nadaraya-Watson-smooths sparse holes.
+    * ``"fourier"`` — Fourier zero-pad upsample + phase-ramp shift. Marginally
+      sharper on dense, well-sampled (high-dose) data, but rings on sparse data.
+
+    ``_segment_geometry`` is a private hook for callers that hold the aberrations
+    ORTHOGONAL to everything else and sweep them (the depth section): pass the
+    :class:`_SegmentGeometry` from :func:`_tcdf_segment_geometry` to skip
+    rebuilding the masks and re-gathering the 4D array on every step.
+    """
+
+    if _segment_geometry is None:
+        _segment_geometry = _tcdf_segment_geometry(
+            dataset,
+            n_dark_field_segments=n_dark_field_segments,
+            verbosity=verbosity,
+            bright_field_mask_threshold=bright_field_mask_threshold,
+            upsample=upsample,
+        )
+    else:
+        _segment_geometry._check(
+            dataset, bright_field_mask_threshold, n_dark_field_segments, upsample
+        )
+
+    upsample_int = _segment_geometry.upsample_int
+    device = dataset.device
+    wavelength = dataset.meta.wavelength
+    vdf_stack1 = _segment_geometry.vdf_stack1
+    vdf_stack2 = _segment_geometry.vdf_stack2
+
+    # The ONLY place the aberrations enter tcDF.  Everything above is built from
+    # the mean CBED and the acquisition geometry alone -- which is what makes the
+    # ``_segment_geometry`` hook exact rather than approximate.
+    aberrations_array = dataset.meta.aberrations.array.detach().clone()
+    # set everything above and including C21 to 0
+    # aberrations_array[0] = -200
+    aberrations_array[3:] = 0
+    shifts = aberrations_to_image_shifts(
+        aberrations_array=aberrations_array,
+        rotation=torch.tensor([dataset.meta.rotation], device=device),
+        sampling=dataset.dr,
+        wavelength=wavelength,
+        shape=dataset.shape[-2:],
+    )
+
     # Per-segment mean shift. A segment whose annular wedge contains NO detector
     # pixels (thin dark-field annulus at low convergence angle split into many
     # segments) gives an empty slice -> .mean() is NaN, which propagates through
     # exp(-i grad.q) into an all-NaN tcDF. Use 0 (no shift) for empty segments.
-    def _seg_mean(col, masks):
-        return torch.tensor(
-            [shifts[m][:, col].mean() if bool(m.any()) else 0.0 for m in masks],
-            device=device,
-        )
+    #
+    # The wedges are aberration-independent, so their member pixels and their
+    # emptiness are decided once in ``_SegmentGeometry``. What is left here is a
+    # gather + two means per wedge, and it stays on the device: the old form paid
+    # a ``bool(mask.any())`` sync AND a boolean-mask ``nonzero`` sync per wedge
+    # per column, then handed 16 device scalars back through the host in
+    # ``torch.tensor([...])`` -- 4x32 host round-trips for 4x16 numbers, on a
+    # path whose wedges hold 2-4 detector pixels each.
+    shifts_flat = shifts.reshape(-1, shifts.shape[-1])
+    zero = torch.zeros((), dtype=shifts.dtype, device=device)
 
-    df_shifts_dx1 = _seg_mean(1, specific_radius_masks1)
-    df_shifts_dy1 = _seg_mean(0, specific_radius_masks1)
-    df_shifts_dx2 = _seg_mean(1, specific_radius_masks2)
-    df_shifts_dy2 = _seg_mean(0, specific_radius_masks2)
+    def _seg_mean_yx(seg_px):
+        dy, dx = [], []
+        for idx in seg_px:
+            if idx is None:
+                dy.append(zero)
+                dx.append(zero)
+            else:
+                g = shifts_flat.index_select(0, idx)
+                dy.append(g[:, 0].mean())
+                dx.append(g[:, 1].mean())
+        return torch.stack(dy), torch.stack(dx)
+
+    df_shifts_dy1, df_shifts_dx1 = _seg_mean_yx(_segment_geometry.seg_px1)
+    df_shifts_dy2, df_shifts_dx2 = _seg_mean_yx(_segment_geometry.seg_px2)
 
 
     if shift_method == "drizzle":
@@ -392,18 +523,30 @@ def tilt_corrected_dark_field_depth_section(
 
     upsample_int = _resolve_upsample_int(dataset, upsample, verbosity=verbosity)
     tcDF_depth_section = torch.zeros(len(depth_angstroms), dataset.shape[0] * upsample_int[0], dataset.shape[1] * upsample_int[1], device=return_device)
-    aberrations_array = dataset.meta.aberrations.array.detach().clone()        
+    aberrations_array = dataset.meta.aberrations.array.detach().clone()
+    # The sweep moves ONLY aberrations.array[0], and the aberrations reach tcDF
+    # only through ``shifts``; the masks, the segment membership and the full
+    # ``(ny, nx, M, M)`` gather behind them are identical at every depth.  Build
+    # them once instead of ``len(depth_angstroms)`` times.
+    segment_geometry = _tcdf_segment_geometry(
+        dataset,
+        n_dark_field_segments=n_dark_field_segments,
+        verbosity=verbosity,
+        bright_field_mask_threshold=bright_field_mask_threshold,
+        upsample=upsample,
+    )
     i = 0
-    for depth in tqdm(depth_angstroms, desc="Assembling tcDF depth section"): 
-        dataset.meta.aberrations.array[:] = aberrations_array 
+    for depth in tqdm(depth_angstroms, desc="Assembling tcDF depth section"):
+        dataset.meta.aberrations.array[:] = aberrations_array
         dataset.meta.aberrations.array[0] += depth
         dataset.meta.aberrations.array[3:] = 0
         tcDF_depth_section[i] = dataset.tilt_corrected_dark_field(
-                n_dark_field_segments  = n_dark_field_segments, 
+                n_dark_field_segments  = n_dark_field_segments,
                 verbosity  = verbosity,
                 bright_field_mask_threshold = bright_field_mask_threshold,
-                upsample=upsample)[0].to(return_device)
- 
+                upsample=upsample,
+                _segment_geometry=segment_geometry)[0].to(return_device)
+
         i += 1
     dataset.meta.aberrations.array[:] = aberrations_array
     return tcDF_depth_section

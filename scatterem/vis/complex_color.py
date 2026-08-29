@@ -1,6 +1,6 @@
 """Colouring complex-valued images: amplitude as lightness, phase as hue.
 
-Replaces the quantem-derived ``array_to_rgba`` / ``list_of_arrays_to_rgba`` /
+Supersedes the earlier ``array_to_rgba`` / ``list_of_arrays_to_rgba`` /
 ``add_arg_cbar_to_ax`` trio, and does the job in a different colour space for a
 reason.
 

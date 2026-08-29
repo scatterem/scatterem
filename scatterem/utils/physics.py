@@ -1,10 +1,8 @@
 """Relativistic electron optics for the published reconstruction path.
 
-Written from the de Broglie relation rather than adapted from any existing
-implementation: ``scatterem.utils.energy`` is a verbatim copy of a
-GPL-3.0-or-later upstream, which an Apache-2.0 release cannot distribute. Only
-the wavelength is reproduced here, because that is the one quantity the
-published FF-STEM path needs (it sets the reciprocal-space sampling ``dk``).
+Written from the de Broglie relation. Only the wavelength is provided here,
+because that is the one quantity the published FF-STEM path needs (it sets the
+reciprocal-space sampling ``dk``).
 
 Constants are the 2019 SI values, in which the Planck constant and the
 elementary charge are exact by definition.

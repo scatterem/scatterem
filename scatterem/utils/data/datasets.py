@@ -976,7 +976,16 @@ class Dataset4dstem(Dataset):
             self._array = self._array.clone()
 
         if clip_neg_values:
-            self._array[self._array < 0] = 0
+            # `self._array[self._array < 0] = 0` materialises a full-cube bool mask
+            # first -- 3.06 GiB on the 512x512x112x112 figure-1 cube, allocated at the
+            # moment the raw and the converted cube are both already resident, so it
+            # sets the peak -- and then makes a second, masked pass over the cube.
+            # `clamp_min_` is one in-place pass and allocates nothing. Measured on that
+            # cube: 118.8 -> 50.0 ms and -3136 MiB of peak.
+            # torch has no `clamp` for bool and no bool value is negative, so on that
+            # one dtype the old expression was already a no-op: skip it instead.
+            if self._array.dtype is not torch.bool:
+                self._array.clamp_min_(0)
 
         if transform_to_amplitudes:
             self._array.sqrt_()
@@ -1399,6 +1408,7 @@ class Dataset4dstem(Dataset):
         shift_method: str = "drizzle",
         drizzle_pixfrac: float = 1.0,
         drizzle_kde_sigma: float = 0.0,
+        _segment_geometry=None,
     ) -> tuple[torch.Tensor, torch.Tensor | None]:
         """
         Perform tilt corrected dark field reconstruction.
@@ -1426,6 +1436,7 @@ class Dataset4dstem(Dataset):
             shift_method=shift_method,
             drizzle_pixfrac=drizzle_pixfrac,
             drizzle_kde_sigma=drizzle_kde_sigma,
+            _segment_geometry=_segment_geometry,
         )
         self.tilt_corrected_dark_field_image = result
         self.ssnr_tcdf = ssnr_tcdf

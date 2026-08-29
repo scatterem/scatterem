@@ -1,12 +1,11 @@
 """Display normalization: pick a data interval, then apply a display stretch.
 
-This module is an independent implementation written from the mathematical
-definitions of interval selection and display stretching: no code, architecture,
-docstrings or comments are taken from another project. The public names
-(:class:`CustomNormalization`, :class:`NormalizationConfig` and the config field
-names) are deliberately retained from the module this replaces, so that call sites
-and published figure output do not change, and ``vmin``/``vmax``/``clip``/
-``inverse``/``autoscale_None`` are ``matplotlib.colors.Normalize``'s own API.
+Written from the mathematical definitions of interval selection and display
+stretching. The public names (:class:`CustomNormalization`,
+:class:`NormalizationConfig` and the config field names) are retained so that
+call sites and published figure output do not change, and
+``vmin``/``vmax``/``clip``/``inverse``/``autoscale_None`` are
+``matplotlib.colors.Normalize``'s own API.
 
 Normalization happens in two stages, in this order:
 

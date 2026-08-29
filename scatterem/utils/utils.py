@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import os
 from importlib.util import find_spec
 
 import torch
+
 
 if find_spec("cv2") is not None:
     pass
@@ -24,7 +26,7 @@ def _robust_minmax(im: torch.Tensor, clip_quantile: float):
         return (im - offset) / scale, offset, scale
     flat = im.flatten().float()
 
-    def _nearest_rank(values: torch.Tensor, quantile: float) -> torch.Tensor:
+    def _rank(n: int, quantile: float) -> int:
         """Exact quantile by rank selection, at any input size.
 
         ``torch.quantile`` caps how many elements it accepts. The usual
@@ -37,12 +39,35 @@ def _robust_minmax(im: torch.Tensor, clip_quantile: float):
         Selecting the k-th smallest value instead has no size cap, is exact rather
         than estimated, and is deterministic.
         """
-        n = values.numel()
-        k = min(max(int(round(quantile * (n - 1))) + 1, 1), n)
-        return values.kthvalue(k).values
+        return min(max(int(round(quantile * (n - 1))) + 1, 1), n)
 
-    offset = _nearest_rank(flat, clip_quantile)
-    hi = _nearest_rank(flat, 1.0 - clip_quantile)
+    n = flat.numel()
+    k_lo = _rank(n, clip_quantile)
+    k_hi = _rank(n, 1.0 - clip_quantile)
+    # Take BOTH order statistics out of one sort on CUDA.  ``Tensor.kthvalue``
+    # reduces with ONE CUDA BLOCK per reduced slice, so a single flattened image
+    # is a one-block radix select over the whole array and its cost is set by
+    # that block, not by the card: measured on an A6000, the two selections cost
+    # 2.33 ms at 512^2, 9.50 ms at 1024^2 and 45.70 ms at 2048^2, against 0.09 /
+    # 0.24 / 0.80 ms for one stable sort (25x / 39x / 57x).  Sorting is the
+    # oversized hammer for two order statistics, but it is the parallel one, and
+    # it amortises across both of them.  CPU keeps ``kthvalue``: there it is an
+    # O(n) introselect and a sort would be strictly worse.
+    #
+    # A sort-select returns the SAME ELEMENT as ``kthvalue`` -- verified over 48
+    # randomised trials, sides 3 to 1024, including heavy ties, +-inf and a
+    # constant image, all identical on the whole returned triple -- EXCEPT when
+    # the input contains NaN, where the two disagree about where a sign-bit-set
+    # NaN ranks.  So NaN falls back to the original path rather than being argued
+    # about; the check is one reduction plus one host sync (~0.15 ms) against the
+    # 9.50 ms it guards.
+    if flat.is_cuda and not bool(torch.isnan(flat).any()):
+        ordered = torch.sort(flat, stable=True).values
+        offset = ordered[k_lo - 1]
+        hi = ordered[k_hi - 1]
+    else:
+        offset = flat.kthvalue(k_lo).values
+        hi = flat.kthvalue(k_hi).values
     scale = (hi - offset).clamp_min(1e-12)
     normalized = ((im - offset) / scale).clamp(0.0, 1.0)
     return normalized, offset, scale
@@ -121,6 +146,64 @@ def fuse_images_fourier_weighted(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#: Threads used for the parallel phases of :func:`fit_circle_ransac_levels`.  A
+#: pure tuning constant -- the result is bit-identical at every value, so unlike a
+#: format parameter this one may move freely.  ``n`` counts the CALLER too, so the
+#: pool holds ``n - 1``; nt=2 is the one value to avoid, because it leaves a single
+#: pool worker doing 99 of the 100 tasks while the caller waits on one.
+#:
+#: It is still NOT sized from ``os.cpu_count()``: four of the six ops in the fit
+#: HOLD the GIL, and D187 measured the whole surface falling to 0.63x once the pool
+#: follows the core count.  It is capped at 8 instead, with the box's own core
+#: count as the only thing that can lower it, so no machine gets more threads than
+#: it has CPUs.
+#:
+#: The ceiling was 4 while this constant sized ONE phase (scoring).  It now sizes
+#: TWO -- the fused Warp geometry pass takes it as well -- and 32.6 ms of a 57.6 ms
+#: call is behind it, so the value was re-swept in situ on ``d13_preprocess/medium``
+#: (``benchmarks/lab/_probe_d192_nt.py``, 9 reps after a per-arm warm-up,
+#: interleaved, median / min ms of ``_circle_method``): nt=1 101.0/93.1, nt=2
+#: 99.4/95.2, nt=4 71.5/63.7, nt=5 60.6/54.7, nt=6 59.3/53.1, **nt=8 53.8/48.2**,
+#: nt=10 55.4/51.8, nt=12 60.5/54.5, nt=16 65.9/61.0, nt=20 73.5/66.8.  8 is the
+#: optimum on BOTH statistics (1.329x / 1.321x over nt=4), 5-12 is one shelf, and
+#: 20 = ``cpu_count()`` on this box is still worse than 4.  D188's reason for
+#: staying at 4 -- that nt=6's samples were bimodal -- no longer reproduces: the
+#: nt=8 samples are a clean unimodal 48.2-60.5 spread.  The answer's independence
+#: from this value is pinned by
+#: ``tests/test_ransac_levels.py::test_thread_count_does_not_change_the_answer``.
+try:
+    _RANSAC_SCORE_THREADS = min(8, max(1, len(os.sched_getaffinity(0))))
+except AttributeError:  # not linux
+    _RANSAC_SCORE_THREADS = min(8, max(1, os.cpu_count() or 1))
 
 
 

@@ -1,12 +1,11 @@
 """Reciprocal-space coordinate grids.
 
-Replaces ``utils/stem.fftfreq2``. The function itself is a thin arrangement of
-``torch.fft.fftfreq``, but it lives in a module carrying abTEM (GPL-3.0) and
-MetPy (BSD-3) derived code, so the published surface needs it somewhere clean.
+A thin arrangement of ``torch.fft.fftfreq``, kept here so the published
+surface has it in one place.
 
-One behaviour change: the sampling argument has no mutable default. The
-replaced signature was ``dx: List[float] = [1.0, 1.0]``, a shared list that any
-caller could mutate for every later caller.
+Note that the sampling argument has no mutable default: a shared
+``dx: List[float] = [1.0, 1.0]`` can be mutated by any caller for every later
+caller.
 """
 
 from __future__ import annotations
@@ -84,8 +83,7 @@ def grid_shape_and_sampling(q: Tensor) -> Tuple[Tuple[int, int], Tuple[float, fl
 def radial_average(image, sampling: Sequence[float]):
     """Radial average of a corner-origin 2D array, over FFT frequency bins.
 
-    Replaces ``utils/utils.radial_average2``, which is a py4DSTEM (GPL-3.0)
-    derivative. Written here from the definition instead.
+    Written from the definition.
 
     Each pixel contributes to the two bins its ``|q|`` falls between, in
     proportion to how close it lies to each — a linear (area-weighted) partition

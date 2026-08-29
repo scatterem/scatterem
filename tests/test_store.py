@@ -1,4 +1,4 @@
-"""The declared-schema serializer that replaces the quantem-derived AutoSerialize.
+"""The declared-schema serializer that replaces the reflection-based one.
 
 The point of the redesign is that it refuses rather than half-loads, so most of
 these tests are about what it declines to do.

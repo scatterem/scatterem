@@ -1,7 +1,7 @@
 {
   "upload_type": "software",
   "title": "scatterem",
-  "description": "<p>Direct (single-side-band) ptychography, tilt-corrected dark-field imaging, and their SSNR-weighted Wiener fusion for 4D-STEM data. The fusion combines the two channels with weights set by their signal-to-noise ratio as a function of spatial frequency, giving a single image that carries the low-frequency phase contrast of ptychography together with the high-frequency detail of the dark-field channel, without the transfer gap either has alone.</p><p>This is the code released with You et al., <em>Advanced Science</em> (2026), doi:10.1002/advs.76620. The public tree is generated from a private development repository by an explicit manifest, so what is published is decided file by file rather than by omission.</p>",
+  "description": "<p>scatterem provides two things that share a scattering-matrix substrate.</p><p><strong>Reconstruction.</strong> Direct (single-side-band) ptychography, tilt-corrected dark-field imaging, and their SSNR-weighted Wiener fusion for 4D-STEM data, giving images with both low-frequency phase contrast and high-frequency detail.</p><p><strong>Forward simulation.</strong> Core-loss STEM-EELS by transition-potential multislice and by PRISM, including the bi-partitioned BiP-PRISM algorithm: both the probe-forming scattering matrix and the transposed detector matrix are computed on a sparse hex-ring parent set and reconstructed by natural-neighbour interpolation on a small window around the ionised atom. This makes full-resolution elemental mapping, energy-filtered four-dimensional datasets and momentum-resolved output reachable within a single GPU's memory.</p><p>The public tree is generated from a private development repository by an explicit manifest, so what is published is decided file by file rather than by omission.</p>",
   "creators": [
     {
       "name": "You, Shengbo",
@@ -28,10 +28,12 @@
   "keywords": [
     "4D-STEM",
     "electron ptychography",
-    "single-side-band ptychography",
-    "tilt-corrected dark-field",
-    "information transfer",
-    "Wiener fusion",
+    "STEM-EELS",
+    "core-loss spectroscopy",
+    "multislice",
+    "PRISM",
+    "scattering matrix",
+    "elemental mapping",
     "electron microscopy",
     "GPU"
   ],

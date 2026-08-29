@@ -10,8 +10,11 @@ from tqdm.auto import tqdm
 
 import scatterem.vis as vis
 from scatterem.nn.functional.ptychography import (
-    CorrectAberrations,
+    build_aberration_bf_factor,
     correct_aberrations_inplace,
+    correct_aberrations_kouter,
+    correct_aberrations_kouter_planes,
+    correct_aberrations_ksum,
 )
 from scatterem.nn.functional.ptychography import (
     phase_contrast_transfer_function as _phase_contrast_transfer_function,
@@ -49,12 +52,19 @@ def _phase_image_skewness(
     phase = phase_image.detach().to(torch.float32)
     centered = phase - phase.mean()
     std = centered.square().mean().sqrt()
-    if (not torch.isfinite(std)) or std <= eps:
-        return torch.zeros((), dtype=torch.float32, device=phase_image.device)
+    # The two guards are resolved ON DEVICE with ``torch.where`` rather than by
+    # ``if <0-dim cuda tensor>``.  Each python ``if`` on a device scalar is a
+    # blocking ``cudaStreamSynchronize``, and this function sits at the TAIL of
+    # the reconstruction, so the drains do not overlap with anything -- they
+    # serialise as sync / launch a handful of tiny kernels / sync again.  The
+    # returned values are unchanged in every case: the fallback is still exactly
+    # ``0.0`` where ``std`` is non-finite or ``<= eps``, or where the ratio is
+    # non-finite.  ``std.pow(3)`` cannot raise, so computing the ratio
+    # unconditionally is safe -- a zero or non-finite ``std`` makes it
+    # non-finite, which the same mask replaces.
     skewness = centered.pow(3).mean() / std.pow(3)
-    if not torch.isfinite(skewness):
-        return torch.zeros((), dtype=torch.float32, device=phase_image.device)
-    return skewness
+    finite = torch.isfinite(std) & (std > eps) & torch.isfinite(skewness)
+    return torch.where(finite, skewness, 0.0)
 
 
 def _orient_phase_image(
@@ -79,14 +89,20 @@ def _orient_phase_image(
 
     skewness = _phase_image_skewness(phase_image)
     target_sign = 1.0 if phase_sign == "positive" else -1.0
-    should_flip = float(skewness.detach().cpu()) * target_sign < 0.0
     if verbosity > 0:
+        # Only the diagnostic path pays the D2H sync.
+        should_flip = float(skewness.detach().cpu()) * target_sign < 0.0
         action = "flipping" if should_flip else "preserving"
         print(
             f"Direct ptycho phase skewness: {float(skewness.detach().cpu()):+.4f}; "
             f"{action} phase sign for {phase_sign} contrast"
         )
-    return -phase_image if should_flip else phase_image
+        return -phase_image if should_flip else phase_image
+    # Apply the sign as a device-side multiply by exactly +-1.0, which is
+    # bit-exact for every float and preserves NaN/inf, so the returned array is
+    # identical to the branched form while the decision never reaches the host.
+    sign = torch.where(skewness * target_sign < 0.0, -1.0, 1.0)
+    return phase_image * sign
 
 
 # radial power of k for each of the 12 cartesian aberration coefficients
@@ -1417,6 +1433,137 @@ def _upsampled_grid(vBF, upsample_int):
     return new_shape, Qy, Qx
 
 
+def _g_chunk_kouter_view(vBF, s: int, e: int):
+    """``G[..., s:e]`` as a ``[Nk, Nqy, Nqx]`` view -- **or None** when that view
+    is not already contiguous, i.e. when reaching it would cost a real copy.
+
+    ``vBF.G`` is ``torch.fft.fft2(array, dim=(0, 1))``, and torch/cuFFT works in
+    the ``[B, ny, nx]`` layout and hands back a permuted VIEW: the resident G has
+    strides ``(nx, 1, ny*nx)`` and ``is_contiguous() == False``, so it is ALREADY
+    bright-field-outermost in memory.  ``get_G_chunk``'s ``.contiguous()``
+    therefore does not "compact a non-contiguous slice" -- it TRANSPOSES G into
+    the ``[Nqy, Nqx, Nk]`` order, which is the order the ``ifft2`` that follows
+    then has to transpose back out of (measured: the copy 0.150 ms and the
+    transform 1.66x slower, at the registered 245^2 x 90 chunk).  Asking for the
+    k-outer view instead costs **nothing at all** -- the permuted slice is
+    already dense, so ``.contiguous()`` returns it unchanged.
+
+    Returned READ-ONLY, deliberately, which is what makes it free.  The caller
+    ``get_G_chunk`` serves needs an OWNED chunk because
+    ``correct_aberrations_inplace`` mutates it; ``correct_aberrations_kouter`` is
+    always out of place and never touches its input, so no ownership copy is
+    required on this path.  Do not hand this tensor to anything that mutates.
+
+    None is returned -- and the caller falls back to the shipped
+    ``[Nqy, Nqx, Nk]`` body -- whenever the layout is not free:
+
+    * an alignment overlay is active (``_align_shifts``); the overlay's ramp is
+      built in the ``[Nqy, Nqx, Nk]`` layout and only runs during a
+      bright-field-shift fit, so it is not worth a second spelling here;
+    * the provider keeps no resident ``G`` (``DatasetVirtualBrightFieldStreaming``
+      at ``g_residency`` "vbf_gpu"/"cpu_pinned" raises on ``.G``).  Those two
+      residencies *also* produce dense-but-k-outer chunks (an ``fft2`` output and
+      a ``movedim(0, -1)`` of a ``[Nk, ny, nx]`` host buffer respectively), so the
+      same win is available there through a provider-side fetch -- unmeasured, and
+      out of scope here;
+    * the permuted view is not contiguous for any other reason, in which case
+      reaching the k-outer layout would cost a transposing copy (0.525 ms
+      measured) that is larger than the transform saving it buys (0.349 ms) --
+      D49's own refutation, and this guard is what keeps it from applying.
+    """
+    if getattr(vBF, "_align_shifts", None) is not None:
+        return None
+    try:
+        G = vBF.G
+    except (RuntimeError, AttributeError):
+        return None
+    view = G[..., s:e].permute(2, 0, 1)
+    return view if view.is_contiguous() else None
+
+
+def _direct_ptychography_kouter(
+    Gprime_k,
+    aberrations,
+    ds_rotation,
+    semiconvergence_angle,
+    wavelength,
+    Qy,
+    Qx,
+    Kx,
+    Ky,
+    upsample,
+    reduce,
+    A,
+):
+    """:func:`_direct_ptychography` for a ``[Nk, Nqy, Nqx]`` chunk.
+
+    Identical arithmetic, and every stage of it is BIT-EXACT against the
+    ``[Nqy, Nqx, Nk]`` form at the registered chunk shapes (``torch.equal`` on all
+    three: the correction is a per-element multiply with permuted subscripts; the
+    transform is the same cuFFT batched plan reached from the layout it wants; and
+    the chunk reduction does not reassociate because ``ifft2(dim=(0, 1))`` returns
+    a *permuted view* whose outer physical axis is already ``Nk``, so
+    ``sum(dim=-1)`` on it and ``sum(dim=0)`` here walk memory in the same order --
+    0 of 60025 words differ, ``_probe_d225_copydelta.py``).
+
+    ``Gprime_k`` is only ever READ (the k-outer correction op is out of place), so
+    it may be a view of the caller's G.
+    """
+    factor = np.sqrt(upsample[0] * upsample[1])
+    corrected = torch.empty(
+        Gprime_k.shape, dtype=Gprime_k.dtype, device=Gprime_k.device
+    )
+    correct_aberrations_kouter(
+        Gprime_k,
+        aberrations,
+        ds_rotation,
+        semiconvergence_angle,
+        wavelength,
+        Qx,
+        Qy,
+        Kx,
+        Ky,
+        A if A is not None else torch.empty(
+            (0, 2), dtype=torch.float32, device=Gprime_k.device
+        ),
+        corrected,
+    )
+    if reduce == "sum":
+        # D24's argument about ``factor``, applied to the ONE remaining full-size
+        # constant multiply in this body -- cuFFT's C2C plan is unnormalised, so
+        # ``norm="ortho"`` is not free inside the transform: torch applies the
+        # 1/sqrt(Nqy*Nqx) as its OWN elementwise kernel over the [Nk, H, W] complex
+        # output.  Measured on the registered medium chunk (90, 245, 245): 1.015 ms
+        # for 8 chunks = 15.0 % of the row's whole device time, for a scalar the
+        # linear reduction that follows can carry.  ``norm="forward"`` puts the
+        # normalisation on the FORWARD transform, so the inverse hands back the raw
+        # cuFFT output and the pass disappears; the constant then rides along on the
+        # multiply the reduced [H, W] image was already paying, so this costs no
+        # extra dispatch at any shape (1.28x / 1.24x on the medium / small chunk).
+        #
+        # NOT bit-exact, and deliberately so: ``torch.equal`` says
+        # ``ifft2(norm="forward") * 1/sqrt(Nqy*Nqx)`` IS ``ifft2(norm="ortho")``
+        # elementwise, so the only difference is scale-then-sum vs sum-then-scale
+        # over the chunk axis -- the same float32 reassociation this path's oracle
+        # already grades against an INDEPENDENT complex128 reference (measured
+        # 1.9e-07 peak-normalised against a 1e-5 gate), and strictly FEWER roundings.
+        # That is also why the ``_is_exact_power_of_two`` split is gone from this
+        # branch: the folded constant is 1/245 at the registered grid, never a power
+        # of two, so there is no exponent-shift case left to preserve.
+        G_bf = torch.fft.ifft2(corrected, dim=(-2, -1), norm="forward")
+        scale = factor / math.sqrt(corrected.shape[-2] * corrected.shape[-1])
+        return torch.sum(G_bf.imag, dim=0) * scale
+    G_bf = torch.fft.ifft2(corrected, dim=(-2, -1), norm="ortho")
+    if reduce == "none":
+        # The yielded SHAPE contract is [Nqy, Nqx, Nk] and the empirical-SSNR
+        # consumer's output is digested bit-exact, so hand back a permuted VIEW
+        # (free) rather than change the contract.  Its consumer indexes the chunk
+        # axis (``imag[..., pm]``), which copies to a dense [Nqy, Nqx, m] tensor of
+        # the same values either way, so the half-sums are unchanged.
+        return (G_bf * factor).imag.permute(1, 2, 0)
+    raise ValueError(f"invalid reduce: {reduce!r}")
+
+
 def _iter_chunk_images(vBF, aberrations, rotation_t, Qy, Qx, upsample_int, n_batches, reduce):
     """Yield ``(s, e, image)`` per BF-pixel chunk: fetch (mutation-safe, from
     vBF.get_G_chunk) → tile when upsampling → aberration-correct → ifft2 →
@@ -1425,8 +1572,76 @@ def _iter_chunk_images(vBF, aberrations, rotation_t, Qy, Qx, upsample_int, n_bat
     device = vBF.device
     semiconvergence_angle = vBF.meta.semiconvergence_angle
     wavelength = vBF.meta.wavelength
+    # ``vBF.k`` is (Nk, 2), so ``vBF.k[s:e, 1]`` is a COLUMN slice -- stride 2,
+    # not dense.  A 1-D ``wp.array`` needs a dense inner stride, so every
+    # aberration op ``.contiguous()``-copies BOTH coordinate operands on EVERY
+    # call: at the registered medium geometry that is 16 tiny device copies and
+    # ~25 us of host time per pass of this loop, and because each copy is a FRESH
+    # tensor it also forces a rebind of those two slots in the ops' recorded-
+    # command memo.  The ``_contiguous_memo`` those ops call cannot help: it keys
+    # on tensor IDENTITY and ``vBF.k[s:e, 1]`` is a new Python object every call,
+    # so it misses every time.  Compact the two columns ONCE here instead -- a
+    # slice of a contiguous 1-D tensor is itself dense, so the ops' own
+    # ``.contiguous()`` then returns it unchanged.  BIT-EXACT: ``.contiguous()``
+    # relocates bits, it does not compute, so the kernels read the same words.
+    Kx_all = vBF.k[:, 1].contiguous()
+    Ky_all = vBF.k[:, 0].contiguous()
+    # The aberration kernel's ``A = aperture(K) * exp(-i chi(K))`` factor varies
+    # only with the bright-field pixel, so it is constant across every chunk.
+    # Built ONCE here for all bright-field pixels and sliced per chunk exactly as
+    # ``vBF.k[s:e]`` is; per chunk the build's ~30 us of host time would cost more
+    # than the device work it saves.
+    A_all = build_aberration_bf_factor(
+        aberrations,
+        semiconvergence_angle,
+        wavelength,
+        Kx_all,
+        Ky_all,
+    )
+    # The chunk-sum-first collapse fuses the correction and the ik reduction and
+    # is spelled for the [Nqy, Nqx, Nk] layout only, so the k-outer route is not
+    # taken when it is enabled -- that variant keeps its shipped body verbatim.
+    use_kouter = not (reduce == "sum" and _CHUNK_SUM_FIRST)
     for s, e in _chunk_ranges(vBF.n_bright_field, n_batches):
-        Gc = vBF.get_G_chunk(s, e)
+        # G is stored bright-field-OUTERMOST (an fft2 output is a permuted view),
+        # so ``get_G_chunk``'s ownership copy is a transposition into the layout
+        # the ifft2 then has to transpose back out of.  When the k-outer view is
+        # free -- resident G, no alignment overlay -- take it: no copy at all, and
+        # the transform runs as the natural batched form (1.66x, bit-exact).
+        Gc_k = _g_chunk_kouter_view(vBF, s, e) if use_kouter else None
+        if Gc_k is not None:
+            if (upsample_int > 1).any():
+                Gc_k = torch.tile(Gc_k, (1, int(upsample_int[0]), int(upsample_int[1])))
+            yield s, e, _direct_ptychography_kouter(
+                Gc_k,
+                aberrations,
+                rotation_t,
+                semiconvergence_angle,
+                wavelength,
+                Qy,
+                Qx,
+                Kx_all[s:e],
+                Ky_all[s:e],
+                upsample_int,
+                reduce,
+                A_all[s:e],
+            )
+            continue
+        # ``get_G_chunk``'s copy exists for OWNERSHIP -- the default body's
+        # ``correct_aberrations_inplace`` mutates the chunk.  The chunk-sum-first
+        # collapse does NOT: its only consumer is ``correct_aberrations_ksum``,
+        # which is out of place and never touches its input, exactly as
+        # ``correct_aberrations_kouter`` is on the branch above.  So take the same
+        # read-only view that branch takes and pay no copy: G is bright-field-
+        # OUTERMOST in memory, so the copy this skips is a TRANSPOSE, 1.116 ms of
+        # a 3.40 ms row at the registered medium geometry.  ``_g_chunk_kouter_view``
+        # already refuses (returns None) for an alignment overlay, a provider with
+        # no resident G, or a slice whose permuted form is not dense -- the three
+        # cases where the view is not free -- and this falls back to the owned
+        # chunk there.  Permuting it back to [Nqy, Nqx, Nk] is a relabelling of
+        # the same storage, so what reaches the kernel is ``G[..., s:e]`` itself.
+        Gc_view = None if use_kouter else _g_chunk_kouter_view(vBF, s, e)
+        Gc = vBF.get_G_chunk(s, e) if Gc_view is None else Gc_view.permute(1, 2, 0)
         if (upsample_int > 1).any():
             Gc = torch.tile(Gc, (int(upsample_int[0]), int(upsample_int[1]), 1))
         yield s, e, _direct_ptychography(
@@ -1437,11 +1652,12 @@ def _iter_chunk_images(vBF, aberrations, rotation_t, Qy, Qx, upsample_int, n_bat
             wavelength,
             Qy,
             Qx,
-            vBF.k[s:e, 1],
-            vBF.k[s:e, 0],
+            Kx_all[s:e],
+            Ky_all[s:e],
             device,
             upsample_int,
             reduce=reduce,
+            A=A_all[s:e],
         )
 
 
@@ -1475,21 +1691,24 @@ def phase_contrast_transfer_function(
     semiconvergence_angle = vBF.meta.semiconvergence_angle
     wavelength = vBF.meta.wavelength
 
-    if (upsample_int[0] > 1) or (upsample_int[1] > 1):
-        new_shape = (
-            int(round(vBF.G.shape[0] * upsample_int[0])),
-            int(round(vBF.G.shape[1] * upsample_int[1])),
-        )
-        Gprime = torch.tile(vBF.G, (upsample_int[0], upsample_int[1], 1))
-    else:
-        Gprime = vBF.G
-        new_shape = tuple([int(vBF.G.shape[0]), int(vBF.G.shape[1])])
+    # The PCTF kernel never reads G's VALUES -- gamma depends only on Q, K, the
+    # aberrations, the aperture and the wavelength -- so the U^2-tiled copy of G
+    # this used to build (``torch.tile(vBF.G, (Uy, Ux, 1))``) was a pure
+    # allocate-and-copy of up to 7.7 GiB per call at the Fig1 config.  Only the
+    # SHAPE was ever used, and that shape is (len(Qy), len(Qx), len(Kx)).
+    # NOTE this is the PCTF only: the reconstruction's own q-tiling of G (see
+    # ``_direct_ptychography_*``) is load-bearing -- it is how single-sideband
+    # ptychography reaches past the scan Nyquist -- and must not be removed.
+    new_shape = (
+        int(round(vBF.G.shape[0] * upsample_int[0])),
+        int(round(vBF.G.shape[1] * upsample_int[1])),
+    )
     Qy, Qx = vBF.get_q_1d(new_shape)
     Kx = vBF.k[:, 1]
     Ky = vBF.k[:, 0]
     aberrations = vBF.meta.aberrations.array
     pctf = _phase_contrast_transfer_function(
-        Gprime,
+        None,
         aberrations,
         ds_rotation,
         semiconvergence_angle,
@@ -1500,6 +1719,44 @@ def phase_contrast_transfer_function(
         Ky,
     )
     return pctf
+
+
+# Retained-activation budget for the TV-autofocus chunk loop in
+# :func:`determine_aberrations` (see ``use_ckpt`` there).  Gradient-checkpointing
+# each chunk buys peak memory by paying a SECOND forward pass inside the
+# backward, so it is only worth doing when the memory it saves actually matters.
+# What it saves is exactly ``scatterem::correct_aberrations_fwd``'s saved input:
+# ``n_k_tv * new_shape[0] * new_shape[1] * 8`` bytes summed over the chunks, i.e.
+# one upsampled copy of ``vBF.G``.  Below this budget the checkpoint is skipped
+# and the fit runs one forward per objective evaluation instead of two.
+#
+# The switch is numerically INERT -- the recompute is a deterministic
+# re-execution of the same ops on the same inputs, so the aberration gradient is
+# identical either way (gated in ``_probe_d4_ckpt.py`` against the adjoint's own
+# ``wp.tile_atomic_add`` reproducibility floor, R9d).  Only peak memory and
+# runtime move, which is why a budget is a safe thing to condition on.
+#
+# 4 GiB keeps the case the loop's docstring was written for on the checkpointed
+# path: a 1024^2 scan needs ~9 GB here (17 GB with the ifft2 output the sum-first
+# collapse has since deleted), and reintroducing that is the OOM the chunking
+# exists to prevent.  The published ``Fig1_Gd2O3`` fit config needs 2150 MiB.
+_TV_CHUNK_CKPT_BUDGET_BYTES = 4 * 1024**3
+
+# Budget for the TV-autofocus chunk CACHE (see ``_g_chunks`` in
+# :func:`determine_aberrations`).  ``vBF.G`` is fixed for the whole fit, but
+# ``G[..., s:e]`` is a non-contiguous last-axis slice, so ``get_G_chunk`` compacts
+# the same bytes on every chunk body -- ~1250-1700 times per fit at
+# ``n_batches=25``.  Fetching each distinct chunk once instead costs one extra
+# copy of G, ``n_k_tv * ny * nx * 8`` bytes, which is the SAME quantity the
+# checkpoint budget above is written in; hence the same default, so the two
+# decisions cannot disagree about what "a copy of G is affordable" means.
+#
+# Like the checkpoint switch this is numerically INERT: a cached chunk is the
+# tensor ``get_G_chunk`` returns, byte for byte (verified by ``torch.equal`` in
+# ``_probe_d7_fetch.py``), and its one consumer in the loop,
+# ``CorrectAberrations.apply``, is out-of-place (measured in D3-run).  So only
+# peak memory and runtime move, which is what makes a budget safe to condition on.
+_TV_CHUNK_CACHE_BUDGET_BYTES = 4 * 1024**3
 
 
 def determine_aberrations(
@@ -1679,6 +1936,18 @@ def determine_aberrations(
             wavelength, semiconvergence_angle, device=vBF.device
         )
         free_mask = _build_gradient_mask(correct_order, gradient_mask).to(vBF.device)
+        # The analytic aberration adjoint's cost is LINEAR in the number of
+        # coefficients it differentiates (measured on the published Fig1 chunk:
+        # 1.098 ms at 1, 3.530 ms at 12), and ``aberr_of`` below multiplies the
+        # frozen ones by ``free`` -- i.e. by exactly zero -- before they ever
+        # reach ``u.grad``.  So everything past the last free coefficient is
+        # dead work, and at ``correct_order=1`` that is nine gradients in
+        # twelve.  Computed once here, off the hot path.  A leading count, not
+        # a mask: ``_build_gradient_mask`` freezes a suffix, and a leading
+        # count is still correct (only less aggressive) under a user mask with
+        # holes in it.
+        _free_idx = torch.nonzero(free_mask.reshape(-1), as_tuple=False)
+        n_grad_coeffs = int(_free_idx[-1].item()) + 1 if _free_idx.numel() else 0
 
         # (#5) the ROI is windowed (Hann) inside evaluate_tv via _windowed_roi, which also
         # clamps the ROI to the reconstructed-image bounds (robust to roi_shape > image).
@@ -1686,27 +1955,108 @@ def determine_aberrations(
         factor = np.sqrt(upsample_int[0] * upsample_int[1])
         last_image = {"img": None}
 
+        # What ``get_G_chunk`` returns is fixed for the duration of this fit:
+        # nothing in the TV loop mutates ``vBF`` (``vBF.array.requires_grad`` is
+        # False, set above, and the alignment overlay -- when there is one -- is
+        # accumulated by the bright-field stage that has already finished).  Yet
+        # ``_chunk_image`` re-derives its chunk on every chunk body, and
+        # ``G[..., s:e]`` is a non-contiguous last-axis
+        # slice, so each of those is a strided compaction of bytes that did not
+        # change: 172 MiB of traffic, 0.442 ms, x1250-1700 bodies per fit =
+        # ~18 % of it at the published Fig1 config.  Fetch each of the
+        # ``n_batches`` distinct chunks ONCE.  (D3-run closed the other two
+        # spellings by measurement: handing the strided view to
+        # ``correct_aberrations`` instead is WORSE -- the copy moves inside the op
+        # and gets a 4-byte-innermost kernel -- and the compaction itself already
+        # runs near this card's copy roof, so it can only be deleted, not sped up.)
+        #
+        # Budgeted, not unconditional: the cache is one more copy of G, and at the
+        # 1024^2 scan the chunk loop's docstring was written for that is ~8.6 GiB,
+        # i.e. exactly the OOM the chunking exists to prevent.  Streaming
+        # residencies (``vbf_gpu`` / ``cpu_pinned``, ``utils/data/out_of_core.py``)
+        # are excluded BY NAME rather than by size: their whole budget is that a
+        # chunk exists only while it is in use, and their ``G`` property refuses
+        # to materialise at all.
+        _cache_bytes = (
+            int(n_k_tv) * int(vBF.array.shape[0]) * int(vBF.array.shape[1]) * 8
+        )
+        _g_chunks: dict[tuple[int, int], torch.Tensor] = {}
+        if (
+            _cache_bytes <= _TV_CHUNK_CACHE_BUDGET_BYTES
+            and str(getattr(vBF, "_g_residency", "gpu")) == "gpu"
+        ):
+            for _s, _e in _chunk_ranges(n_k_tv, n_batches):
+                _g_chunks[(_s, _e)] = vBF.get_G_chunk(_s, _e)
+
         def evaluate_tv(aberr):
             # Reconstruct the phase image (mean over the detector-pixel axis of
             # imag(ifft2(corrected G))) in chunks over that axis. The full
             # [Ny, Nx, N_k] corrected-G + ifft2 cost ~2x17 GB for a 1024^2 scan;
             # chunking caps the peak at one chunk. ifft2 acts per detector pixel,
-            # so summing chunk contributions is exact. Each chunk is gradient-
-            # checkpointed so per-chunk activations are freed and recomputed in
-            # the backward pass -- essential inside the LBFGS closure, where a
-            # single backward would otherwise retain every chunk's graph.
+            # so summing chunk contributions is exact. Above
+            # ``_TV_CHUNK_CKPT_BUDGET_BYTES`` each chunk is additionally
+            # gradient-checkpointed so per-chunk activations are freed and
+            # recomputed in the backward pass; see the ``use_ckpt`` comment
+            # below for what is retained when they are not.
             from torch.utils.checkpoint import checkpoint
+
+            # The ``ik``-only factor ``A = aperture(K) * exp(-i chi(K))`` is a
+            # function of ``aberr`` alone, so it is built ONCE here and sliced
+            # per chunk -- never inside ``_chunk_image``.  The fused kernel would
+            # otherwise recompute it (an aperture, an aberration polynomial and a
+            # ``cexp``) for every one of its ``Ny * Nx`` threads; hoisting is
+            # 1.29x on the kernel at the published Fig1 chunk and bit-exact,
+            # because ``_direct_ptychography_build_A`` evaluates the identical
+            # six lines the kernel used to.  Per chunk it would be a LOSS: the
+            # launch is ~0.042 ms for ~43 elements against a 0.070 ms saving.
+            #
+            # Safe under the gradient checkpoint below: ``build_aberration_bf_
+            # factor`` is ``@torch.no_grad()`` and this tensor is captured by
+            # closure, so the recompute reads the identical object the first
+            # forward used -- bit-exact a fortiori, and the analytic adjoint
+            # never consults it (DISCOVERED D7).
+            A_bf = build_aberration_bf_factor(
+                aberr.detach(),
+                float(semiconvergence_angle),
+                float(wavelength),
+                Kx,
+                Ky,
+            )
 
             def _chunk_image(aberr, s, e):
                 # The chunk fetch lives INSIDE the checkpointed function: only
                 # (aberr, s, e) are saved for backward, and the recompute
-                # re-fetches (or re-FFTs) the same chunk deterministically.
-                Gc = vBF.get_G_chunk(s, e)
+                # re-fetches (or re-FFTs) the same chunk deterministically -- or,
+                # when the cache above is populated, reads the identical tensor
+                # the first fetch produced, which is deterministic a fortiori.
+                Gc = _g_chunks.get((s, e))
+                if Gc is None:
+                    Gc = vBF.get_G_chunk(s, e)
                 if upsample_int[0] > 1 or upsample_int[1] > 1:
                     Gc = torch.tile(
                         Gc, (int(upsample_int[0]), int(upsample_int[1]), 1)
                     )
-                Gprime_corrected = CorrectAberrations.apply(
+                # FUSED correct-and-reduce.  The two statements this replaces
+                # were ``CorrectAberrations.apply(...)`` -- which allocates an
+                # ``[Ny, Nx, n_k]`` corrected chunk, 86.0 MiB at the published
+                # Fig1 config -- followed immediately by ``.sum(dim=-1)``, which
+                # read all 86 MiB back to collapse them to 1.0 MiB.  Nothing
+                # between the two ever looked at the unreduced tensor, and the
+                # backward's upstream adjoint was the ``ik``-BROADCAST of a
+                # single ``[Ny, Nx]`` image that autograd had to materialise at
+                # the same 86 MiB before the analytic kernel could index it.
+                # Both passes are gone; the accumulation happens in a register.
+                #
+                # This is a reassociation of the ``ik`` sum, not a rewrite of the
+                # arithmetic, and it is the SAME class and SIZE of perturbation
+                # as the sum-first collapse immediately below (measured on the
+                # live (512, 512, 43) chunk: chunk image rel 2.73e-07, and
+                # against a complex128 reduction of the same corrected G the two
+                # float32 forms sit at 3.95e-08 and 1.33e-07 -- both at float32's
+                # own error, neither the accurate one).  The fit's own
+                # reproducibility floor is far larger; see the comment on the
+                # collapse below and docs/perf-lab/reports/2026-08-06-d18-*.md.
+                Gprime_summed = correct_aberrations_ksum(
                     Gc,
                     aberr,
                     rotation_t,
@@ -1716,15 +2066,63 @@ def determine_aberrations(
                     Qy,
                     Kx[s:e],
                     Ky[s:e],
+                    n_grad_coeffs,
+                    A_bf[s:e],
                 )
-                G_bf = (
-                    torch.fft.ifft2(Gprime_corrected, dim=(0, 1), norm="ortho").imag
+                # Reduce the bright-field-pixel axis BEFORE the transform, not
+                # after.  ifft2 acts on the image axes (0, 1) and Im() is
+                # R-linear, so
+                #     sum_k Im(ifft2(G_k)) == Im(ifft2(sum_k G_k))
+                # and this chunk needs ONE two-dimensional transform instead of
+                # one per bright-field pixel -- the identity
+                # ``enable_chunk_sum_first`` implements for the reconstruction
+                # loop (R18), which this body had inlined without it.  The
+                # ``factor`` also lands on the [Ny, Nx] real image instead of an
+                # [Ny, Nx, n_k] complex one.
+                #
+                # Unlike the reconstruction switch (``enable_chunk_sum_first``)
+                # this is NOT opt-in, and the difference matters: that one feeds
+                # published arrays directly, while this is the objective of a
+                # nonlinear TV minimisation whose own reproducibility floor is
+                # far LARGER than this reassociation.  Measured at the live
+                # (512, 512, 43) chunk: the two float32 forms differ by rel
+                # 2.73e-07, and against a complex128 reference of the same input
+                # they sit at rel 2.62e-07 (this one) and 2.00e-07 (the previous
+                # one) -- i.e. they are the same distance from the truth to
+                # within 1.3x, and their difference from each other is the size
+                # of either one's own float32 error, so neither is the accurate
+                # form.  Downstream, the fitted aberration vector moves no more
+                # across this change than it moves between two runs of the
+                # unmodified code (`wp.tile_atomic_add` in the aberration adjoint
+                # makes the gradient non-reproducible, so strong-Wolfe lands
+                # elsewhere): on Fig2_carbon every fitted coefficient's
+                # cross-change spread is <= 1.5x its own same-arm spread and C10
+                # is bit-identical, and on Fig1_Gd2O3 the fit has a SECOND BASIN
+                # 0.85 % away in C10 that unmodified code reaches too (1 launch
+                # in 10).  See docs/perf-lab/reports/2026-08-06-d2-*.md.
+                return (
+                    torch.fft.ifft2(Gprime_summed, dim=(0, 1), norm="ortho").imag
                     * factor
                 )
-                return G_bf.sum(dim=-1)
 
             image_sum = None
-            use_ckpt = torch.is_grad_enabled() and aberr.requires_grad
+            # Checkpoint only when the activation it drops is worth a second
+            # forward pass.  What NOT checkpointing retains is one saved tensor
+            # per chunk -- ``scatterem::correct_aberrations_ksum_fwd`` keeps its
+            # ``Gprime_real`` input for the analytic adjoint -- so summed over
+            # the chunks it is exactly one upsampled copy of ``vBF.G``, and
+            # nothing else: the corrected G is never materialised at all (the
+            # ``ik`` sum happens inside the kernel) and the ifft2 output is now a
+            # real ``[Ny, Nx]`` image, not a ``[Ny, Nx, n_k]`` complex one.  What the
+            # checkpoint COSTS is a whole extra forward per objective
+            # evaluation, which is why ``loss.backward`` measures 2.27x the
+            # forward it differentiates.  Below the budget, skip it.
+            retained_bytes = int(n_k_tv) * int(new_shape[0]) * int(new_shape[1]) * 8
+            use_ckpt = (
+                torch.is_grad_enabled()
+                and aberr.requires_grad
+                and retained_bytes > _TV_CHUNK_CKPT_BUDGET_BYTES
+            )
             for s, e in _chunk_ranges(n_k_tv, n_batches):
                 if use_ckpt:
                     partial = checkpoint(_chunk_image, aberr, s, e, use_reentrant=False)
@@ -1862,6 +2260,73 @@ def _checkerboard_parity(bright_field_inds: torch.Tensor) -> torch.Tensor:
 _MIN_HALFSPLIT_PIXELS = 4
 
 
+# Opt-in fast path for the bright-field chunk reduction in ``_direct_ptychography``.
+# OFF by default: the collapse is algebraically exact but reassociates the float32
+# chunk sum, so it does not reproduce the default path bit for bit.  See
+# :func:`enable_chunk_sum_first`.
+_CHUNK_SUM_FIRST = False
+
+
+def enable_chunk_sum_first(enabled: bool = True) -> bool:
+    """Enable the chunk-axis-first reduction in the direct-ptychography loop.
+
+    ``_direct_ptychography`` inverse-transforms a whole bright-field chunk and then
+    sums the chunk axis away.  ``ifft2`` is linear and ``Im()`` is R-linear, so
+
+        sum_k Im(ifft2(G_k)) == Im(ifft2(sum_k G_k))
+
+    and reducing the chunk axis *before* the transform replaces one
+    two-dimensional transform per bright-field pixel with a single transform per
+    chunk.  It also applies the ``sqrt(upsample)`` factor to the ``[H, W]`` real
+    result instead of to an ``[H, W, chunk]`` complex tensor whose real half is
+    discarded.
+
+    Measured **2.26x** end to end (13.652 -> 6.034 ms, range 2.23-2.29x over
+    separate process launches) on a 245**2 scan x 128**2 detector reconstruction,
+    717 bright-field pixels, ``n_batches=8``, RTX A6000 -- with peak CUDA memory
+    41 MiB *lower*, since the ``[H, W, chunk]`` complex intermediates are never
+    materialised.  The win scales with bright-field pixels per chunk, so it is
+    **no win at all** on a 62**2 scan (0.997x, ~8 px per chunk and launch-bound)
+    and grows with scan size and with small ``n_batches``.
+
+    Default OFF, deliberately.  The identity is exact in exact arithmetic (checked
+    to 4.6e-16 of peak in float64 at the live chunk shape), moving the real factor
+    across ``Im()`` is bit-exact, and against a complex128 reference the collapsed
+    form is *closer* to the truth than the default (2.637e-07 vs 2.716e-07).  The
+    two float32 images agree to 3.2e-07 of the image peak -- less than either
+    one's own distance from that reference.  But summing before rather than after
+    the transform does reassociate the float32 sum, so it is not bit-exact, and
+    the published full-field figures are reproduced from the default path.
+    Flipping the default is therefore a decision for a person, not for this
+    switch.
+
+    ``reduce="none"`` (the empirical-SSNR checkerboard half-split) has no chunk sum
+    to collapse and is unaffected either way.
+
+    Args:
+        enabled: whether to take the collapsed path.
+
+    Returns:
+        bool: the previous setting, so a caller can restore it.
+    """
+    global _CHUNK_SUM_FIRST
+    previous = _CHUNK_SUM_FIRST
+    _CHUNK_SUM_FIRST = bool(enabled)
+    return previous
+
+
+def _is_exact_power_of_two(x) -> bool:
+    """True when ``x`` is a positive, finite, exact power of two.
+
+    ``math.frexp`` writes ``x = m * 2**e`` with ``0.5 <= |m| < 1``; ``m == 0.5``
+    is exactly the "significand is 1.0" case, i.e. multiplication by ``x`` is a
+    pure exponent shift and therefore exact.  Written against ``float(x)`` so a
+    numpy scalar (what ``np.sqrt`` returns) answers the same as a Python float.
+    """
+    xf = float(x)
+    return xf > 0.0 and math.isfinite(xf) and math.frexp(xf)[0] == 0.5
+
+
 def _direct_ptychography(
     Gprime: torch.Tensor,
     aberrations: torch.Tensor,
@@ -1875,9 +2340,44 @@ def _direct_ptychography(
     device: torch.device,
     upsample: np.ndarray,
     reduce: str = "sum",
+    A: torch.Tensor | None = None,
+    out: torch.Tensor | None = None,
 ) -> torch.Tensor:
+    factor = np.sqrt(upsample[0] * upsample[1])
+    if reduce == "sum" and _CHUNK_SUM_FIRST:
+        # One transform per chunk instead of one per bright-field pixel, and the
+        # factor lands on the [H, W] real result rather than an [H, W, chunk]
+        # complex one. Reassociates the float32 chunk sum: opt-in, see
+        # enable_chunk_sum_first.
+        #
+        # The aberration correction and the ik reduction are FUSED here, so the
+        # (Nqy, Nqx, Nk) corrected chunk is never materialised: on the registered
+        # 245**2 x 128**2 reconstruction that deletes a 42.1 MiB write followed
+        # immediately by a 42.1 MiB read of the same block, per chunk.  This is the
+        # op D18 built for exactly this pair -- ``determine_aberrations`` has used it
+        # since; this loop never got it.  ``out`` is deliberately unused on this
+        # branch: the fused op does not mutate ``Gprime``, which is the only reason
+        # a caller needed a scratch buffer at all.
+        Gprime_summed = correct_aberrations_ksum(
+            Gprime,
+            aberrations,
+            ds_rotation,
+            semiconvergence_angle,
+            wavelength,
+            Qx,
+            Qy,
+            Kx,
+            Ky,
+            None,
+            A,
+        )
+        return torch.fft.ifft2(Gprime_summed, dim=(0, 1), norm="ortho").imag * factor
     # correct_aberrations_inplace accepts a float OR a pre-built device tensor;
-    # hot loops pass a tensor so no per-chunk H2D copy is launched.
+    # hot loops pass a tensor so no per-chunk H2D copy is launched.  ``A`` is the
+    # bright-field-only aberration factor, hoisted above the chunk loop by
+    # _iter_chunk_images; None means the op builds its own.  ``out`` is a scratch
+    # buffer for callers that must keep ``Gprime`` intact: with it the correction
+    # is out of place and they need no clone.
     Gprime_corrected = correct_aberrations_inplace(
         Gprime,
         aberrations,
@@ -1888,13 +2388,27 @@ def _direct_ptychography(
         Qy,
         Kx,
         Ky,
+        A=A,
+        out=out,
     )
-    factor = np.sqrt(upsample[0] * upsample[1])
-    G_bf = torch.fft.ifft2(Gprime_corrected, dim=(0, 1), norm="ortho") * factor
     if reduce == "sum":
-        return torch.sum(G_bf.imag, dim=(-1))
+        # The same normalisation fold as _direct_ptychography_kouter, applied here
+        # too so the two layouts stay numerically interchangeable: the streaming /
+        # alignment-overlay callers reach THIS body while the resident-G ones reach
+        # the k-outer twin, and tests/test_eager_vs_ooc_equivalence.py compares the
+        # two at atol=1e-7.  Folding one and not the other would put a 1.9e-07
+        # difference straight into that comparison.
+        G_bf = torch.fft.ifft2(Gprime_corrected, dim=(0, 1), norm="forward")
+        scale = factor / math.sqrt(
+            Gprime_corrected.shape[0] * Gprime_corrected.shape[1]
+        )
+        return torch.sum(G_bf.imag, dim=(-1)) * scale
+    # reduce="none" keeps ``norm="ortho"``: its consumer (the empirical-SSNR
+    # checkerboard half-split) is digested BIT-EXACT, so nothing about a
+    # normalisation fold may reach it.
+    G_bf = torch.fft.ifft2(Gprime_corrected, dim=(0, 1), norm="ortho")
     if reduce == "none":
-        return G_bf.imag
+        return (G_bf * factor).imag
     raise ValueError(f"invalid reduce: {reduce!r}")
 
 
@@ -2097,6 +2611,130 @@ def direct_ptychography_empirical_ssnr(
     )
     ssnr_ptycho = ssnr_1d[bin_idx].reshape(F_A.shape)  # NO /sqrt(fluence)
     return full, ssnr_ptycho
+
+
+#: Byte budget for the PLANE-BATCHED branch of :func:`_sweep_chunk_kouter`.
+#
+# Batching the depth planes into one launch grid needs the corrected chunk (and the
+# transform that consumes it) materialised for every plane at once instead of one at a
+# time, so it trades ``2 * (n_depths - 1) * chunk_bytes`` of device residency for
+# ``n_chunks * (n_depths - 1)`` fewer correction calls.  Whether that trade is worth
+# anything is a property of the ROW'S BALANCE, not of the code (D272's law), and it was
+# measured on both registered sizes with the identical instrument
+# (``_probe_d276_price.py``, arm A vs arm B3, both bit-exact):
+#
+#   ``small``   batched scratch    3.373 MiB   ->  **2.826x** (15.910 -> 5.629 ms),
+#               row peak 146.5 MiB, 91.3 % GPU-idle: the removed host calls ARE the row.
+#   ``medium``  batched scratch  294.923 MiB   ->  1.0104x (49.963 -> 49.449 ms),
+#               row peak 4464.4 MiB, 6.5 % GPU-idle: the removed host calls are already
+#               hidden behind device work, so 500 MiB buys nothing measurable.
+#
+# 16 MiB sits ~5x above the first and ~18x below the second, so neither registered size
+# is anywhere near the boundary and the gate is not a fitted threshold on a speed
+# measurement (which is what D233 caught being wrong when shape and count move together)
+# -- it is a memory guard on a trade whose two ends have both been measured.
+_SWEEP_PLANE_BATCH_BYTES = 16 << 20
+
+
+def _sweep_chunk_kouter(
+    Gc_k,
+    s: int,
+    e: int,
+    phase_sums,
+    n_depths: int,
+    ab_planes,
+    A_planes,
+    rotation_t,
+    semiconvergence_angle,
+    wavelength,
+    Qx,
+    Qy,
+    Kx,
+    Ky,
+    factor,
+    ab_stack=None,
+    A_stack=None,
+):
+    """Accumulate all ``n_depths`` planes of one ``[Nk, Nqy, Nqx]`` bright-field
+    chunk into ``phase_sums``: correct -> ``ifft2(dim=(-2,-1))`` -> ``sum(dim=0)``.
+
+    ``Gc_k`` is only ever READ (``correct_aberrations_kouter`` is out of place), so
+    it may be a free view of the caller's resident ``G`` -- which is what
+    :func:`_g_chunk_kouter_view` hands back, and the reason the sweep pays no
+    layout copy at all on the common path.  One scratch buffer for the corrected
+    chunk is reused by every plane instead of cloning the chunk per plane: the
+    clone was a full read+write pass on top of the kernel's own read+write, four
+    passes where two do.  Safe across planes -- the ``ifft2`` that consumes the
+    buffer is issued on the same stream before the next plane's kernel overwrites
+    it.  Explicit shape/dtype, NOT ``empty_like``, so a dense-but-permuted input
+    cannot give the Warp view a non-contiguous destination.
+
+    ``ab_stack``/``A_stack`` are the same ``ab_planes``/``A_planes`` packed as
+    ``[n_depths, n_ab]`` and ``[n_bf_total, n_depths, 2]``; given both, and given a
+    chunk small enough for :data:`_SWEEP_PLANE_BATCH_BYTES`, the whole plane loop
+    collapses into ONE correction launch, ONE batched ``ifft2`` and ONE reduction.
+    Bit-exact: the correction is per-element (so plane ``ip`` of the batched output
+    holds the same words the per-plane launch writes), the ``ifft2`` runs over the
+    same inner two axes of the same contiguous per-plane blocks at a higher batch
+    count, and the reduction sums the same contiguous ``Nk`` planes.  Confirmed by
+    digest at both registered sizes, and it is the digest and not this argument
+    that is load-bearing -- cuFFT is free to choose a different algorithm at a
+    different batch count.
+    """
+    if (
+        ab_stack is not None
+        and A_stack is not None
+        and n_depths * Gc_k.numel() * Gc_k.element_size()
+        <= _SWEEP_PLANE_BATCH_BYTES
+    ):
+        corrected = torch.empty(
+            (n_depths, *Gc_k.shape), dtype=Gc_k.dtype, device=Gc_k.device
+        )
+        correct_aberrations_kouter_planes(
+            Gc_k,
+            ab_stack,
+            rotation_t,
+            semiconvergence_angle,
+            wavelength,
+            Qx,
+            Qy,
+            Kx,
+            Ky,
+            A_stack[s:e],
+            corrected,
+        )
+        G_bf = torch.fft.ifft2(corrected, dim=(-2, -1), norm="ortho")
+        if _is_exact_power_of_two(factor):
+            phase_sums += torch.sum(G_bf.imag, dim=1) * factor
+        else:
+            phase_sums += torch.sum((G_bf * factor).imag, dim=1)
+        return
+    Gc_k_corrected = torch.empty(
+        Gc_k.shape, dtype=Gc_k.dtype, device=Gc_k.device
+    )
+    for i in range(n_depths):
+        correct_aberrations_kouter(
+            Gc_k,
+            ab_planes[i],
+            rotation_t,
+            semiconvergence_angle,
+            wavelength,
+            Qx,
+            Qy,
+            Kx,
+            Ky,
+            A_planes[i][s:e],
+            Gc_k_corrected,
+        )
+        G_bf = torch.fft.ifft2(Gc_k_corrected, dim=(-2, -1), norm="ortho")
+        if _is_exact_power_of_two(factor):
+            # Same power-of-two argument as ``_direct_ptychography``: scaling the
+            # reduced [H, W] image instead of the [Nk, H, W] complex one is
+            # bit-exact when the factor is an exact power of two, and spares a
+            # full read+write pass over the chunk.
+            phase_sums[i] += torch.sum(G_bf.imag, dim=0) * factor
+        else:
+            phase_sums[i] += torch.sum((G_bf * factor).imag, dim=0)
 
 
 

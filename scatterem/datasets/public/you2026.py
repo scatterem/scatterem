@@ -20,9 +20,16 @@ densifying it requires choosing a defocus member and resolving a scan-sampling
 discrepancy (file ``dxy`` = 0.334 A vs the script's 0.316 A).
 """
 
-import numpy as np
+from typing import Union
 
-from scatterem.datasets.public.base import PublicDataset4dstem
+import numpy as np
+import torch
+
+from scatterem.datasets.public.base import (
+    PublicDataset4dstem,
+    load_npy,
+    load_npy_to_device,
+)
 
 _REFERENCE = (
     "You et al., 'Gap-Free Information Transfer in 4D-STEM via Fusion of "
@@ -38,8 +45,13 @@ class _DenseNpyDataset(PublicDataset4dstem):
     zenodo_record_id = _RECORD
     reference = _REFERENCE
 
-    def _load_array(self) -> np.ndarray:
-        return np.load(self.raw_folder / self.resources[0][0])
+    def _load_array(self) -> Union[np.ndarray, "torch.Tensor"]:
+        path = self.raw_folder / self.resources[0][0]
+        # Straight onto the destination device, in the dtype the dataset will hold
+        # it in, when that is possible; None means "not handled", and then this is
+        # the read it always was.
+        staged = load_npy_to_device(path, self._load_device, self._load_dtype)
+        return load_npy(path) if staged is None else staged
 
 
 class You2026Gd2O3(_DenseNpyDataset):

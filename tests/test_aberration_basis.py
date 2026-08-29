@@ -1,4 +1,4 @@
-"""Clean-room aberration basis and polar/cartesian conventions.
+"""Aberration basis and polar/cartesian conventions.
 
 The basis is the standard wave-aberration expansion,
 

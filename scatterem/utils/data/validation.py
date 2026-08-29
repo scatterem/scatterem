@@ -1,8 +1,7 @@
 """Input coercion for the dataset containers.
 
-Replaces the three helpers ``utils/data/datasets.py`` uses from
-``utils/validators.py``, a module derived from quantem (MIT) with the copyright
-notice stripped. These are written from the behaviour they need to provide:
+The three helpers ``utils/data/datasets.py`` needs, written from the behaviour
+they must provide:
 coerce whatever a caller passes into the one representation the container works
 with, and refuse clearly when that is impossible.
 
@@ -25,6 +24,11 @@ from typing import Any, List, Sequence, Union
 import numpy as np
 import torch
 from numpy.typing import NDArray
+
+# The staged H2D lives next to the ensure_valid_array that datasets.py actually imports
+# (``utils/validators.py``, despite this module's docstring) and is shared rather than
+# duplicated, so a later rewire of that import cannot silently lose it. ``validators`` has
+# no scatterem imports of its own, so this cannot cycle.
 
 
 def ensure_valid_array(
@@ -66,7 +70,7 @@ def ensure_valid_array(
                 f"could not convert {type(array).__name__} to a tensor: {exc}"
             ) from exc
 
-    tensor = tensor.to(device=device)
+    tensor = tensor.to(device=torch.device(device))
     if dtype is not None:
         tensor = tensor.to(dtype=dtype)
     tensor.requires_grad_(False)
@@ -133,7 +137,5 @@ def validate_units(value: Union[str, Sequence[str]], ndim: int) -> List[str]:
             f"{type(value).__name__}"
         )
     if len(value) != ndim:
-        raise ValueError(
-            f"units has {len(value)} entries but the data has {ndim} axes"
-        )
+        raise ValueError(f"units has {len(value)} entries but the data has {ndim} axes")
     return [str(unit) for unit in value]

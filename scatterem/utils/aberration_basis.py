@@ -1,11 +1,6 @@
 """The wave-aberration function and its polar/cartesian coefficient conventions.
 
-Written from the standard expansion rather than adapted from an existing
-implementation. It replaces two pieces that an Apache-2.0 release cannot carry:
-``utils/stem._cartesian_aberrations`` (copied text of unrecorded origin, its
-comments OCR-mangled) and ``utils/transfer.{cartesian2polar, polar2cartesian}``
-(a verbatim block from GPL-3.0-or-later abTEM, complete with an unexplained
-``k = sqrt(3 + sqrt(8))``).
+Written from the standard expansion.
 
 The aberration function is
 
@@ -24,7 +19,7 @@ Naming follows the convention already in use: ``Cnm`` with an ``a`` suffix is th
     Ca = C * cos(m * phi_m)      Cb = C * sin(m * phi_m)
 
 and therefore ``C = hypot(Ca, Cb)``, ``phi_m = atan2(Cb, Ca) / m``. Magnitudes
-are non-negative by construction. The abTEM conversion this replaces returned a
+are non-negative by construction. The earlier conversion returned a
 *negative* magnitude and a sign-flipped angle, which meant the reported polar
 pair did not describe the wavefront that had actually been fitted; see
 ``tests/test_aberration_basis.py::test_reported_polar_pair_describes_the_same_wavefront``.

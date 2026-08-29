@@ -1,9 +1,16 @@
 cff-version: 1.2.0
-message: If you use this software, please cite the paper it implements.
+message: >-
+  If you use this software, please cite the paper for the part you used. The
+  preferred citation below is the 4D-STEM reconstruction paper; work using the
+  core-loss STEM-EELS simulation should cite the BiP-PRISM paper instead, which
+  will be added here once it has a DOI.
 title: "scatterem"
 abstract: >-
   Direct (single-side-band) ptychography, tilt-corrected dark-field imaging, and
-  their SSNR-weighted Wiener fusion for 4D-STEM data.
+  their SSNR-weighted Wiener fusion for 4D-STEM data; and forward simulation of
+  core-loss STEM-EELS by transition-potential multislice and by PRISM, including
+  the bi-partitioned BiP-PRISM algorithm that partitions both the probe-forming
+  and the detector scattering matrix.
 type: software
 license: Apache-2.0
 repository-code: "https://github.com/scatterem/scatterem"

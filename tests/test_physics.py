@@ -1,11 +1,8 @@
-"""Clean-room relativistic electron optics.
+"""Relativistic electron optics.
 
 The values pinned here are the textbook relativistic electron wavelengths at the
 accelerating voltages this lab actually uses, so the test states the physics
-rather than a previous implementation's output. `scatterem.utils.energy` is a
-verbatim copy of a GPL-3.0 upstream and cannot ship in an Apache-2.0 release;
-this module replaces the one function the published FF-STEM path needs, written
-from the de Broglie relation.
+rather than a previous implementation's output.
 """
 
 import math
@@ -61,7 +58,7 @@ def test_rejects_nonpositive_voltage():
 
 
 def test_no_numerical_regression_against_the_previous_implementation():
-    """The clean-room rewrite must not shift any calibration downstream.
+    """The rewrite must not shift any calibration downstream.
 
     Expression is independent, but the number has to stay put or every
     reconstruction's dk moves. The tolerance is 1e-7 rather than exact because
