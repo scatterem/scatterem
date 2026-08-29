@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: If you use this software, please cite the paper it implements.
-title: "scatterem: fused full-field STEM"
+title: "scatterem"
 abstract: >-
   Direct (single-side-band) ptychography, tilt-corrected dark-field imaging, and
   their SSNR-weighted Wiener fusion for 4D-STEM data.
@@ -13,6 +13,7 @@ repository-code: "https://github.com/scatterem/scatterem"
 authors:
   - family-names: You
     given-names: Shengbo
+    orcid: "https://orcid.org/0009-0008-0739-9903"
   - family-names: Palatkin
     given-names: Nikita
   - family-names: Shao

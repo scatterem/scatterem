@@ -1,22 +1,46 @@
 {
   "upload_type": "software",
-  "title": "scatterem: fused full-field STEM",
+  "title": "scatterem",
   "description": "<p>Direct (single-side-band) ptychography, tilt-corrected dark-field imaging, and their SSNR-weighted Wiener fusion for 4D-STEM data. The fusion combines the two channels with weights set by their signal-to-noise ratio as a function of spatial frequency, giving a single image that carries the low-frequency phase contrast of ptychography together with the high-frequency detail of the dark-field channel, without the transfer gap either has alone.</p><p>This is the code released with You et al., <em>Advanced Science</em> (2026), doi:10.1002/advs.76620. The public tree is generated from a private development repository by an explicit manifest, so what is published is decided file by file rather than by omission.</p>",
   "creators": [
-    { "name": "You, Shengbo",     "affiliation": "Friedrich-Alexander-Universitat Erlangen-Nurnberg, Erlangen, Germany" },
-    { "name": "Palatkin, Nikita", "affiliation": "Friedrich-Alexander-Universitat Erlangen-Nurnberg, Erlangen, Germany" },
-    { "name": "Shao, Sihan",      "affiliation": "Friedrich-Alexander-Universitat Erlangen-Nurnberg, Erlangen, Germany" },
-    { "name": "Pelz, Philipp M.", "affiliation": "Friedrich-Alexander-Universitat Erlangen-Nurnberg, Erlangen, Germany", "orcid": "0000-0002-8009-4515" }
+    {
+      "name": "You, Shengbo",
+      "affiliation": "Friedrich-Alexander-Universitat Erlangen-Nurnberg, Erlangen, Germany",
+      "orcid": "0009-0008-0739-9903"
+    },
+    {
+      "name": "Palatkin, Nikita",
+      "affiliation": "Friedrich-Alexander-Universitat Erlangen-Nurnberg, Erlangen, Germany"
+    },
+    {
+      "name": "Shao, Sihan",
+      "affiliation": "Friedrich-Alexander-Universitat Erlangen-Nurnberg, Erlangen, Germany"
+    },
+    {
+      "name": "Pelz, Philipp M.",
+      "affiliation": "Friedrich-Alexander-Universitat Erlangen-Nurnberg, Erlangen, Germany",
+      "orcid": "0000-0002-8009-4515"
+    }
   ],
   "license": "Apache-2.0",
   "access_right": "open",
   "language": "eng",
   "keywords": [
-    "4D-STEM", "electron ptychography", "single-side-band ptychography",
-    "tilt-corrected dark-field", "information transfer", "Wiener fusion",
-    "electron microscopy", "GPU"
+    "4D-STEM",
+    "electron ptychography",
+    "single-side-band ptychography",
+    "tilt-corrected dark-field",
+    "information transfer",
+    "Wiener fusion",
+    "electron microscopy",
+    "GPU"
   ],
   "related_identifiers": [
-    { "relation": "isSupplementTo", "identifier": "10.1002/advs.76620", "scheme": "doi", "resource_type": "publication-article" }
+    {
+      "relation": "isSupplementTo",
+      "identifier": "10.1002/advs.76620",
+      "scheme": "doi",
+      "resource_type": "publication-article"
+    }
   ]
 }
