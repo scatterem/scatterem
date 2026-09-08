@@ -82,119 +82,71 @@ window is small — so the resident matrices shrink from $B$ and $n_{\text{det}}
 columns to $B_p$ each, while the arithmetic that consumes them is unchanged.
 
 ::: {.callout-note}
-## Why the 4D cube only partitions $\mathcal{S}_1$
+## Resolved detector output
 
-`prism_transition_potential` keeps the full exit diffraction pattern, so it makes
-no detector reduction and $\mathcal{S}_2$ never becomes a matrix to partition — it
-stays an on-the-fly multislice of the column basis. `partition` there applies to
-$\mathcal{S}_1$ alone; `interpolation_factor` is the lever for the exit leg. Only
-the detector-integrated map (`prism_eels_image`) has two matrices to partition,
-and that is where the large savings are.
+`prism_transition_potential` retains the full exit diffraction pattern with
+ordinary multislice on the exit leg, so its `partition` option applies to
+$\mathcal{S}_1$ alone. `prism_eels_image` reconstructs both matrices and can
+also retain detector coordinates: use `qeels_axis=0` or `1` for a momentum
+projection, or `qeels_axis="both"` for individual detector beams. Averaging
+these resolved patterns over probe positions gives core-loss-filtered PACBED.
+Summing the retained detector intensities recovers the elemental map.
 :::
-
-## The locality result, and when it fails
-
-Because the reconstruction is used only where $H_{n0}$ is non-zero, the error of
-the whole simulation is governed entirely by the reconstruction error *on the
-atom*. Nothing else in the algorithm approximates anything: the parent
-propagations are exact multislice, the contraction is exact, the scan synthesis is
-exact. This is what makes the approximation predictable rather than merely
-empirical — there is one quantity to watch, and it is local.
-
-The paper characterises this by sweeping a single column's conditions against an
-exact-PRISM oracle, and the consequences are narrower than one might guess:
-
-**Thickness is the binding failure mode.** The on-atom reconstruction error grows
-with the propagation distance the parents have travelled before the ionization
-plane, and the map error tracks it. Deep atoms in thick specimens are where more
-parents are needed.
-
-**Defocus and edge choice are not.** Cube and map error stay near 1% out to 200 Å
-of defocus, and across edges from O-K to Cu-L. An earlier reading of the on-atom
-diagnostic suggested defocus was a failure mode; that turned out to be an artefact
-of the fixed diagnostic box — a defocused probe delocalises out of it and collapses
-the normalisation. The full-grid error is stable, so the box diagnostic is an
-in-focus instrument while the method itself tolerates defocus.
 
 ## Accuracy, and the one caveat worth knowing
 
-Increasing the parent count reduces the error monotonically toward the exact
-result, but the two kinds of error do not converge at the same rate.
+Partitioning approximates the scattering columns on the inelastic crop window.
+For a double-partitioned calculation, both the probe and detector reconstruction
+errors matter. Increase `partition` and `partition_s2` parent counts independently
+and compare with an unpartitioned calculation at the same grid, PRISM factor,
+energy window and detector aperture. This isolates partitioning error;
+convergence of the grid, slice thickness and crop is a separate check.
 
-*Pattern* fidelity is excellent almost immediately. *Absolute scale* converges
-more slowly, and the reason is coherent: the de-tilted parent columns are combined
-as complex numbers, and averaging phases that have partly decohered gives
-$|\sum_p w_p T_p| < \sum_p w_p |T_p|$, so the reconstruction loses amplitude.
+Version 0.3 corrects the detector reconstruction's carrier signs. Detector
+columns start from conjugate plane waves, so their de-tilt and re-tilt signs
+are opposite to those of probe columns. It also removes each parent's known
+quadratic vacuum propagation phase before interpolation and restores the target
+beam's phase afterwards. These scalar factors work directly on the crop window.
+With all beams selected as parents, reconstruction recovers the unpartitioned
+columns; in vacuum, the corrected detector interpolation is exact even with
+sparse parents, up to floating-point error.
 
-Measured here on a Ti-L map of a 6×6×16-cell SrTiO₃ slab (256² grid, 576 ionized
-atoms, 64² scan), against the exact dual matrix at the same interpolation factor:
+`mag_preserve=True` additionally uses the interpolated magnitudes and the phase
+of the complex natural-neighbour sum on crop windows. This is a heuristic for
+limiting amplitude loss, not a guarantee of absolute cross-section accuracy.
+Set `mag_preserve=False` for plain complex interpolation. For a detector-phase
+ablation, `partition_s2=dict(n_radial=4, dechirp=False)` keeps the corrected
+carrier signs but disables scalar vacuum-phase removal.
 
-| | Correlation | Intensity vs exact | Scale-normalised RMS |
-|---|---|---|---|
-| `n_radial=2` | 0.980 | 0.51× | 0.17 |
-| `n_radial=4` | 0.987 | 0.61× | 0.14 |
-| `n_radial=8` | 0.9997 | 0.95× | 0.02 |
+## Focal referencing
 
-At sparse partitions the map is pattern-faithful and roughly a factor of two too
-small. Splitting the two sides at `n_radial=4` shows where that comes from:
+`focal_backprop=None` is the default: interpolate at the current ionization
+plane. This differs from zero incident-probe defocus, which sets the probe's
+entrance phase. Optional `focal_backprop="centroid"` references the probe parents
+by half the traversed depth, rounded to a slice, then propagates the interpolated
+columns forward to the ionization plane. A numeric value specifies the fraction
+of the traversed depth. Windowed forward propagation uses padding; its
+truncation must be converged separately. When every beam is a parent, the
+reference-plane round trip is skipped to preserve the exact cropped columns.
+No reference plane is assumed to minimize interpolation error universally.
 
-| | Correlation | Intensity vs exact |
-|---|---|---|
-| $\mathcal{S}_1$ only | 0.99997 | 0.97× |
-| $\mathcal{S}_2$ only | 0.987 | 0.63× |
+The corrected large-map examples use zero incident defocus with focal
+back-propagation disabled. The single-column regime survey uses the explicit
+centroid setting. Scalar detector dechirping is independent of this spatial
+reference-plane operation.
 
-Essentially all of it is the detector matrix. $\mathcal{S}_2$ is back-propagated
-through the remaining thickness, which makes its columns far harder to
-interpolate than the probe-side ones, so it is the side to spend parents on.
+## Memory and runtime
 
-::: {.callout-important}
-## Take relative maps at face value; scale-check absolute cross-sections
+Partitioning reduces resident scattering-matrix storage by replacing full beam
+sets with parent sets. The per-atom coupling and scan synthesis still cost time;
+reconstruction overhead can outweigh build savings on small problems. Measure
+both runtime and peak memory for the specimen and output mode of interest.
 
-If you are comparing intensities *within* a map, or to experiment after
-normalisation, the sparse partitions are fine. If you need an absolute
-cross-section, raise `n_radial` — on the detector side first — until the total
-signal stops moving, and check it against `partition=None` on a smaller cell.
-`partition` and `partition_s2` take independent dictionaries precisely so you can
-spend parents where they are needed.
-:::
-
-::: {.callout-note}
-## Not the same fix as elastic PRISM
-
-Pelz *et al.* recover the partitioning error in elastic 4D-STEM by
-back-propagating to the probe-crossover plane before interpolating. That does not
-transfer here.
-The Fresnel propagator is unitary and commutes through the interpolation sum, so
-back-propagation changes the reconstruction error by nothing measurable; the
-elastic gain comes from the crop applied *at* the crossover plane, and the
-EELS analogue of that crop is $H_{n0}$, which pins the contraction to the atom
-plane instead.
-:::
-
-## What it buys, and when
-
-Memory is the headline. On the FePt-nanoparticle Fe-L benchmark at 936² sampling,
-the paper reports the exact dual matrix at 63 GB against 1.2–8 GB partitioned —
-8–50×, and the difference between needing a cluster node and needing one card.
-The *time* saving is more modest, typically a small factor, and that is structural
-rather than disappointing: the per-atom window contraction is shared between the
-exact and partitioned paths, so Amdahl's law caps what partitioning can do to the
-runtime. What partitioning changes is the build, the residency, and therefore
-which simulations are possible at all.
-
-::: {.callout-warning}
-## On a small problem, partitioning buys nothing
-
-The saving is in the resident matrices, $B$ and $n_{\text{det}}$ columns of an
-$N \times N$ grid each. They only dominate once the grid and the beam count are
-large. On the SrTiO₃ slab above — 256², 793 aperture beams — peak memory is set by
-the per-atom contraction intermediate instead, which partitioning does not touch,
-and the measured result is 2.06 GB exact against 1.89–2.04 GB partitioned, with
-the partitioned runs 10–15% *slower* from the reconstruction overhead.
-
-Reach for `partition` when the matrices are what is filling the card. Below that,
-use the exact path and get the exact answer.
-:::
+`contract="columns"` forms the beam-to-beam coupling before scan synthesis;
+`contract="probe"` forms the local probe first. Both compute the same observable
+within floating-point precision. `scan_chunk` bounds the number of scan positions
+processed together in the resolved-output and probe-contraction paths; it does
+not change the output definition.
 
 ## Reading further
 

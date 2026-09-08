@@ -11,13 +11,13 @@ want depends on what you want out:
 | You want | Use | Entry point |
 |---|---|---|
 | A reference to check the others against | conventional multislice | `StemEelsSimulator(prism=False)` |
-| An energy-filtered 4D cube on a real scan | PRISM | `StemEelsSimulator(prism=True)` |
+| An energy-filtered 4D-STEM cube on a real scan | PRISM | `StemEelsSimulator(prism=True)` |
 | A 2D elemental map at full resolution | BiP-PRISM | `prism_eels_image` |
 
 The cube keeps the whole diffraction pattern at every scan position, so it is the
 general output and the expensive one. The map integrates over an EELS collection
-aperture, and that reduction is what lets both scattering matrices be partitioned
-— see [BiP-PRISM](bip-prism.qmd) for why. If an elemental map is what you are
+aperture. The same two-matrix path can also retain individual detector beams
+for qEELS and PACBED — see [BiP-PRISM](bip-prism.qmd). If an elemental map is what you are
 after, do not simulate a cube and sum it.
 
 ## A structure
@@ -151,7 +151,7 @@ suite uses, but it is **not quantitatively accurate** — the selection rules an
 the shape of the pipeline are right, the cross-sections are not.
 
 ```bash
-pip install gpaw gpaw-data
+pip install "scatterem[eels] @ git+https://github.com/scatterem/scatterem.git@v0.3" gpaw-data
 ```
 
 ::: {.callout-warning}
@@ -249,6 +249,25 @@ public building blocks above, as shown. If you find yourself writing this more
 than once, wrap it.
 :::
 
+## Momentum-resolved output and PACBED
+
+Use the same inputs as the elemental-map call above. With
+`qeels_axis="both"`, the result is `(patterns, q_pixels)`: `patterns` has shape
+`scan_shape + (n_detector_beams,)` (or `(P, n_detector_beams)` without
+`scan_shape`), and `q_pixels` has shape `(n_detector_beams, 2)` in `(qy, qx)`
+order. Divide each coordinate column by its corresponding `gridsize` to obtain
+inverse Ångström. Average `patterns` over the scan dimensions for PACBED.
+
+`qeels_axis=0` or `1` returns a one-axis momentum projection and a sorted
+one-dimensional coordinate array. Summing the last axis of any resolved output
+recovers the integrated map from the same settings. Prefer `interpolation_factor=1`
+when retaining detector coordinates; a larger factor subsamples the detector.
+
+The v0.3 defaults are `mag_preserve=True`, `focal_backprop=None`, and
+`contract="columns"`. Detector vacuum-phase removal is enabled when the detector
+is partitioned. See [accuracy and focal referencing](bip-prism.qmd) for their
+meaning and convergence checks.
+
 ## What it costs, and the levers
 
 Four knobs, in rough order of how much they buy:
@@ -264,7 +283,7 @@ demanding one: see
 **`interpolation_factor`** ($f$) subsamples the aperture beams by $f^2$. The
 condition for it to be valid is that the probe must fit inside a $1/f$ fraction of
 the cell around the atom; violate it and neighbouring periodic copies of the probe
-leak in. For the 4D cube it is the *only* lever on the exit leg, since
+leak in. For the 4D-STEM cube it is the *only* lever on the exit leg, since
 partitioning there touches $\mathcal{S}_1$ alone. Mind the scale it carries — see
 below.
 
@@ -323,7 +342,7 @@ take absolute cross-sections at $f = 1$ or calibrate the scale against it.
 
 Partitioning is separately approximate. Compare `partition=None` against your
 chosen `n_radial` at fixed $f$, and read the pattern correlation and the total
-signal as two different questions — for the 4D cube on that cell, `n_radial=2`
+signal as two different questions — for the 4D-STEM cube on that cell, `n_radial=2`
 is already within 2.7% and `n_radial=8` is exact to rounding, while for the *map*
 the detector-side partition is much more demanding. That case is worked through
 in [BiP-PRISM](bip-prism.qmd#accuracy-and-the-one-caveat-worth-knowing).

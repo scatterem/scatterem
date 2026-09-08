@@ -29,7 +29,7 @@ detector-integrated 4D dual-S.
 from __future__ import annotations
 
 from math import pi
-from typing import Optional, Sequence
+from typing import Literal, Optional, Sequence
 
 import numpy as np
 import torch
@@ -40,6 +40,8 @@ from .prism_eels import (
     PartitionedScatteringMatrix,
     ScatteringMatrix,
     _factor_pair,
+    _fresnel_window_kernel,
+    _pad_window,
     _partition_weights,
 )
 from .transition_potentials import TransitionPotentials
@@ -78,13 +80,33 @@ class DetectorExitSMatrix:
         transmissions: Tensor,
         kernel: Tensor,
         partition: Optional[dict] = None,
+        mag_preserve: bool = True,
+        focal_backprop=None,
+        wavelength: float = None,
+        slice_distance: float = None,
+        gridsize: Sequence[float] = None,
     ):
         device = transmissions.device
         dtype = transmissions.dtype
         self.transmissions = transmissions
         self.kernel = kernel
+        self._mag_preserve = bool(mag_preserve)
+        # Remove the known vacuum phase across beam indices before NNW.
+        # This scalar operation works on a crop and does not require a crossover.
+        self._dechirp = bool((partition or {}).get("dechirp", True))
+        self._kernel_phase = torch.angle(kernel)
+        self._focal_backprop = focal_backprop
+        self._lam = None if wavelength is None else float(wavelength)
+        self._dz = None if slice_distance is None else float(slice_distance)
+        self._gridsize = (
+            None if gridsize is None else (float(gridsize[0]), float(gridsize[1]))
+        )
+        self._S_bp = None
+        self._S_bp_key = None
         nz, ny, nx = transmissions.shape
+        self._nz = nz
         self.ny, self.nx = ny, nx
+        det_idx = det_idx.to(device=device)
         self.det_idx = det_idx  # (ndet, 2) corner-origin pixel indices
         self.ndet = det_idx.shape[0]
         self._dtype = dtype
@@ -105,7 +127,9 @@ class DetectorExitSMatrix:
                 int(partition.get("n_angular", 6)),
             )
             self._w = torch.as_tensor(w, dtype=dtype, device=device)  # (ndet, Bp)
-            build_signed = self._det_signed[torch.as_tensor(np.asarray(pidx))]
+            build_signed = self._det_signed[
+                torch.as_tensor(np.asarray(pidx), device=device)
+            ]
         else:
             build_signed = self._det_signed
         self._build_signed = build_signed.to(device)
@@ -135,28 +159,122 @@ class DetectorExitSMatrix:
             self.S = _conj_propagate(self.S * self.transmissions[j].conj(), self.kernel)
         self._start = start
 
+    def _backprop_slices(self) -> int:
+        """Slices to back-propagate toward the exit before interpolation.
+
+        ``"centroid"`` => half the exit->plane path ``(nz - start)/2``."""
+        # Full-parent columns are already exact on the requested window;
+        # spatial referencing must not add cropped-propagation error.
+        if self.S.shape[0] == self.ndet:
+            return 0
+        fb = self._focal_backprop
+        if not fb:
+            return 0
+        if isinstance(fb, str):
+            if fb != "centroid":
+                raise ValueError(f"focal_backprop str must be 'centroid', got {fb!r}")
+            return int(round((self._nz - self._start) / 2))
+        return int(round(float(fb) * (self._nz - self._start)))
+
+    def _fresnel(self, S: Tensor, n_slices: int) -> Tensor:
+        """Propagate ``S`` toward the exit by ``n_slices`` (the inverse of the
+        adjoint peel direction); negative undoes it."""
+        if n_slices == 0:
+            return S
+        K = self.kernel**n_slices
+        return torch.fft.ifft2(torch.fft.fft2(S, dim=(-2, -1)) * K, dim=(-2, -1))
+
+    def _backprop_parents(self, n: int) -> Tensor:
+        key = (self._start, n)
+        if self._S_bp_key != key:
+            self._S_bp = self._fresnel(self.S, n)  # toward exit (mirror of S1)
+            self._S_bp_key = key
+        return self._S_bp
+
+    def _fb_margin(self, n: int) -> int:
+        if not (self._lam and self._dz and self._gridsize):
+            return 24
+        gmax = float(self._det_signed.abs().max())
+        kmax = gmax / min(self._gridsize)
+        dx = min(self._gridsize[0] / self.ny, self._gridsize[1] / self.nx)
+        spread_px = abs(n) * self._dz * self._lam * kmax / dx
+        return int(
+            min(max(4, np.ceil(1.5 * spread_px) + 2), min(self.ny, self.nx) // 2)
+        )
+
+    def _nnw_window(
+        self, Sw: Tensor, iy: Tensor, ix: Tensor, extra_steps: int = 0
+    ) -> Tensor:
+        ny, nx = self.ny, self.nx
+        yy = iy.to(torch.float64).view(1, -1, 1)
+        xx = ix.to(torch.float64).view(1, 1, -1)
+        gp = self._build_signed
+        detilt = torch.exp(
+            2j * pi * (gp[:, 0, None, None] * yy / ny + gp[:, 1, None, None] * xx / nx)
+        ).to(self._dtype)
+        Sd = Sw * detilt
+        # S2 traverses nz-start-1 Fresnel steps. Optional spatial referencing
+        # below adds extra_steps; its beam phase must be removed as well.
+        steps = self._nz - self._start - 1 + extra_steps
+        if self._dechirp:
+            parent_phase = torch.exp(
+                1j
+                * steps
+                * self._kernel_phase[gp[:, 0].long() % ny, gp[:, 1].long() % nx]
+            ).to(self._dtype)
+            Sd = Sd / parent_phase[:, None, None]
+        recon = torch.einsum("dp,pwv->dwv", self._w, Sd)  # (ndet, wy, wx)
+        if self._mag_preserve:
+            # Counter phase-decoherence amplitude loss: keep the complex-sum phase but
+            # restore the (interpolated) magnitude, which the complex average shrinks.
+            mag = torch.einsum("dp,pwv->dwv", self._w, Sd.abs().to(self._dtype)).real
+            recon = mag * (recon / recon.abs().clamp_min(1e-20))
+        gd = self._det_signed
+        if self._dechirp:
+            target_phase = torch.exp(
+                1j
+                * steps
+                * self._kernel_phase[gd[:, 0].long() % ny, gd[:, 1].long() % nx]
+            ).to(self._dtype)
+            recon = recon * target_phase[:, None, None]
+        tilt = torch.exp(
+            -2j * pi * (gd[:, 0, None, None] * yy / ny + gd[:, 1, None, None] * xx / nx)
+        ).to(self._dtype)
+        return recon * tilt
+
     def columns_window(self, iy: Tensor, ix: Tensor) -> Tensor:
         """Detector columns on a crop window ``(ndet, wy, wx)``.
 
         Direct crop when full; NNW reconstruction from the ``Bp`` parents (de-tilt,
         combine, re-tilt -- all on the window, never the full grid) when partitioned.
+        With ``focal_backprop`` the parents are combined at the exit-side centroid
+        plane on a padded window, then propagated back to the current plane.
         """
         if not self.partitioned:
             return self.S[:, iy][:, :, ix]
-        ny, nx = self.ny, self.nx
-        Sw = self.S[:, iy][:, :, ix]  # (Bp, wy, wx) parent columns on the window
-        yy = iy.to(torch.float64).view(1, -1, 1)
-        xx = ix.to(torch.float64).view(1, 1, -1)
-        gp = self._build_signed
-        detilt = torch.exp(
-            -2j * pi * (gp[:, 0, None, None] * yy / ny + gp[:, 1, None, None] * xx / nx)
-        ).to(self._dtype)
-        recon = torch.einsum("dp,pwv->dwv", self._w, Sw * detilt)  # (ndet, wy, wx)
-        gd = self._det_signed
-        tilt = torch.exp(
-            2j * pi * (gd[:, 0, None, None] * yy / ny + gd[:, 1, None, None] * xx / nx)
-        ).to(self._dtype)
-        return recon * tilt
+        n = self._backprop_slices()
+        if not n:
+            Sw = self.S[:, iy][:, :, ix]  # (Bp, wy, wx) parent columns on the window
+            return self._nnw_window(Sw, iy, ix)
+        m = self._fb_margin(n)
+        py, iny = _pad_window(iy, self.ny, m)
+        px, inx = _pad_window(ix, self.nx, m)
+        Sw = self._backprop_parents(n)[:, py][:, :, px]  # (Bp, Py, Px) at centroid
+        recon = self._nnw_window(Sw, py, px, extra_steps=n)
+        Py, Px = py.shape[0], px.shape[0]
+        if not (self._lam and self._dz and self._gridsize):
+            raise ValueError(
+                "focal_backprop windowed reconstruction needs wavelength, "
+                "slice_distance and gridsize"
+            )
+        dxy = self._gridsize[0] / self.ny
+        dxx = self._gridsize[1] / self.nx
+        # Return to the current plane: undo the toward-exit hop (sign -n).
+        K = _fresnel_window_kernel(
+            Py, Px, -n, dxy, dxx, self._lam, self._dz, self._device, self._dtype
+        )
+        recon = torch.fft.ifft2(torch.fft.fft2(recon, dim=(-2, -1)) * K, dim=(-2, -1))
+        return recon[:, iny][:, :, inx]
 
 
 def _window_indices(center: int, width: int, n: int, device) -> Tensor:
@@ -536,7 +654,12 @@ def prism_eels_image(
     scan_shape: Optional[Sequence[int]] = None,
     partition: Optional[dict] = None,
     partition_s2: Optional[dict] = None,
-) -> Tensor:
+    qeels_axis: Optional[int | Literal["both"]] = None,
+    contract: str = "columns",
+    mag_preserve: bool = True,
+    focal_backprop=None,
+    scan_chunk: Optional[int] = 8192,
+) -> Tensor | tuple[Tensor, Tensor]:
     """Double-channeling PRISM STEM-EELS image ``I(x, y)``.
 
     Parameters
@@ -578,12 +701,63 @@ def prism_eels_image(
         the crop window. Reduces the (often dominant) resident ``S2`` storage from
         ``ndet`` to ``Bp`` columns; stacks a second NNW error on the detector side.
         ``None`` keeps the full per-beam ``S2``.
+    qeels_axis : {0, 1, "both"}, optional
+        Momentum-resolved (qEELS) output. ``None`` (default) returns the scalar
+        elemental map. ``0`` or ``1`` *resolves* that detector-momentum axis and
+        projects (sums) the perpendicular one away: the per-detector-beam
+        intensities ``|amp_d|^2`` are binned by their signed frequency along
+        ``qeels_axis`` instead of summed over all ``d``. Summing the spectrum back
+        over the resolved axis recovers the map exactly. Works with ``partition``
+        / ``partition_s2`` (binning is post-``|amp|^2``); for a faithful resolved
+        axis use ``interpolation_factor`` ``= 1`` along it.
+        ``"both"`` retains each detector beam separately (no projection).
+    mag_preserve : bool, default True
+        Magnitude-preserving NNW reconstruction of the partitioned columns: keep the
+        complex-sum phase but restore the interpolated magnitude. Counters the phase-
+        decoherence amplitude loss of the naive complex average (which underestimates
+        the absolute scale ~2x at low parent count); converges to the exact result at
+        full parents. Set False for the original (eq-14-style) behaviour.
+    focal_backprop : float or "centroid", optional
+        Interpolate S1 parents at a Fresnel-referenced plane, then propagate the
+        reconstructed window back. "centroid" uses half the traversed distance;
+        a number specifies a fraction. A partition dictionary can override this
+        setting per matrix; S2 uses it only when partition_s2 specifies it.
+        Only partition_s2 accepts dechirp (default True), which removes and
+        restores the scalar detector vacuum beam phase during interpolation.
+    scan_chunk : int or None, default 8192
+        Process at most this many masked scan positions at once in the per-atom
+        contraction. Bounds the scan-dependent intermediate memory so the scan can be
+        sampled arbitrarily finely without OOM (results are independent of the value;
+        ``None`` processes all positions in one block).
+    contract : {"columns", "probe"}, default "columns"
+        How the per-atom contraction is associated (same result, different cost):
+
+        * ``"columns"`` forms the ``(n_det, B)`` intermediate
+          ``SHn0 = S2c·(H·S1c)`` once per atom and applies the scan coefficients
+          last (``amp = SHn0·c``). This intermediate is *scan-independent*, so the
+          per-scan cost is a cheap GEMM -- best when ``P`` is very large or the crop
+          window is the full grid.
+        * ``"probe"`` does the beam sum first, rebuilding the physical probe on the
+          crop window (``probe = c·S1c``) and contracting it against the detector
+          columns (``amp = S2c·(H·probe)``). This avoids the ``O(n_det·B·|Ω|)``
+          intermediate and is markedly faster (~3-4x) when the crop window is small
+          and ``P`` is modest -- the typical map regime. Equivalent to
+          ``"columns"`` up to floating-point rounding (the contraction is reassociated).
 
     Returns
     -------
-    Tensor
-        STEM-EELS image, ``(P,)`` or ``scan_shape``.
+    Tensor or (Tensor, Tensor)
+        With ``qeels_axis=None``: the STEM-EELS image, ``(P,)`` or ``scan_shape``.
+        Otherwise: ``(spectrum, q_pixels)`` where ``spectrum`` has a trailing
+        momentum axis (``(P, n_q)`` or ``scan_shape + (n_q,)``) and ``q_pixels``
+        is the ``(n_q,)`` sorted signed-pixel frequency of each bin (physical
+        ``q = q_pixels / gridsize[qeels_axis]``). For ``"both"``,
+        ``q_pixels`` has shape ``(n_q, 2)`` in (qy, qx) order, with one
+        signed coordinate pair per retained beam; divide each column by its
+        corresponding grid size to obtain inverse Angstroms.
     """
+    if contract not in ("columns", "probe"):
+        raise ValueError(f"contract must be 'columns' or 'probe', got {contract!r}")
     device = transmissions.device
     nz, ny, nx = transmissions.shape
     H = transition_potentials.array.to(device=device)  # (n_trans, Ny, Nx)
@@ -596,7 +770,6 @@ def prism_eels_image(
     sites = np.atleast_2d(np.asarray(sites, dtype=np.float64))
     site_slice = np.clip((sites[:, 2] % 1.0 * nz).astype(int), 0, nz - 1)
     P = scan_pixels.shape[0]
-    img = torch.zeros(P, dtype=torch.float64, device=device)
 
     # Detector output beams: grid pixels within the collection semi-angle, PRISM-
     # subsampled by the interpolation factor (S2 is a PRISM scattering matrix too,
@@ -611,14 +784,47 @@ def prism_eels_image(
     det_mask = (q2 <= beta_q**2) & (iy_grid % fy == 0) & (ix_grid % fx == 0)
     det_idx = torch.nonzero(det_mask, as_tuple=False)  # (ndet, 2)
 
+    # qEELS: bin the per-detector-beam intensity by signed frequency along the
+    # resolved axis (the other axis is projected/summed). q_bin[d] indexes each
+    # detector beam into the sorted distinct momenta q_pix; the map is the
+    # qeels_axis=None special case (one bin = sum over all beams).
+    qeels = qeels_axis is not None
+    if qeels:
+        if qeels_axis == "both":
+            sizes = torch.tensor([ny, nx], device=device)
+            q_pix = (det_idx + sizes // 2) % sizes - sizes // 2
+            q_bin = torch.arange(len(det_idx), device=device)
+        else:
+            if qeels_axis not in (0, 1):
+                raise ValueError("qeels_axis must be None, 0, 1, or 'both'")
+            a = int(qeels_axis)
+            na = ny if a == 0 else nx
+            g_res = (det_idx[:, a] + na // 2) % na - na // 2
+            q_pix, q_bin = torch.unique(g_res, sorted=True, return_inverse=True)
+        n_q = int(q_pix.shape[0])
+        img = torch.zeros((P, n_q), dtype=torch.float64, device=device)
+    else:
+        img = torch.zeros(P, dtype=torch.float64, device=device)
+
     partitioned = partition is not None
+    # Optional spatial Fresnel referencing applies to S1 by default (None).
+    # Each partition dictionary may override its matrix's reference distance.
+    # Scalar vacuum dechirping is independent and remains enabled by default.
+    part = dict(partition) if partition is not None else None
+    fb1 = part.pop("focal_backprop", focal_backprop) if part is not None else None
+    fb2 = (partition_s2 or {}).get("focal_backprop", None)
     if partitioned:
         S1 = PartitionedScatteringMatrix(
             probe_q.to(transmissions.dtype),
             transmissions,
             kernel,
             interpolation_factor=(fy, fx),
-            **partition,
+            mag_preserve=mag_preserve,
+            focal_backprop=fb1,
+            wavelength=wavelength,
+            slice_distance=slice_distance,
+            gridsize=gridsize,
+            **part,
         )
     else:
         S1 = ScatteringMatrix(
@@ -627,7 +833,17 @@ def prism_eels_image(
             kernel,
             interpolation_factor=(fy, fx),
         )
-    S2 = DetectorExitSMatrix(det_idx, transmissions, kernel, partition=partition_s2)
+    S2 = DetectorExitSMatrix(
+        det_idx,
+        transmissions,
+        kernel,
+        partition=partition_s2,
+        mag_preserve=mag_preserve,
+        focal_backprop=fb2,
+        wavelength=wavelength,
+        slice_distance=slice_distance,
+        gridsize=gridsize,
+    )
 
     wy = ny if inelastic_crop is None else max(1, ny // int(inelastic_crop))
     wx = nx if inelastic_crop is None else max(1, nx // int(inelastic_crop))
@@ -737,22 +953,16 @@ def prism_eels_image(
         # Every atom in this slice shifts the SAME transition potentials, so the
         # sub-pixel shifts are done in one batched transform (bitwise-identical --
         # see _shift_crop_stack) rather than one launch train per atom.
-        h_crops = _shift_crop_stack(
-            Hq, ky, kx, all_shifts[in_slice], cy, cx, H.dtype
-        )
+        h_crops = _shift_crop_stack(Hq, ky, kx, all_shifts[in_slice], cy, cx, H.dtype)
         iy_sl = iy_by_slice[i]  # (na, wy)
         ix_sl = ix_by_slice[i]  # (na, wx)
         # Every crop window of this slice in ONE advanced index per scattering
         # matrix, instead of two chained ones per atom (see _crop_stack).
         S1_win = (
-            None
-            if partitioned
-            else _crop_stack_or_none(S1.S, iy_sl, ix_sl, wy, wx)
+            None if partitioned else _crop_stack_or_none(S1.S, iy_sl, ix_sl, wy, wx)
         )
         S2_win = (
-            None
-            if S2.partitioned
-            else _crop_stack_or_none(S2.S, iy_sl, ix_sl, wy, wx)
+            None if S2.partitioned else _crop_stack_or_none(S2.S, iy_sl, ix_sl, wy, wx)
         )
         # Shapes that are fixed for the whole slice -- only `Pm` varies per atom --
         # so the contraction order of every atom is decided here, on the host, from
@@ -761,7 +971,7 @@ def prism_eels_image(
         ndet = S2.ndet
         Nbeams = int(coeffs.shape[1])
         W = wy * wx
-        orders = _contract_orders(atom_counts_by_slice[i], n_trans, ndet, Nbeams, W)
+        orders = ["window" if contract == "columns" else "probe"] * na
         any_window = any(o == "window" for o in orders)
         # One elementwise `h * S1` product and one coefficient gather for the WHOLE
         # slice, both leaving every GEMM's problem shape and strides untouched (see
@@ -776,15 +986,27 @@ def prism_eels_image(
         # already transferred before the slice loop, so it costs no device work and
         # no sync.  `None` means the per-atom loop below runs exactly as it shipped.
         Pm_b = _probe_batch_size(
-            orders, atom_counts_by_slice[i], scan_by_slice[i], S1_win, S2_win,
-            na, n_trans, ndet, W,
+            orders,
+            atom_counts_by_slice[i],
+            scan_by_slice[i],
+            S1_win,
+            S2_win,
+            na,
+            n_trans,
+            ndet,
+            W,
         )
+        if qeels or (
+            scan_chunk is not None
+            and any(
+                count > max(1, int(scan_chunk)) for count in atom_counts_by_slice[i]
+            )
+        ):
+            Pm_b = None
         c_all = (
             None
             if Pm_b is not None
-            else _coeff_stack_or_none(
-                coeffs, scan_by_slice[i], atom_counts_by_slice[i]
-            )
+            else _coeff_stack_or_none(coeffs, scan_by_slice[i], atom_counts_by_slice[i])
         )
         # `h_crops` is contiguous in every branch of _shift_crop_stack, so merging its
         # window axes is a free view and row `j` has exactly the shape and strides of
@@ -858,6 +1080,46 @@ def prism_eels_image(
                 c_all[j] if c_all is not None else coeffs.index_select(0, sel)
             )  # (Pm, Nbeams)
             Pm = c_masked.shape[0]
+
+            # Momentum binning and bounded scan chunks share the same atom-window
+            # operands as the optimized scalar path below. The column coupling is
+            # reused across chunks; transitions remain batched within a memory cap.
+            if qeels or (scan_chunk is not None and Pm > max(1, int(scan_chunk))):
+                if S1_win is not None:
+                    S1c = S1_win[j]
+                elif partitioned:
+                    S1c = S1.reconstruct_columns_window(iy, ix)
+                else:
+                    S1c = S1.S[:, iy][:, :, ix]
+                s1f = S1c.reshape(Nbeams, W)
+                s2t = S2c.reshape(ndet, W).transpose(0, 1)
+                block = Pm if scan_chunk is None else max(1, int(scan_chunk))
+                per_t = Nbeams * W + ndet * Nbeams + block * (W + ndet)
+                tblk = max(1, min(n_trans, _EELS_TRANS_BLOCK_BYTES // (per_t * 16)))
+                for t0 in range(0, n_trans, tblk):
+                    ht = h_flat[j, t0 : t0 + tblk]
+                    coupling = (
+                        (ht[:, None, :] * s1f[None]) @ s2t
+                        if contract == "columns"
+                        else None
+                    )  # (nt, Nbeams, ndet), independent of scan position
+                    for c0 in range(0, Pm, block):
+                        cb = c_masked[c0 : c0 + block]
+                        if coupling is not None:
+                            amp = cb[None] @ coupling
+                        else:
+                            psi = cb @ s1f
+                            amp = (ht[:, None, :] * psi[None]) @ s2t
+                        power = amp.abs().pow(2).to(torch.float64)
+                        if qeels:
+                            contrib = torch.zeros(
+                                (cb.shape[0], n_q), dtype=torch.float64, device=device
+                            )
+                            contrib.index_add_(1, q_bin, power.sum(dim=0))
+                        else:
+                            contrib = power.sum(dim=(0, 2))
+                        img.index_add_(0, sel[c0 : c0 + block], contrib)
+                continue
 
             if orders[j] == "probe":
                 # Reassociated coupling: synthesize the PRISM probe on the window,
@@ -971,9 +1233,7 @@ def prism_eels_image(
                             .view(1, kwin, nt_b * nb_b)
                         )
                     SHn0 = (
-                        torch.bmm(lhs, rhs)
-                        .view(ndet, nt_b, nb_b)
-                        .permute(1, 0, 2)
+                        torch.bmm(lhs, rhs).view(ndet, nt_b, nb_b).permute(1, 0, 2)
                     )  # (nt, ndet, Nbeams)
                     # (1, nt*ndet, b) @ (1, b, Pm), with einsum's OWN row order (nt, ndet)
                     # -- which costs the same `reshape` copy einsum pays.  The cheaper
@@ -1001,5 +1261,6 @@ def prism_eels_image(
                 img.index_add_(0, sel, contrib)
 
     if scan_shape is not None:
-        img = img.reshape(int(scan_shape[0]), int(scan_shape[1]))
-    return img
+        shape = (int(scan_shape[0]), int(scan_shape[1]))
+        img = img.reshape(*shape, n_q) if qeels else img.reshape(*shape)
+    return (img, q_pix) if qeels else img

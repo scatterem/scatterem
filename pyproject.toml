@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scatterem"
-version = "0.2.0"
+version = "0.3.0"
 description = "Fused full-field 4D-STEM reconstruction, and BiP-PRISM core-loss STEM-EELS simulation"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -54,6 +54,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Optional all-electron atomic backend for PRISM-EELS transition potentials.
+eels = ["gpaw", "ase"]
 dev = ["pytest>=7.4.0"]
 
 [project.urls]

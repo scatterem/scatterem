@@ -238,6 +238,35 @@ _PARTITION_WEIGHT_CACHE: dict = {}
 _PROBE_PARENT_CHUNK_ELEMS = int(6e8)
 
 
+def _fresnel_window_kernel(Wy, Wx, n_slices, dxy, dxx, lam, dz, device, dtype):
+    """Fresnel propagator over ``n_slices`` slices on a ``(Wy, Wx)`` window grid.
+
+    Same sign convention as :func:`propagator_kernel` (forward = ``exp(-i pi lam
+    (n dz) |q|^2)``); built on the window's own frequency grid (pixel size
+    ``dxy``/``dxx``) so a windowed reconstruction can be propagated locally.
+    """
+    qy = torch.fft.fftfreq(Wy, d=dxy, device=device, dtype=torch.float64).view(Wy, 1)
+    qx = torch.fft.fftfreq(Wx, d=dxx, device=device, dtype=torch.float64).view(1, Wx)
+    chi = -pi * lam * (n_slices * dz) * (qy**2 + qx**2)
+    return torch.exp(1j * chi).to(dtype)
+
+
+def _pad_window(idx: Tensor, n: int, m: int):
+    """Pad a contiguous (step-1, periodic) window ``idx`` by ``m`` on each side.
+
+    Returns ``(padded_idx, inner_slice)`` where ``padded_idx`` is the widened
+    window (capped to the full axis) and ``inner_slice`` selects the original
+    ``idx`` positions within it. Used to give the windowed forward-Fresnel enough
+    margin that its wrap-around stays outside the inner window.
+    """
+    L = int(idx.shape[0])
+    Lp = min(L + 2 * m, n)
+    left = (Lp - L) // 2
+    start = (int(idx[0].item()) - left) % n
+    padded = (start + torch.arange(Lp, device=idx.device)) % n
+    return padded, slice(left, left + L)
+
+
 def _partition_weights(
     beams_np: np.ndarray, all_signed: np.ndarray, n_radial: int, n_angular: int
 ):
@@ -295,7 +324,11 @@ class PartitionedScatteringMatrix:
         n_radial: int = 4,
         n_angular: int = 6,
         interpolation_factor: Sequence[int] = (1, 1),
-        focal_backprop: "float | str" = "centroid",
+        focal_backprop=None,
+        mag_preserve: bool = True,
+        wavelength: float = None,
+        slice_distance: float = None,
+        gridsize: Sequence[float] = None,
     ):
         if int(n_radial) < 2:
             raise ValueError(
@@ -305,22 +338,25 @@ class PartitionedScatteringMatrix:
         dtype = transmissions.dtype
         self.transmissions = transmissions
         self.kernel = kernel
+        self._mag_preserve = bool(mag_preserve)
+        # Optional spatial reference before interpolation, followed by forward
+        # propagation to the ionization plane. None/0 leaves the reference at
+        # the current plane; "centroid" uses half the traversed depth (rounded
+        # to a slice), and a float specifies that depth fraction. No optimum
+        # reference plane is assumed.
+        self._focal_backprop = focal_backprop
+        # Physical scale for the windowed-Fresnel forward step (only needed when
+        # focal_backprop is on AND the reconstruction is windowed).
+        self._lam = None if wavelength is None else float(wavelength)
+        self._dz = None if slice_distance is None else float(slice_distance)
+        self._gridsize = (
+            None if gridsize is None else (float(gridsize[0]), float(gridsize[1]))
+        )
+        self._S_bp = None  # cached full-grid back-propagated parents
+        self._S_bp_key = None
         ny, nx = transmissions.shape[-2:]
         self.ny, self.nx = ny, nx
         self._dtype = dtype
-        # Focal back-propagation (Pelz 2021), applied PER transition slice: the
-        # de-tilted columns are referenced to the scattering centroid of the
-        # slices already TRAVERSED, removing the quadratic propagation chirp so
-        # they interpolate across the aperture. Unlike the elastic exit-wave case
-        # the EELS probe feeds a real-space transition multiply, so the synthesised
-        # probe is forward-propagated back to the current plane afterwards
-        # (back+forward cancel exactly in the full-parent limit). ``"centroid"``
-        # auto-selects the plane; a float fixes the fraction of the traversed depth
-        # (0 disables).
-        self.focal_backprop = focal_backprop
-        self._scatter_w = (
-            (transmissions - 1.0).abs().to(torch.float32).sum(dim=(-2, -1))
-        )  # (NZ,) per-slice scattering weight for the centroid
 
         fy, fx = int(interpolation_factor[0]), int(interpolation_factor[1])
         if fy < 1 or fx < 1:
@@ -401,14 +437,11 @@ class PartitionedScatteringMatrix:
         gx = ((self._bx.to(torch.float64) + nx // 2) % nx) - nx // 2
         return gy, gx
 
-    def _detilted_S(self, S: "Tensor | None" = None) -> Tensor:
-        """De-tilted parent columns ``S[p] * exp(-2 pi i g_p . r / N)`` (lazy).
-
-        ``S`` defaults to the current ``self.S``; pass a focal-back-propagated
-        copy to de-tilt that instead.
-        """
-        S = self.S if S is None else S
+    def _detilted_S(self, S: Tensor = None) -> Tensor:
+        """De-tilted parent columns ``S[p] * exp(-2 pi i g_p . r / N)`` (lazy)."""
         ny, nx = self.ny, self.nx
+        if S is None:
+            S = self.S
         gp = torch.as_tensor(
             self._parent_signed, dtype=torch.float64, device=self._device
         )
@@ -420,22 +453,8 @@ class PartitionedScatteringMatrix:
         return S * detilt
 
     def _backprop_n_half(self) -> float:
-        """Slices to back-propagate the columns from the current plane to the
-        scattering centroid of the traversed slices (0 = no back-prop)."""
-        sl = int(self._slice)
-        if sl <= 0 or self.n_parents >= int(self._by.shape[0]):
-            return 0.0  # nothing traversed yet, or full-parent (no interpolation)
-        fb = self.focal_backprop
-        if fb in (0.0, "0", "", None):
-            return 0.0
-        if fb == "centroid":
-            w = self._scatter_w[:sl]
-            tot = float(w.sum())
-            if tot <= 0.0:
-                return 0.0
-            zidx = torch.arange(sl, device=w.device, dtype=torch.float32)
-            return sl - float((zidx * w).sum()) / tot  # current depth -> centroid
-        return float(fb) * sl
+        """Diagnostic alias for the back-propagation distance in slices."""
+        return float(self._backprop_slices())
 
     def _fresnel_pow(self, n_half: float, sign: float) -> Tensor:
         """Fourier Fresnel kernel for ``n_half`` slices, reusing the per-slice
@@ -457,71 +476,43 @@ class PartitionedScatteringMatrix:
         does not extend to the exit step.
         """
         ny, nx = self.ny, self.nx
-        # Mirror probe_at_current_plane's focal back-propagation so the dual-S exit
-        # columns stay the exact, scalar-combinable reordering of the synthesised
-        # probe: back-propagate the parents to the centroid plane before NNW fusion,
-        # then forward-propagate the reconstructed columns back to the current plane.
-        # The synthesis is linear in the columns, so per-column forward-propagation
-        # equals forward-propagating the probe -- without this the dual-S exit and
-        # the hybrid probe path diverge once focal_backprop is active.
-        n_half = self._backprop_n_half()
-        S_src = self.S
-        if n_half != 0.0:
-            S_src = torch.fft.ifft2(
-                torch.fft.fft2(self.S, dim=(-2, -1)) * self._fresnel_pow(n_half, -1.0),
-                dim=(-2, -1),
-            )
-        recon = torch.einsum(
-            "bp,pyx->byx", self._w, self._detilted_S(S_src)
-        )  # (B, Ny, Nx)
+        n = self._backprop_slices()
+        Sd = self._detilted_S(self._fresnel(self.S, -n) if n else None)  # (Bp, Ny, Nx)
+        recon = torch.einsum("bp,pyx->byx", self._w, Sd)  # (B, Ny, Nx)
+        # NOTE: pure linear NNW here (no mag_preserve) so this stays algebraically
+        # equal to probe_at_current_plane; mag_preserve lives in the windowed path.
         gy, gx = self._signed_beam_freqs()
         yy = torch.arange(ny, device=self._device, dtype=torch.float64).view(1, ny, 1)
         xx = torch.arange(nx, device=self._device, dtype=torch.float64).view(1, 1, nx)
         tilt = torch.exp(
             2j * pi * (gy[:, None, None] * yy / ny + gx[:, None, None] * xx / nx)
         ).to(self._dtype)
-        cols = recon * tilt
-        if n_half != 0.0:
-            cols = torch.fft.ifft2(
-                torch.fft.fft2(cols, dim=(-2, -1)) * self._fresnel_pow(n_half, 1.0),
-                dim=(-2, -1),
-            )
-        return cols
+        recon = recon * tilt
+        return self._fresnel(recon, n) if n else recon  # forward to current plane
 
     def reconstruct_columns_window(self, iy: Tensor, ix: Tensor) -> Tensor:
         """Reconstruct the exact aperture columns on a crop window only ``(B, wy, wx)``.
 
-        Equals ``reconstruct_columns()[:, iy][:, :, ix]`` **when focal
-        back-propagation is inactive** but never materialises the full
-        ``(B, Ny, Nx)`` matrix -- it de-tilts the cropped ``Bp`` parent columns,
-        NNW-combines them, and re-tilts, all on the window.  This realises the
-        ``Bp``-parent memory saving (the persistent footprint is just the parents)
-        and is also cheaper (window-sized einsum, not full grid).  ``iy`` / ``ix``
-        are 1-D pixel-index tensors of the window rows / columns.
+        With magnitude replacement and focal referencing disabled, equals
+        ``reconstruct_columns()[:, iy][:, :, ix]`` but never
+        materialises the full ``(B, Ny, Nx)`` matrix -- it de-tilts the cropped
+        ``Bp`` parent columns, NNW-combines them, and re-tilts, all on the window.
+        This realises the ``Bp``-parent memory saving (the persistent footprint is
+        just the parents) and is also cheaper (window-sized einsum, not full grid).
+        ``iy`` / ``ix`` are 1-D pixel-index tensors of the window rows / columns.
 
-        NOTE: unlike :meth:`reconstruct_columns`, this windowed variant does **not**
-        apply focal back-propagation -- its forward-propagation step would be a
-        full-grid Fresnel that cannot act on a crop.  The large-FOV
-        :func:`prism_eels_image` exit leg uses this path and therefore runs without
-        the focal-backprop chirp correction; it stays self-consistent because its
-        :meth:`coeffs_at` is likewise back-prop-independent.
+        With ``focal_backprop`` the parents are first back-propagated (full grid,
+        once per plane) to the scattering-centroid plane; the reconstruction is done
+        on a window padded by the Fresnel reach, then forward-propagated locally and
+        cropped to the inner window -- so the centroid-plane interpolation accuracy
+        is realised without ever forming the full ``(B, Ny, Nx)`` matrix.
         """
         ny, nx = self.ny, self.nx
+        n = self._backprop_slices()
+        if n:
+            return self._reconstruct_columns_window_fb(iy, ix, n)
         Sw = self.S[:, iy][:, :, ix]  # (Bp, wy, wx) parent columns on the window
-        gp = torch.as_tensor(
-            self._parent_signed, dtype=torch.float64, device=self._device
-        )  # (Bp, 2)
-        yy = iy.to(torch.float64).view(1, -1, 1)
-        xx = ix.to(torch.float64).view(1, 1, -1)
-        detilt = torch.exp(
-            -2j * pi * (gp[:, 0, None, None] * yy / ny + gp[:, 1, None, None] * xx / nx)
-        ).to(self._dtype)
-        recon = torch.einsum("bp,pwv->bwv", self._w, Sw * detilt)  # (B, wy, wx)
-        gy, gx = self._signed_beam_freqs()
-        tilt = torch.exp(
-            2j * pi * (gy[:, None, None] * yy / ny + gx[:, None, None] * xx / nx)
-        ).to(self._dtype)
-        return recon * tilt
+        return self._nnw_window(Sw, iy, ix)
 
     def coeffs_at(self, scan_pixels: Tensor) -> Tensor:
         """Per-(scan, beam) synthesis coefficients ``(P, B)`` (cf. ``ScatteringMatrix``).
@@ -668,6 +659,111 @@ class PartitionedScatteringMatrix:
                 dim=(-2, -1),
             )
         return out
+
+    def _backprop_slices(self) -> int:
+        """Number of slices to Fresnel back-propagate before interpolation.
+
+        ``"centroid"`` => half the propagated depth (the centroid of uniform
+        scattering between entrance and the current plane); a float => that
+        fraction of the current depth; ``None``/``0`` => no back-propagation.
+        """
+        # No interpolation error exists when every beam is a parent. Avoid a
+        # cropped Fresnel round trip, which would introduce a window error.
+        if self.n_parents == self._by.numel():
+            return 0
+        fb = self._focal_backprop
+        if not fb:
+            return 0
+        if isinstance(fb, str):
+            if fb != "centroid":
+                raise ValueError(f"focal_backprop str must be 'centroid', got {fb!r}")
+            return int(round(self._slice / 2))
+        return int(round(float(fb) * self._slice))
+
+    def _fresnel(self, S: Tensor, n_slices: int) -> Tensor:
+        """Fresnel-propagate ``S`` forward by ``n_slices`` (negative = backward)."""
+        if n_slices == 0:
+            return S
+        K = self.kernel**n_slices  # |kernel|=1, so negative powers are the conjugate
+        return torch.fft.ifft2(torch.fft.fft2(S, dim=(-2, -1)) * K, dim=(-2, -1))
+
+    def _backprop_parents(self, n: int) -> Tensor:
+        """Full-grid parents back-propagated by ``n`` slices (cached per plane).
+
+        Cheap (``Bp`` columns) and shared across every atom in the slice, so the
+        windowed reconstruction can then work from these centroid-plane parents.
+        """
+        key = (self._slice, n)
+        if self._S_bp_key != key:
+            self._S_bp = self._fresnel(self.S, -n)
+            self._S_bp_key = key
+        return self._S_bp
+
+    def _fb_margin(self, n: int) -> int:
+        """Window padding (px) covering the Fresnel spread of the forward step.
+
+        Spread ~ (n*dz) * lam * k_max; padded so the windowed-FFT wrap-around stays
+        out of the inner window. Falls back to a safe constant if scale is unknown.
+        """
+        if not (self._lam and self._dz and self._gridsize):
+            return 24
+        gy, gx = self._signed_beam_freqs()
+        gmax = float(torch.maximum(gy.abs().max(), gx.abs().max()))
+        kmax = gmax / min(self._gridsize)  # 1/A
+        dx = min(self._gridsize[0] / self.ny, self._gridsize[1] / self.nx)
+        spread_px = abs(n) * self._dz * self._lam * kmax / dx
+        return int(
+            min(max(4, np.ceil(1.5 * spread_px) + 2), min(self.ny, self.nx) // 2)
+        )
+
+    def _nnw_window(self, Sw: Tensor, iy: Tensor, ix: Tensor) -> Tensor:
+        """De-tilt the parent columns ``Sw`` on the window ``(iy, ix)``, NNW-combine
+        (with mag_preserve), and re-tilt -- the per-pixel-local reconstruction."""
+        ny, nx = self.ny, self.nx
+        gp = torch.as_tensor(
+            self._parent_signed, dtype=torch.float64, device=self._device
+        )  # (Bp, 2)
+        yy = iy.to(torch.float64).view(1, -1, 1)
+        xx = ix.to(torch.float64).view(1, 1, -1)
+        detilt = torch.exp(
+            -2j * pi * (gp[:, 0, None, None] * yy / ny + gp[:, 1, None, None] * xx / nx)
+        ).to(self._dtype)
+        Sd = Sw * detilt
+        recon = torch.einsum("bp,pwv->bwv", self._w, Sd)  # (B, wy, wx)
+        if self._mag_preserve:
+            # Counter NNW phase-decoherence amplitude loss: keep the complex-sum phase
+            # but restore the (interpolated) magnitude the complex average shrinks.
+            mag = torch.einsum("bp,pwv->bwv", self._w, Sd.abs().to(self._dtype)).real
+            recon = mag * (recon / recon.abs().clamp_min(1e-20))
+        gy, gx = self._signed_beam_freqs()
+        tilt = torch.exp(
+            2j * pi * (gy[:, None, None] * yy / ny + gx[:, None, None] * xx / nx)
+        ).to(self._dtype)
+        return recon * tilt
+
+    def _reconstruct_columns_window_fb(self, iy: Tensor, ix: Tensor, n: int) -> Tensor:
+        """Focal-back-prop windowed reconstruction: combine the parents at the
+        centroid plane (where they interpolate accurately), then forward-propagate
+        the result to the current plane -- all on a padded window."""
+        m = self._fb_margin(n)
+        py, iny = _pad_window(iy, self.ny, m)
+        px, inx = _pad_window(ix, self.nx, m)
+        Sw = self._backprop_parents(n)[:, py][:, :, px]  # (Bp, Py, Px) at centroid
+        recon = self._nnw_window(Sw, py, px)  # (B, Py, Px) at centroid
+        Py, Px = py.shape[0], px.shape[0]
+        if self._lam and self._dz and self._gridsize:
+            dxy = self._gridsize[0] / self.ny
+            dxx = self._gridsize[1] / self.nx
+            K = _fresnel_window_kernel(
+                Py, Px, n, dxy, dxx, self._lam, self._dz, self._device, self._dtype
+            )
+        else:  # fall back to the full-grid single-slice kernel restricted to a square
+            raise ValueError(
+                "focal_backprop windowed reconstruction needs wavelength, "
+                "slice_distance and gridsize"
+            )
+        recon = torch.fft.ifft2(torch.fft.fft2(recon, dim=(-2, -1)) * K, dim=(-2, -1))
+        return recon[:, iny][:, :, inx]  # crop to the inner window
 
 
 def prism_transition_potential(
