@@ -410,6 +410,15 @@ class PartitionedScatteringMatrix:
         self._by = by.to(device)
         self._bx = bx.to(device)
         self._parent_signed = parent_signed  # numpy (Bp, 2)
+        # Geometry is invariant as columns advance through the specimen. Keep
+        # these small float64 tensors on-device for every window and scan.
+        self._parent_signed_device = torch.as_tensor(
+            parent_signed, dtype=torch.float64, device=device
+        )
+        self._beam_signed = (
+            ((self._by.to(torch.float64) + ny // 2) % ny) - ny // 2,
+            ((self._bx.to(torch.float64) + nx // 2) % nx) - nx // 2,
+        )
         self._device = device
 
         # Parent column initial waves (deltas at parent beams -> plane waves).
@@ -432,19 +441,14 @@ class PartitionedScatteringMatrix:
         ).view(1, nx)
 
     def _signed_beam_freqs(self):
-        ny, nx = self.ny, self.nx
-        gy = ((self._by.to(torch.float64) + ny // 2) % ny) - ny // 2  # (B,)
-        gx = ((self._bx.to(torch.float64) + nx // 2) % nx) - nx // 2
-        return gy, gx
+        return self._beam_signed
 
     def _detilted_S(self, S: Tensor = None) -> Tensor:
         """De-tilted parent columns ``S[p] * exp(-2 pi i g_p . r / N)`` (lazy)."""
         ny, nx = self.ny, self.nx
         if S is None:
             S = self.S
-        gp = torch.as_tensor(
-            self._parent_signed, dtype=torch.float64, device=self._device
-        )
+        gp = self._parent_signed_device
         yy = torch.arange(ny, device=self._device, dtype=torch.float64).view(1, ny, 1)
         xx = torch.arange(nx, device=self._device, dtype=torch.float64).view(1, 1, nx)
         detilt = torch.exp(
@@ -507,7 +511,6 @@ class PartitionedScatteringMatrix:
         cropped to the inner window -- so the centroid-plane interpolation accuracy
         is realised without ever forming the full ``(B, Ny, Nx)`` matrix.
         """
-        ny, nx = self.ny, self.nx
         n = self._backprop_slices()
         if n:
             return self._reconstruct_columns_window_fb(iy, ix, n)
@@ -583,9 +586,7 @@ class PartitionedScatteringMatrix:
             sx = (rx_i.long() % nx).tolist()
             out = torch.zeros((P, ny, nx), dtype=self._dtype, device=self._device)
             fres_b = self._fresnel_pow(n_half, -1.0) if n_half != 0.0 else None
-            gp = torch.as_tensor(
-                self._parent_signed, dtype=torch.float64, device=self._device
-            )  # (Bp, 2)
+            gp = self._parent_signed_device  # (Bp, 2)
             yy = torch.arange(ny, device=self._device, dtype=torch.float64).view(
                 1, ny, 1
             )
@@ -720,9 +721,7 @@ class PartitionedScatteringMatrix:
         """De-tilt the parent columns ``Sw`` on the window ``(iy, ix)``, NNW-combine
         (with mag_preserve), and re-tilt -- the per-pixel-local reconstruction."""
         ny, nx = self.ny, self.nx
-        gp = torch.as_tensor(
-            self._parent_signed, dtype=torch.float64, device=self._device
-        )  # (Bp, 2)
+        gp = self._parent_signed_device  # (Bp, 2)
         yy = iy.to(torch.float64).view(1, -1, 1)
         xx = ix.to(torch.float64).view(1, 1, -1)
         detilt = torch.exp(

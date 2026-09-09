@@ -314,6 +314,33 @@ _EELS_SHIFT_BLOCK_BYTES = 1 << 25
 # Above it the per-atom path is taken, which is what shipped before the batching.
 _EELS_CROP_BLOCK_BYTES = 1 << 25
 
+# Additional reconstruction workspace, shared by both legs. The estimate below
+# includes double-precision phase temporaries even for complex64 wave fields.
+_EELS_RECONSTRUCTION_BYTES = 1 << 31
+
+
+def _reconstruct_slice_or_none(matrix, n_targets, n_active, wy, wx, budget):
+    """Reuse pointwise NNW when requested crops cover the grid and storage fits.
+
+    The window method preserves magnitude replacement and S2 vacuum phase;
+    S1.reconstruct_columns() intentionally has different magnitude semantics.
+    Active cropped focal propagation is not pointwise and keeps its old path.
+    """
+    ny, nx = matrix.S.shape[-2:]
+    if n_active < 2 or n_active * wy * wx < ny * nx:
+        return None
+    if matrix._backprop_slices() or matrix.S.requires_grad:
+        return None
+    # Eight complex128-sized live fields per target/parent conservatively cover
+    # phase construction, interpolation, magnitude replacement and their copies.
+    # Include the first leg's retained output by subtracting it at the call site.
+    workspace = 8 * 16 * (n_targets + matrix.S.shape[0]) * ny * nx
+    if workspace > budget:
+        return None
+    iy = torch.arange(ny, device=matrix.S.device)
+    ix = torch.arange(nx, device=matrix.S.device)
+    return matrix._nnw_window(matrix.S, iy, ix)
+
 # Upper bounds (bytes) on one slice's stacked `h * S1` product and on one slice's
 # stacked masked coefficients.  Same role and same value as the two caps above:
 # keep the batched form's peak at a few atoms' worth of what the per-atom loop
@@ -695,6 +722,10 @@ def prism_eels_image(
         columns on each atom's crop window via natural-neighbor interpolation. This
         cheapens the ``S1`` build/advance + memory (``Bp`` parents) at the cost of
         the NNW reconstruction error. ``None`` uses the exact per-pixel ``S1``.
+        Overlapping windows may reuse a full-grid reconstruction for one slice.
+        This uses a conservative additional-workspace budget of 2 GiB shared
+        with S2; sparse windows and active focal referencing retain windowed
+        reconstruction. This budget is not a bound on total simulation memory.
     partition_s2 : dict, optional
         Same idea for ``S2`` (the detector matrix): build the transpose multislice
         on ``Bp`` parent detector beams and NNW-reconstruct the detector columns on
@@ -943,13 +974,28 @@ def prism_eels_image(
             atom_counts_by_slice[i] = [P] * group_counts[i]
             scan_idx_by_slice[i] = [every] * group_counts[i]
 
+    s1_recon = s2_recon = None
     for i in range(nz):
+        # Release the previous plane before advancing either scattering matrix.
+        s1_recon = s2_recon = None
         in_slice = slice_groups[i]
         if in_slice.size == 0:
             continue
         S1.advance_to(i)
         S2.peel_to(i)
         coeffs = S1.coeffs_at(scan_pixels)  # (P, Nbeams)
+        active = sum(count > 0 for count in atom_counts_by_slice[i])
+        recon_budget = _EELS_RECONSTRUCTION_BYTES
+        if partitioned:
+            s1_recon = _reconstruct_slice_or_none(
+                S1, coeffs.shape[1], active, wy, wx, recon_budget
+            )
+            if s1_recon is not None:
+                recon_budget -= s1_recon.numel() * s1_recon.element_size()
+        if S2.partitioned:
+            s2_recon = _reconstruct_slice_or_none(
+                S2, S2.ndet, active, wy, wx, recon_budget
+            )
         # Every atom in this slice shifts the SAME transition potentials, so the
         # sub-pixel shifts are done in one batched transform (bitwise-identical --
         # see _shift_crop_stack) rather than one launch train per atom.
@@ -1072,9 +1118,12 @@ def prism_eels_image(
                 continue
             iy = iy_sl[j]
             ix = ix_sl[j]
-            S2c = (
-                S2_win[j] if S2_win is not None else S2.columns_window(iy, ix)
-            )  # (ndet, wy, wx)
+            if s2_recon is not None:
+                S2c = s2_recon[:, iy[:, None], ix[None, :]]
+            elif S2_win is not None:
+                S2c = S2_win[j]
+            else:
+                S2c = S2.columns_window(iy, ix)  # (ndet, wy, wx)
 
             c_masked = (
                 c_all[j] if c_all is not None else coeffs.index_select(0, sel)
@@ -1087,6 +1136,8 @@ def prism_eels_image(
             if qeels or (scan_chunk is not None and Pm > max(1, int(scan_chunk))):
                 if S1_win is not None:
                     S1c = S1_win[j]
+                elif s1_recon is not None:
+                    S1c = s1_recon[:, iy[:, None], ix[None, :]]
                 elif partitioned:
                     S1c = S1.reconstruct_columns_window(iy, ix)
                 else:
@@ -1136,6 +1187,8 @@ def prism_eels_image(
                     if s1_flat is None:
                         s1_flat = S1_win.reshape(na, Nbeams, W).contiguous()
                     s1f = s1_flat[j]  # (Nbeams, W)
+                elif s1_recon is not None:
+                    s1f = s1_recon[:, iy[:, None], ix[None, :]].reshape(Nbeams, W)
                 elif partitioned:
                     s1f = S1.reconstruct_columns_window(iy, ix).reshape(Nbeams, W)
                 else:
@@ -1174,6 +1227,8 @@ def prism_eels_image(
                 S1c = None  # the product is already formed for the whole slice
             elif S1_win is not None:
                 S1c = S1_win[j]  # (Nbeams, wy, wx)
+            elif s1_recon is not None:
+                S1c = s1_recon[:, iy[:, None], ix[None, :]]
             elif partitioned:
                 S1c = S1.reconstruct_columns_window(iy, ix)  # (Nbeams, wy, wx)
             else:
