@@ -1,0 +1,1328 @@
+[
+  {
+    "objectID": "docs/quickstart.html",
+    "href": "docs/quickstart.html",
+    "title": "Quickstart",
+    "section": "",
+    "text": "The container needs the acquisition geometry, because every reconstruction here is calibrated — the fusion weights are functions of spatial frequency, so the code has to know what a pixel is worth.\nimport numpy as np\nfrom scatterem import Dataset4dstem\n\narray = np.load(\"my_4dstem.npy\")   # (scan_y, scan_x, det_y, det_x)\n\ndataset = Dataset4dstem.from_array(\n    array,\n    energy=300e3,                   # accelerating voltage, eV\n    semiconvergence_angle=19.7e-3,  # convergence semi-angle, rad\n    scan_step=0.25,                 # scan pitch, Angstrom\n    device=\"cuda\",\n)\nscan_step may be a scalar or a (dy, dx) pair. The reciprocal pixel size dk is measured from the bright-field disk rather than taken on faith — see Calibration, which is where most reconstruction problems actually live.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/quickstart.html#from-an-array",
+    "href": "docs/quickstart.html#from-an-array",
+    "title": "Quickstart",
+    "section": "",
+    "text": "The container needs the acquisition geometry, because every reconstruction here is calibrated — the fusion weights are functions of spatial frequency, so the code has to know what a pixel is worth.\nimport numpy as np\nfrom scatterem import Dataset4dstem\n\narray = np.load(\"my_4dstem.npy\")   # (scan_y, scan_x, det_y, det_x)\n\ndataset = Dataset4dstem.from_array(\n    array,\n    energy=300e3,                   # accelerating voltage, eV\n    semiconvergence_angle=19.7e-3,  # convergence semi-angle, rad\n    scan_step=0.25,                 # scan pitch, Angstrom\n    device=\"cuda\",\n)\nscan_step may be a scalar or a (dy, dx) pair. The reciprocal pixel size dk is measured from the bright-field disk rather than taken on faith — see Calibration, which is where most reconstruction problems actually live.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/quickstart.html#fit-the-aberrations",
+    "href": "docs/quickstart.html#fit-the-aberrations",
+    "title": "Quickstart",
+    "section": "Fit the aberrations",
+    "text": "Fit the aberrations\nThe reconstruction needs a decent aberration estimate, and the autofocus finds one by maximising image sharpness. It is a local optimisation, so it needs a starting point:\ndataset.meta.aberrations.array[0] = -50.0   # defocus, Angstrom\ndataset.determine_aberrations_(correct_order=2)\n\n\n\n\n\n\nGive it a defocus\n\n\n\nWith meta.aberrations all zero the autofocus has nothing to descend from, and it raises rather than silently returning something arbitrary. Any estimate within a factor of two or so of the truth is enough; the sign matters more than the magnitude.\nIndex 0 is C10, and defocus == -C10.\n\n\ncorrect_order=2 fits up to second order (defocus, two-fold astigmatism, coma, three-fold astigmatism). Raise it to reach spherical aberration; the higher orders need more signal to constrain.\nThe autofocus holds the scan rotation fixed, so meta.rotation must already be right on the way in. If you do not know it, see Calibration.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/quickstart.html#reconstruct",
+    "href": "docs/quickstart.html#reconstruct",
+    "title": "Quickstart",
+    "section": "Reconstruct",
+    "text": "Reconstruct\nptycho     = dataset.direct_ptychography()\ndark_field = dataset.tilt_corrected_dark_field()\nfused      = dataset.fused_full_field()\nEach takes upsample, which defaults to \"nyquist\" — the factor that brings the output pitch to the resolution the data can actually support, rather than a round number someone picked. Pass a float to override.\nAll three cache on the dataset, so fused_full_field() reuses the two channel reconstructions if you already ran them with the same parameters.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/quickstart.html#look-at-the-result",
+    "href": "docs/quickstart.html#look-at-the-result",
+    "title": "Quickstart",
+    "section": "Look at the result",
+    "text": "Look at the result\nfrom scatterem.vis.reconstruction_sampling import reconstruction_sampling\nfrom scatterem.vis.visualization import show_2d\n\nfig, ax = show_2d(fused, sampling=reconstruction_sampling(dataset, fused))\nfig.savefig(\"fused.png\", dpi=150, bbox_inches=\"tight\")\nPassing the sampling is what makes the scale bar read in Ångström instead of a.u. — and it must be the reconstruction’s sampling, not the dataset’s. The output is upsampled, so dataset.sampling would overstate the bar by the upsample factor: four-fold on the paper’s Fig. 4.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/quickstart.html#save-and-reload",
+    "href": "docs/quickstart.html#save-and-reload",
+    "title": "Quickstart",
+    "section": "Save and reload",
+    "text": "Save and reload\ndataset.save(\"carbon.h5\")\nsame = Dataset4dstem.load(\"carbon.h5\", device=\"cuda\")\nThe file records which fields it contains. If you later add or rename a field on the class, loading an old file fails and names the difference, rather than handing you a half-populated object. See scatterem.io.store.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/quickstart.html#the-named-datasets",
+    "href": "docs/quickstart.html#the-named-datasets",
+    "title": "Quickstart",
+    "section": "The named datasets",
+    "text": "The named datasets\nThe four specimens from the paper download themselves, verified by md5:\nfrom scatterem import You2026Carbon\n\ndataset = You2026Carbon(root=\"~/ffstem-data\", download=True, device=\"cuda\")\nThey arrive already calibrated. See Reproduce the paper.",
+    "crumbs": [
+      "Get started",
+      "Quickstart"
+    ]
+  },
+  {
+    "objectID": "docs/install.html",
+    "href": "docs/install.html",
+    "title": "Install",
+    "section": "",
+    "text": "pip install git+https://github.com/scatterem/scatterem\nPython 3.10 or newer. Ten runtime dependencies, all from PyPI.",
+    "crumbs": [
+      "Get started",
+      "Install"
+    ]
+  },
+  {
+    "objectID": "docs/install.html#about-the-gpu",
+    "href": "docs/install.html#about-the-gpu",
+    "title": "Install",
+    "section": "About the GPU",
+    "text": "About the GPU\nA CUDA GPU is not optional in practice. The reconstructions are FFT- and kernel-bound, and the NVIDIA Warp kernels that do the direct-ptychography work need one for anything past a small test. Everything runs on CPU, just slowly enough that you would not want to.\nIf the default torch wheel does not match your driver, install torch first from the index that does, then install this package — pip will leave your existing torch alone:\npip install torch --index-url https://download.pytorch.org/whl/cu128\npip install git+https://github.com/scatterem/scatterem\nimport scatterem initialises Warp, which compiles a few kernels the first time and prints a short banner. That is expected, and it is cached afterwards.\n\n\n\n\n\n\nTwo side effects on import\n\n\n\nimport scatterem sets torch.set_float32_matmul_precision(\"medium\") (TF32) and calls warp.init(). Both are inherited from the library the published reconstructions ran under, so results match — but if your own code depends on matmul precision, set it again after importing.",
+    "crumbs": [
+      "Get started",
+      "Install"
+    ]
+  },
+  {
+    "objectID": "docs/install.html#for-stem-eels-simulation",
+    "href": "docs/install.html#for-stem-eels-simulation",
+    "title": "Install",
+    "section": "For STEM-EELS simulation",
+    "text": "For STEM-EELS simulation\nThe simulation code needs nothing beyond the above to run, but it needs gpaw to be quantitative: it supplies the all-electron bound and continuum radial wavefunctions the ionization transition potentials are built from.\npip install gpaw gpaw-data\nPrebuilt wheels are available, so this does not normally need libxc, MPI or a Fortran toolchain. Without it the code falls back to hydrogenic orbitals and a free continuum, which exercise the whole pipeline but do not give accurate cross-sections — see Simulate STEM-EELS.\nAtomic wavefunctions and transition potentials are cached on disk once computed. Set SCATTEREM_EELS_CACHE to put that somewhere with room.",
+    "crumbs": [
+      "Get started",
+      "Install"
+    ]
+  },
+  {
+    "objectID": "docs/install.html#how-much-gpu-memory",
+    "href": "docs/install.html#how-much-gpu-memory",
+    "title": "Install",
+    "section": "How much GPU memory",
+    "text": "How much GPU memory\nPeak memory is set by the output grid, so it grows with scan size and upsampling rather than with detector size. Measured with torch.cuda.max_memory_allocated:\n\n\n\nReconstruction\nScan\nOutput\nPeak\n\n\n\n\nAmorphous carbon\n96²\n96²\n~1.2 GiB\n\n\nAu, low dose, reduced scan\n128²\n512²\n4.4 GiB\n\n\nAu, low dose, paper configuration\n256²\n1024²\n17.6 GiB\n\n\nGd₂O₃\n—\n1024²\n~19.6 GiB\n\n\n\n\n\n\n\n\n\nRaising n_batches does not reduce memory\n\n\n\nIt increases it. Measured on the Au reconstruction: n_batches of 15, 60 and 150 gave 17.6, 21.0 and 24.5 GiB, with bit-identical output. Halving upsample made it slightly worse too.\nShrinking the scan is the only effective lever. Pass scan_edge_crop to the named datasets, or crop your own array before constructing.",
+    "crumbs": [
+      "Get started",
+      "Install"
+    ]
+  },
+  {
+    "objectID": "docs/install.html#colab",
+    "href": "docs/install.html#colab",
+    "title": "Install",
+    "section": "Colab",
+    "text": "Colab\n\nThe notebook runs the Au low-dose reconstruction end to end on a free T4, at a reduced scan size that fits in 4.4 GiB. It needs a GPU runtime (Runtime → Change runtime type → T4 GPU) and nothing else — the code and the data are both public, and the dataset downloads itself, md5-verified.",
+    "crumbs": [
+      "Get started",
+      "Install"
+    ]
+  },
+  {
+    "objectID": "docs/install.html#from-source",
+    "href": "docs/install.html#from-source",
+    "title": "Install",
+    "section": "From source",
+    "text": "From source\ngit clone https://github.com/scatterem/scatterem\ncd scatterem\npip install -e \".[dev]\"\npytest",
+    "crumbs": [
+      "Get started",
+      "Install"
+    ]
+  },
+  {
+    "objectID": "docs/eels.html",
+    "href": "docs/eels.html",
+    "title": "Simulate STEM-EELS",
+    "section": "",
+    "text": "This is the forward problem: given a structure, produce the core-loss EELS signal a STEM would record. There is no EELS reconstruction here.\nThree algorithms compute the same physics at very different cost, and the one you want depends on what you want out:\nThe cube keeps the whole diffraction pattern at every scan position, so it is the general output and the expensive one. The map integrates over an EELS collection aperture. The same two-matrix path can also retain individual detector beams for qEELS and PACBED — see BiP-PRISM. If an elemental map is what you are after, do not simulate a cube and sum it.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "Simulate STEM-EELS"
+    ]
+  },
+  {
+    "objectID": "docs/eels.html#a-structure",
+    "href": "docs/eels.html#a-structure",
+    "title": "Simulate STEM-EELS",
+    "section": "A structure",
+    "text": "A structure\nStructure is a plain NumPy container: orthorhombic cell edges in Ångström, and an (n, 4) table of fractional coordinates with atomic numbers.\nimport numpy as np\nfrom scatterem.simulation import Structure\n\na = 3.905\nsto = Structure(\n    np.array([a, a, a]),\n    np.array([                  # [x, y, z, Z], fractional coordinates\n        [0.0, 0.0, 0.0, 38],    # Sr\n        [0.5, 0.5, 0.5, 22],    # Ti\n        [0.5, 0.5, 0.0, 8],     # O\n        [0.5, 0.0, 0.5, 8],\n        [0.0, 0.5, 0.5, 8],\n    ]),\n    dwf=None,                   # &lt;u^2&gt; per atom; None gives every atom 0.01 A^2\n).tile(x=4, y=4, z=8)           # 15.6 x 15.6 x 31.2 A, 640 atoms\nStructure.fromfile reads the three formats the simulation community uses — Prismatic .xyz, VESTA .p1 and .xtl. A non-orthorhombic cell is converted to an orthorhombic supercell at construction, because that is the only cell the multislice understands.\n\n\n\n\n\n\ndwf is \\(\\langle u^2 \\rangle\\), one-dimensional\n\n\n\nColumn 5 of Structure.atoms holds the one-dimensional mean-square thermal displacement in Å², not the Debye-Waller \\(B\\) and not the three-dimensional total. \\(B = 8\\pi^2 \\langle u^2 \\rangle\\). Getting the convention wrong makes the frozen-phonon smearing wrong by \\(\\sqrt{3}\\).",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "Simulate STEM-EELS"
+    ]
+  },
+  {
+    "objectID": "docs/eels.html#a-cube",
+    "href": "docs/eels.html#a-cube",
+    "title": "Simulate STEM-EELS",
+    "section": "A cube",
+    "text": "A cube\nfrom scatterem.simulation import StemEelsSimulator\n\nsim = StemEelsSimulator(\n    sto,\n    eV=100e3,                    # probe energy\n    semiconvergence_angle=25.0,  # mrad\n    pixels=(128, 128),           # real-space grid across the cell\n    scan=(16, 16),               # scan positions\n    edge=(22, 2, 1),             # Ti L: (Z, n, l) of the ionized subshell\n    epsilon=10.0,                # eV above the ionization threshold\n    num_slices=16,\n    prism=True,\n    interpolation_factor=2,\n    device=\"cuda\",\n)\n\nresult = sim.simulate()\nresult.cube          # (16, 16, 128, 128), real, non-negative\nresult.sampling      # detector (dky, dkx) in 1/A\nresult.energy_losses # the per-transition losses summed into the cube, eV\nedge names the bound orbital that is ionized, as (Z, n, l): Ti L is (22, 2, 1), O K is (8, 1, 0), Fe L is (26, 2, 1). Every atom of that Z in the structure ionizes; there is no site selection.\nepsilon is the energy of the ejected electron above the threshold, so it picks a point along the edge rather than an absolute energy loss. The onset is the binding energy, and the code reports the resulting loss in result.energy_losses.\n\n\n\n\n\n\nsemiconvergence_angle is in milliradians here\n\n\n\nDataset4dstem.from_array on the reconstruction side takes radians; the simulator takes mrad. The same is true of detector_mrad below. A factor of 1000 produces a probe that is either the whole grid or a single pixel, so the failure is loud — but it costs a run.\n\n\nThe diffraction patterns are corner-origin, like everything else in reciprocal space here. torch.fft.fftshift before plotting.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "Simulate STEM-EELS"
+    ]
+  },
+  {
+    "objectID": "docs/eels.html#an-energy-window-and-several-edges",
+    "href": "docs/eels.html#an-energy-window-and-several-edges",
+    "title": "Simulate STEM-EELS",
+    "section": "An energy window, and several edges",
+    "text": "An energy window, and several edges\nA single epsilon is one point on the edge. To integrate a real energy-filtered window, sweep it:\nresult = sim.simulate_window((5.0, 45.0), n_energies=8)\nresult.energy_range   # (onset + 5, onset + 45) eV\nThe continuum states are energy-normalised, so trapezoid-integrating over epsilon is the signal collected in that loss window. eps_min must be greater than zero — the energy-normalised continuum diverges at threshold.\nSeveral edges in one pass is much cheaper than several simulators, because the elastic transmission functions are the dynamical scattering of the whole structure and do not care which element ionizes:\nresults = sim.simulate_edges([(22, 2, 1), (8, 1, 0)], energy_range=(5.0, 45.0))\nti, o = results[(22, 2, 1)], results[(8, 1, 0)]\nTransmissions and probes are shared across every edge and every frozen phonon; only the transition potentials are rebuilt. The cost is memory — all the edges’ transition-potential stacks are resident at once so that one frozen-phonon sweep can serve them all.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "Simulate STEM-EELS"
+    ]
+  },
+  {
+    "objectID": "docs/eels.html#transition-potentials-and-the-gpaw-question",
+    "href": "docs/eels.html#transition-potentials-and-the-gpaw-question",
+    "title": "Simulate STEM-EELS",
+    "section": "Transition potentials, and the GPAW question",
+    "text": "Transition potentials, and the GPAW question\nThe ionization operator \\(H_{n0}\\) is built from atomic radial wavefunctions, and where those come from decides whether your numbers mean anything.\nfrom scatterem.simulation import gpaw_available\ngpaw_available()\nWith gpaw installed (backend=\"auto\" finds it) bound states come from an all-electron atomic DFT calculation and continuum states from Numerov integration of the radial Schrödinger equation in that all-electron potential. This is the physically accurate path.\nWithout it the code falls back to a hydrogenic bound state and a free spherical-Bessel continuum. That runs the entire pipeline and is what the test suite uses, but it is not quantitatively accurate — the selection rules and the shape of the pipeline are right, the cross-sections are not.\npip install \"scatterem[eels] @ git+https://github.com/scatterem/scatterem.git@v0.3\" gpaw-data\n\n\n\n\n\n\nbackend=\"auto\" will silently give you hydrogenic orbitals\n\n\n\nIf GPAW is not importable, \"auto\" falls back rather than raising. Check gpaw_available() before a production run, or pass backend=\"gpaw\" to make a missing install an error instead of a quiet loss of accuracy.\n\n\nComputed wavefunctions and potentials are cached on disk, keyed by their physical parameters, so a re-run does not redo the atomic calculations. Point the cache somewhere with room via SCATTEREM_EELS_CACHE.\nTwo parameters worth knowing: order sets how many angular-momentum channels are summed (default 1 keeps the monopole and both dipole channels, which is what the published treatments use), and potential_scale is an empirical multiplier on the GPAW continuum potential — 1.0 is the Brown 2019 physics, abTEM uses 1.02, and it mostly moves the \\(l' = l\\) monopole s-wave.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "Simulate STEM-EELS"
+    ]
+  },
+  {
+    "objectID": "docs/eels.html#a-full-resolution-elemental-map",
+    "href": "docs/eels.html#a-full-resolution-elemental-map",
+    "title": "Simulate STEM-EELS",
+    "section": "A full-resolution elemental map",
+    "text": "A full-resolution elemental map\nThe map is the BiP-PRISM path, and it is a lower-level call: it takes the probe aperture, the transmission functions, the transition potentials and the scan directly, rather than being driven from StemEelsSimulator.\nimport numpy as np\nimport torch\nfrom scatterem.simulation import (\n    build_transition_potentials,\n    make_transmission_functions,\n    subshell_transitions,\n)\nfrom scatterem.simulation.eels import prism_eels_image\nfrom scatterem.utils.physics import electron_wavelength\n\neV, pixels, num_slices, device = 100e3, (128, 128), 16, \"cuda\"\nwavelength = electron_wavelength(eV)\ngridsize = (float(sto.unitcell[0]), float(sto.unitcell[1]))\nsampling = (gridsize[0] / pixels[0], gridsize[1] / pixels[1])\n\ntransmissions = make_transmission_functions(\n    sto, pixels, eV,\n    subslices=[(i + 1) / num_slices for i in range(num_slices)],\n    displacements=False, fftout=False, device=device,\n).to(torch.complex64)\n\ntp = build_transition_potentials(\n    subshell_transitions(22, 2, 1, 10.0),   # Ti L at 10 eV above threshold\n    22, pixels, sampling, eV, device=device,\n)\n\n# Probe-forming aperture, normalised to unit real-space intensity.\nqy = np.fft.fftfreq(pixels[0], d=sampling[0])\nqx = np.fft.fftfreq(pixels[1], d=sampling[1])\nq2 = qy[:, None] ** 2 + qx[None, :] ** 2\nprobe_q = torch.as_tensor(\n    (q2 &lt;= (25e-3 / wavelength) ** 2).astype(np.complex64), device=device\n)\nprobe_q = probe_q / (probe_q.abs().pow(2).sum() / probe_q.numel()).sqrt()\n\n# Scan grid in pixels, and the sites that ionize.\nscan_shape = (32, 32)\nsy = (np.arange(scan_shape[0]) + 0.5) * pixels[0] / scan_shape[0]\nsx = (np.arange(scan_shape[1]) + 0.5) * pixels[1] / scan_shape[1]\nscan_pixels = torch.as_tensor(\n    np.stack(np.meshgrid(sy, sx, indexing=\"ij\"), -1).reshape(-1, 2), device=device\n)\nsites = sto.atoms[np.round(sto.atoms[:, 3]).astype(int) == 22, :3]\n\nti_map = prism_eels_image(\n    probe_q, transmissions, tp, sites, scan_pixels,\n    wavelength=wavelength,\n    gridsize=gridsize,\n    slice_distance=float(sto.unitcell[2]) / num_slices,\n    detector_mrad=25.0,               # EELS collection semi-angle\n    interpolation_factor=2,\n    inelastic_crop=4,\n    scan_shape=scan_shape,\n    partition=dict(n_radial=4),       # partition S1\n    partition_s2=dict(n_radial=4),    # ... and S2 -- this is the \"Bi\" in BiP\n)\nDropping both partition arguments gives the exact dual matrix, which is the oracle to check against on a small cell — and the thing that does not fit on one GPU at full resolution.\n\n\n\n\n\n\nThere is no simulate_map convenience method yet\n\n\n\nStemEelsSimulator drives the cube paths only. The map is assembled from the public building blocks above, as shown. If you find yourself writing this more than once, wrap it.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "Simulate STEM-EELS"
+    ]
+  },
+  {
+    "objectID": "docs/eels.html#momentum-resolved-output-and-pacbed",
+    "href": "docs/eels.html#momentum-resolved-output-and-pacbed",
+    "title": "Simulate STEM-EELS",
+    "section": "Momentum-resolved output and PACBED",
+    "text": "Momentum-resolved output and PACBED\nUse the same inputs as the elemental-map call above. With qeels_axis=\"both\", the result is (patterns, q_pixels): patterns has shape scan_shape + (n_detector_beams,) (or (P, n_detector_beams) without scan_shape), and q_pixels has shape (n_detector_beams, 2) in (qy, qx) order. Divide each coordinate column by its corresponding gridsize to obtain inverse Ångström. Average patterns over the scan dimensions for PACBED.\nqeels_axis=0 or 1 returns a one-axis momentum projection and a sorted one-dimensional coordinate array. Summing the last axis of any resolved output recovers the integrated map from the same settings. Prefer interpolation_factor=1 when retaining detector coordinates; a larger factor subsamples the detector.\nThe v0.3 defaults are mag_preserve=True, focal_backprop=None, and contract=\"columns\". Detector vacuum-phase removal is enabled when the detector is partitioned. See accuracy and focal referencing for their meaning and convergence checks.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "Simulate STEM-EELS"
+    ]
+  },
+  {
+    "objectID": "docs/eels.html#what-it-costs-and-the-levers",
+    "href": "docs/eels.html#what-it-costs-and-the-levers",
+    "title": "Simulate STEM-EELS",
+    "section": "What it costs, and the levers",
+    "text": "What it costs, and the levers\nFour knobs, in rough order of how much they buy:\npartition / partition_s2 (dict(n_radial=N)) build each scattering matrix on a sparse set of parent beams instead of every beam. This is the memory lever, and on a large map it is worth an order of magnitude or more — but only once the matrices are what is filling the card. On a small problem it saves nothing and costs a little time. It is also approximate, and the detector side is the demanding one: see accuracy.\ninterpolation_factor (\\(f\\)) subsamples the aperture beams by \\(f^2\\). The condition for it to be valid is that the probe must fit inside a \\(1/f\\) fraction of the cell around the atom; violate it and neighbouring periodic copies of the probe leak in. For the 4D-STEM cube it is the only lever on the exit leg, since partitioning there touches \\(\\mathcal{S}_1\\) alone. Mind the scale it carries — see below.\ninelastic_crop restricts the per-atom contraction to a (Ny, Nx) // inelastic_crop window. \\(H_{n0}\\) has sub-ångström support, so a generous crop costs nothing in accuracy and saves the contraction’s largest intermediate. None uses the full grid and is exact.\nnum_frozen_phonons with displacements=True averages over thermal configurations. Cost is strictly linear in the count; one configuration is enough for a smoke test and wrong for anything quantitative.\nTwo things that are not levers: the number of scan positions barely moves the PRISM and BiP-PRISM cost, which is the entire point of the scattering matrix, and raising the detector angle raises \\(n_{\\text{det}}\\) and therefore the \\(\\mathcal{S}_2\\) build.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "Simulate STEM-EELS"
+    ]
+  },
+  {
+    "objectID": "docs/eels.html#checking-your-setup",
+    "href": "docs/eels.html#checking-your-setup",
+    "title": "Simulate STEM-EELS",
+    "section": "Checking your setup",
+    "text": "Checking your setup\nThe approximations compose, so check them one at a time on a cell small enough that the exact answer is affordable:\ncommon = dict(\n    eV=100e3, semiconvergence_angle=25.0, pixels=(128, 128), scan=(8, 8),\n    edge=(22, 2, 1), epsilon=10.0, num_slices=16, device=\"cuda\",\n)\n\nexact = StemEelsSimulator(sto, prism=False, **common).simulate().cube\nprism = StemEelsSimulator(sto, prism=True, interpolation_factor=1, **common).simulate().cube\n\nrel = float((prism - exact).norm() / exact.norm())\nAt \\(f = 1\\) PRISM reproduces the conventional multislice to rounding. On the SrTiO₃ cell above — 4×4×8 cells, 128², Ti L — that is rel-L2 \\(10^{-4}\\) and a correlation of 1.000000, and a large residual there means something is wrong with the setup rather than with the method.\n\n\n\n\n\n\ninterpolation_factor changes the absolute scale of the cube\n\n\n\nRaising \\(f\\) preserves the pattern but multiplies the cube’s intensity by roughly \\(f^2\\). Measured on that same cell against the conventional result:\n\n\n\n\nrel-L2\nintensity ratio\nscale-normalised RMS\ncorrelation\n\n\n\n\n\\(f = 1\\)\n0.0001\n1.00\n0.00004\n1.000000\n\n\n\\(f = 2\\)\n3.15\n4.15\n0.058\n0.998\n\n\n\\(f = 4\\)\n14.6\n15.8\n0.152\n0.988\n\n\n\nSo a raw relative error against an \\(f = 1\\) reference is dominated by this factor and tells you almost nothing. Hold \\(f\\) fixed when you compare anything, and take absolute cross-sections at \\(f = 1\\) or calibrate the scale against it.\n\n\nPartitioning is separately approximate. Compare partition=None against your chosen n_radial at fixed \\(f\\), and read the pattern correlation and the total signal as two different questions — for the 4D-STEM cube on that cell, n_radial=2 is already within 2.7% and n_radial=8 is exact to rounding, while for the map the detector-side partition is much more demanding. That case is worked through in BiP-PRISM.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "Simulate STEM-EELS"
+    ]
+  },
+  {
+    "objectID": "docs/eels.html#reading-further",
+    "href": "docs/eels.html#reading-further",
+    "title": "Simulate STEM-EELS",
+    "section": "Reading further",
+    "text": "Reading further\n\nBiP-PRISM — what the two scattering matrices are, why both can be partitioned, and where the approximation breaks down\nAPI reference — every symbol above, generated from the source\nThe paper: arXiv:2607.00756",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "Simulate STEM-EELS"
+    ]
+  },
+  {
+    "objectID": "docs/bip-prism.html",
+    "href": "docs/bip-prism.html",
+    "title": "BiP-PRISM",
+    "section": "",
+    "text": "A core-loss STEM-EELS simulation is a double-channelling problem. The probe has to be propagated dynamically to an atom that ionizes, the ionization event has to be applied there, and the inelastically scattered wave has to be propagated dynamically from that atom to the detector. Both legs are multislice.\nWritten out, the conventional transition-potential multislice does this for every combination of scan position, ionized atom and transition channel. With \\(P\\) scan positions, \\(N_a\\) atoms of the ionized element and \\(N_t\\) channels, that is \\(P N_a N_t\\) exit-wave propagations. The scan is the painful factor: it is the one that grows when you ask for the atomic-resolution map you actually wanted.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "BiP-PRISM"
+    ]
+  },
+  {
+    "objectID": "docs/bip-prism.html#what-makes-core-loss-eels-expensive",
+    "href": "docs/bip-prism.html#what-makes-core-loss-eels-expensive",
+    "title": "BiP-PRISM",
+    "section": "",
+    "text": "A core-loss STEM-EELS simulation is a double-channelling problem. The probe has to be propagated dynamically to an atom that ionizes, the ionization event has to be applied there, and the inelastically scattered wave has to be propagated dynamically from that atom to the detector. Both legs are multislice.\nWritten out, the conventional transition-potential multislice does this for every combination of scan position, ionized atom and transition channel. With \\(P\\) scan positions, \\(N_a\\) atoms of the ionized element and \\(N_t\\) channels, that is \\(P N_a N_t\\) exit-wave propagations. The scan is the painful factor: it is the one that grows when you ask for the atomic-resolution map you actually wanted.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "BiP-PRISM"
+    ]
+  },
+  {
+    "objectID": "docs/bip-prism.html#the-scattering-matrix-removes-the-scan",
+    "href": "docs/bip-prism.html#the-scattering-matrix-removes-the-scan",
+    "title": "BiP-PRISM",
+    "section": "The scattering matrix removes the scan",
+    "text": "The scattering matrix removes the scan\nPRISM’s idea is that the entrance leg does not depend on where the probe is. A converged probe is a sum of plane waves over the aperture, and multislice is linear, so propagating each of the \\(B\\) aperture beams once gives a basis \\(\\mathcal{S}_1\\) from which the probe at any scan position is recovered as a linear combination — the coefficients are the aperture’s phase ramps. One propagation of \\(B\\) columns replaces \\(P\\) propagations of one probe.\nThe exit leg yields to the same argument, and this is the step that makes detector-integrated maps cheap. Everything after the transition potential is linear too, so\n\\[\n\\psi_{\\text{exit}}(\\boldsymbol{\\rho}) \\;=\\;\n\\mathcal{S}_2\\Big[\\,H_{n0}\\sum_b c_b(\\boldsymbol{\\rho})\\,\\mathcal{S}_{1,b}\\Big]\n\\;=\\;\n\\sum_b c_b(\\boldsymbol{\\rho})\\;\\mathcal{S}_2\\big[\\,H_{n0}\\,\\mathcal{S}_{1,b}\\big] .\n\\]\nThe expensive operator acts on the \\(B\\) columns, not on the \\(P\\) probes, and the scan is synthesised afterwards by the same coefficients that formed it. For a detector-integrated map \\(\\mathcal{S}_2\\) can be built once per slice as a transpose multislice of the detector-accepted output beams — by reciprocity, running the detector backwards is the same calculation as running the source forwards — and then reused across every atom in that slice. The per-scan exit propagation disappears entirely. This is the dual-matrix algorithm of Brown, Ciston & Ophus.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "BiP-PRISM"
+    ]
+  },
+  {
+    "objectID": "docs/bip-prism.html#what-is-left-is-memory",
+    "href": "docs/bip-prism.html#what-is-left-is-memory",
+    "title": "BiP-PRISM",
+    "section": "What is left is memory",
+    "text": "What is left is memory\nHaving traded time for structure, the cost reappears as storage. \\(\\mathcal{S}_1\\) is \\(B\\) complex arrays on the full \\(N \\times N\\) grid; \\(\\mathcal{S}_2\\) is \\(n_{\\text{det}}\\) of them, and the detector is usually the wider aperture of the two. Both are resident. On the FePt nanoparticle below, the exact dual matrix needs 63 GB — more than any consumer card, and more than most cluster cards.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "BiP-PRISM"
+    ]
+  },
+  {
+    "objectID": "docs/bip-prism.html#partitioning-both-matrices",
+    "href": "docs/bip-prism.html#partitioning-both-matrices",
+    "title": "BiP-PRISM",
+    "section": "Partitioning both matrices",
+    "text": "Partitioning both matrices\nBeam partitioning attacks exactly this. Neighbouring beams in the aperture differ only by a small tilt, so their columns, once de-tilted, are locally similar. Build the matrix on a sparse set of \\(B_p \\ll B\\) parent beams, and reconstruct the column you need for any beam by natural-neighbour interpolation of the parents — de-tilt, combine with the interpolation weights, re-tilt.\nThe reconstruction is only ever needed locally, and that is the point. The ionization operator \\(H_{n0}(\\mathbf{r} - \\boldsymbol{\\tau})\\) has sub-ångström support around the atom at \\(\\boldsymbol{\\tau}\\), so it is the crop: the columns only have to be right inside a small window, never across the whole grid.\nBiP-PRISM — bi-partitioned PRISM — applies this to both matrices at once: \\(\\mathcal{S}_1\\) on parent aperture beams, \\(\\mathcal{S}_2\\) on parent detector beams, each reconstructed on the crop window around the ionized atom immediately before the contraction\n\\[\n\\big[\\mathcal{S}H_{n0}\\big]_{db}\n\\;=\\;\n\\sum_{\\mathbf{r}\\,\\in\\,\\Omega_\\tau}\n\\mathcal{S}_{2,d}(\\mathbf{r})\\,H_{n0}(\\mathbf{r}-\\boldsymbol{\\tau})\\,\\mathcal{S}_{1,b}(\\mathbf{r}) .\n\\]\nBoth reconstructions resolve before the contraction, on the window, and the window is small — so the resident matrices shrink from \\(B\\) and \\(n_{\\text{det}}\\) columns to \\(B_p\\) each, while the arithmetic that consumes them is unchanged.\n\n\n\n\n\n\nResolved detector output\n\n\n\nprism_transition_potential retains the full exit diffraction pattern with ordinary multislice on the exit leg, so its partition option applies to \\(\\mathcal{S}_1\\) alone. prism_eels_image reconstructs both matrices and can also retain detector coordinates: use qeels_axis=0 or 1 for a momentum projection, or qeels_axis=\"both\" for individual detector beams. Averaging these resolved patterns over probe positions gives core-loss-filtered PACBED. Summing the retained detector intensities recovers the elemental map.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "BiP-PRISM"
+    ]
+  },
+  {
+    "objectID": "docs/bip-prism.html#accuracy-and-the-one-caveat-worth-knowing",
+    "href": "docs/bip-prism.html#accuracy-and-the-one-caveat-worth-knowing",
+    "title": "BiP-PRISM",
+    "section": "Accuracy, and the one caveat worth knowing",
+    "text": "Accuracy, and the one caveat worth knowing\nPartitioning approximates the scattering columns on the inelastic crop window. For a double-partitioned calculation, both the probe and detector reconstruction errors matter. Increase partition and partition_s2 parent counts independently and compare with an unpartitioned calculation at the same grid, PRISM factor, energy window and detector aperture. This isolates partitioning error; convergence of the grid, slice thickness and crop is a separate check.\nVersion 0.3 corrects the detector reconstruction’s carrier signs. Detector columns start from conjugate plane waves, so their de-tilt and re-tilt signs are opposite to those of probe columns. It also removes each parent’s known quadratic vacuum propagation phase before interpolation and restores the target beam’s phase afterwards. These scalar factors work directly on the crop window. With all beams selected as parents, reconstruction recovers the unpartitioned columns; in vacuum, the corrected detector interpolation is exact even with sparse parents, up to floating-point error.\nmag_preserve=True additionally uses the interpolated magnitudes and the phase of the complex natural-neighbour sum on crop windows. This is a heuristic for limiting amplitude loss, not a guarantee of absolute cross-section accuracy. Set mag_preserve=False for plain complex interpolation. For a detector-phase ablation, partition_s2=dict(n_radial=4, dechirp=False) keeps the corrected carrier signs but disables scalar vacuum-phase removal.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "BiP-PRISM"
+    ]
+  },
+  {
+    "objectID": "docs/bip-prism.html#focal-referencing",
+    "href": "docs/bip-prism.html#focal-referencing",
+    "title": "BiP-PRISM",
+    "section": "Focal referencing",
+    "text": "Focal referencing\nfocal_backprop=None is the default: interpolate at the current ionization plane. This differs from zero incident-probe defocus, which sets the probe’s entrance phase. Optional focal_backprop=\"centroid\" references the probe parents by half the traversed depth, rounded to a slice, then propagates the interpolated columns forward to the ionization plane. A numeric value specifies the fraction of the traversed depth. Windowed forward propagation uses padding; its truncation must be converged separately. When every beam is a parent, the reference-plane round trip is skipped to preserve the exact cropped columns. No reference plane is assumed to minimize interpolation error universally.\nThe corrected large-map examples use zero incident defocus with focal back-propagation disabled. The single-column regime survey uses the explicit centroid setting. Scalar detector dechirping is independent of this spatial reference-plane operation.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "BiP-PRISM"
+    ]
+  },
+  {
+    "objectID": "docs/bip-prism.html#memory-and-runtime",
+    "href": "docs/bip-prism.html#memory-and-runtime",
+    "title": "BiP-PRISM",
+    "section": "Memory and runtime",
+    "text": "Memory and runtime\nPartitioning reduces resident scattering-matrix storage by replacing full beam sets with parent sets. The per-atom coupling and scan synthesis still cost time; reconstruction overhead can outweigh build savings on small problems. Measure both runtime and peak memory for the specimen and output mode of interest.\ncontract=\"columns\" forms the beam-to-beam coupling before scan synthesis; contract=\"probe\" forms the local probe first. Both compute the same observable within floating-point precision. scan_chunk bounds the number of scan positions processed together in the resolved-output and probe-contraction paths; it does not change the output definition.",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "BiP-PRISM"
+    ]
+  },
+  {
+    "objectID": "docs/bip-prism.html#reading-further",
+    "href": "docs/bip-prism.html#reading-further",
+    "title": "BiP-PRISM",
+    "section": "Reading further",
+    "text": "Reading further\n\nThe paper: P. Pelz, The BiP-PRISM algorithm for fast and scalable core-loss STEM-EELS simulations, arXiv:2607.00756\nTransition-potential multislice for EELS: Dwyer, Ultramicroscopy 104, 141 (2005), doi:10.1016/j.ultramic.2005.03.005\nThe dual scattering matrix: Brown, Ciston & Ophus, Phys. Rev. Research 1, 033186 (2019), doi:10.1103/PhysRevResearch.1.033186\nPRISM: Ophus, Adv. Struct. Chem. Imaging 3, 13 (2017), doi:10.1186/s40679-017-0046-1\nBeam partitioning: Pelz et al., Microsc. Microanal. 27, 835 (2021), doi:10.1017/S1431927621012083\nFrozen phonons and specimen setup: Kirkland, Advanced Computing in Electron Microscopy, 2nd ed. (2010)",
+    "crumbs": [
+      "Get started",
+      "Simulation",
+      "BiP-PRISM"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "scatterem",
+    "section": "",
+    "text": "A 4D-STEM dataset holds more information than any single reconstruction recovers. Direct ptychography reads the phase gradient encoded in the bright-field disk and recovers low and mid spatial frequencies with high efficiency, but its transfer falls away past the disk. Tilt-corrected dark field reads the parallax shift of scattering outside the disk and recovers high frequencies, but carries almost nothing at low ones. Neither channel spans the band on its own, and used alone each leaves a gap where the other is strong.\nFused full-field STEM combines them as an SSNR-weighted Wiener fusion, so each spatial frequency is taken from whichever channel measures it better. The result is one image with no missing band.\nRun it now on a free GPU: the notebook installs the package, fetches one dataset from Zenodo and reconstructs it, with nothing to set up locally.\nThat is the whole pipeline. Each channel is also available on its own — dataset.direct_ptychography() and dataset.tilt_corrected_dark_field() — and all three share one calibration, so they land on the same grid.",
+    "crumbs": [
+      "Get started",
+      "scatterem"
+    ]
+  },
+  {
+    "objectID": "index.html#where-to-go-next",
+    "href": "index.html#where-to-go-next",
+    "title": "scatterem",
+    "section": "Where to go next",
+    "text": "Where to go next\n\n\n\nInstall\none pip install, plus what to know about GPUs\n\n\nQuickstart\nyour own data, from array to fused image\n\n\nThe method\nwhat each channel measures, and why fusing them works\n\n\nCalibration\nthe parameters that decide whether a reconstruction is correct\n\n\nReproduce the paper\nfour specimens, downloaded automatically\n\n\nSimulate STEM-EELS\nthe forward simulation: cubes, maps, and what they cost\n\n\nBiP-PRISM\nhow partitioning both scattering matrices makes that affordable\n\n\nAPI\nreference, generated from the source",
+    "crumbs": [
+      "Get started",
+      "scatterem"
+    ]
+  },
+  {
+    "objectID": "index.html#simulating-core-loss-stem-eels",
+    "href": "index.html#simulating-core-loss-stem-eels",
+    "title": "scatterem",
+    "section": "Simulating core-loss STEM-EELS",
+    "text": "Simulating core-loss STEM-EELS\nThe same package also runs the forward problem: dynamical simulation of core-loss STEM-EELS, by conventional transition-potential multislice, by PRISM, and by BiP-PRISM, which partitions both the probe-forming and the detector-propagating scattering matrix and so fits a full-resolution elemental map on one consumer GPU.\nfrom scatterem.simulation import StemEelsSimulator\n\nsim = StemEelsSimulator(\n    structure,                     # scatterem.simulation.Structure\n    eV=100e3,\n    semiconvergence_angle=25.0,    # mrad\n    pixels=(128, 128),\n    scan=(16, 16),\n    edge=(22, 2, 1),               # Ti L: (Z, n, l)\n    prism=True,\n    device=\"cuda\",\n)\n\nresult = sim.simulate()            # (scan_y, scan_x, det_y, det_x)\nSee Simulate STEM-EELS for the pipeline and BiP-PRISM for the algorithm.",
+    "crumbs": [
+      "Get started",
+      "scatterem"
+    ]
+  },
+  {
+    "objectID": "index.html#citing-this",
+    "href": "index.html#citing-this",
+    "title": "scatterem",
+    "section": "Citing this",
+    "text": "Citing this\nCite the paper for the part you used. The reconstruction methods are described in:\n\nS. You, G. Varnavides, S. Khavnekar, N. Palatkin, S. Shao, M. Wu, D. Stroppa, D. Chernikova, B. Zhu, R. Egoavil, S. Vespucci, D. Krishnan, X. Ye, F. K. M. Schur, E. Spiecker, P. Pelz. Gap-Free Information Transfer in 4D-STEM via Fusion of Complementary Scattering Channels. Advanced Science (2026) e76620. doi:10.1002/advs.76620\n\nThe STEM-EELS simulation is described in:\n\nP. Pelz. The BiP-PRISM algorithm for fast and scalable core-loss STEM-EELS simulations. (2026) arXiv:2607.00756\n\nCITATION.cff in the repository carries the same metadata in machine-readable form. The datasets are on Zenodo under 10.5281/zenodo.18008901, CC-BY-4.0 — please cite the record as well as the paper if you use them.",
+    "crumbs": [
+      "Get started",
+      "scatterem"
+    ]
+  },
+  {
+    "objectID": "index.html#scope",
+    "href": "index.html#scope",
+    "title": "scatterem",
+    "section": "Scope",
+    "text": "Scope\nTwo things live here: the FF-STEM reconstruction pipeline — direct ptychography, tilt-corrected dark field, their fusion, and the calibration and I/O they need — and the core-loss STEM-EELS forward simulation. Each accompanies its own paper.\nThe wider scatterem codebase covers iterative ptychography and tomography; those parts are released with their own publications.",
+    "crumbs": [
+      "Get started",
+      "scatterem"
+    ]
+  },
+  {
+    "objectID": "docs/api.html",
+    "href": "docs/api.html",
+    "title": "API reference",
+    "section": "",
+    "text": "Generated from the source by docs/_generate_api.py, so it cannot drift from the code. Everything below is public; anything not listed here is internal and may change without notice.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#container",
+    "href": "docs/api.html#container",
+    "title": "API reference",
+    "section": "Container",
+    "text": "Container\nscatterem.utils.data.datasets\n\nDataset4dstem\nUndocumented.\n\nfrom_array\nfrom_array(array: Any, name: str | None = None, origin: Union[numpy.ndarray[tuple[Any, ...], numpy.dtype[~_ScalarT]], tuple, list, float, int, NoneType] = None, sampling: Union[numpy.ndarray[tuple[Any, ...], numpy.dtype[~_ScalarT]], tuple, list, float, int, NoneType] = None, units: Union[list[str], tuple, list, NoneType] = None, signal_units: str = 'arb. units', meta: Optional[scatterem.utils.data.data_classes.Metadata4dstem] = None, transform_to_amplitudes: bool = False, fourier_shift_dim: Tuple = None, normalize: bool = True, clip_neg_values: bool = True, copy: bool = True, device: torch.device = device(type='cpu'), is_cropped: bool = False, out_of_core: bool = False, ooc_row_block: int = 8, g_residency: str = 'auto', energy: float | None = None, semiconvergence_angle: float | None = None, scan_step: Union[float, tuple, list, numpy.ndarray[tuple[Any, ...], numpy.dtype[~_ScalarT]], NoneType] = None, reciprocal_step: Union[float, tuple, list, numpy.ndarray[tuple[Any, ...], numpy.dtype[~_ScalarT]], NoneType] = None, rotation: float = 0.0, aberrations: Optional[ForwardRef('Aberrations')] = None) -&gt; 'Dataset4dstem'\nValidates and creates a Dataset from an array.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters",
+    "href": "docs/api.html#parameters",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\narray: Any The array to validate and create a Dataset from. name: str | None The name of the Dataset. origin: Union[NDArray, tuple, list, float, int] | None The origin of the Dataset. sampling: Union[NDArray, tuple, list, float, int] | None The sampling of the Dataset. units: Union[list[str], tuple, list] | None The units of the Dataset. signal_units: str The units of the signal. out_of_core: bool Keep the raw (uint16) cube as a CPU numpy array/memmap and stream it; nothing is uploaded to device here. See scatterem.utils.data.out_of_core. ooc_row_block: int Scan-row block size for streamed reductions (out-of-core only). g_residency: str “gpu” | “vbf_gpu” | “cpu_pinned” | “auto” — where the streaming vBF provider keeps G (out-of-core only). energy, semiconvergence_angle, scan_step, reciprocal_step, rotation, aberrations: Physics convenience path: when meta is None and energy is given, a Metadata4dstem is built internally (shape derived from array, sampling = (dr, dr, dk, dk) with dr from scan_step and dk from reciprocal_step – both scalar or a length-2 pair, dk defaulting to a (1.0, 1.0) placeholder to be calibrated later, e.g. via calibrate_reciprocal_from_bright_field). origin defaults to the array center in this path when not given explicitly.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#returns",
+    "href": "docs/api.html#returns",
+    "title": "API reference",
+    "section": "Returns",
+    "text": "Returns\nDataset The container, with any unset axis metadata filled in from the array’s rank.\n\ndetermine_aberrations_\ndetermine_aberrations_(self, correction_method: str = 'combined', fit_rotation: bool = False, target_percentage_nonzero_pixels: float = 0.75, n_batches: int = 25, registration_upsample_factor: int = 10, lowpass_fwhm_bright_field: Optional[float] = None, bin_factors: tuple[int, ...] = (2, 1, 1), verbosity: int = 0, correct_order: int = 1, gradient_mask: Optional[torch.Tensor] = None, num_iterations: int = 10, lr: float = 20, bright_field_mask_threshold: Optional[float] = None, roi_shape: tuple[int, int] = (128, 128), roi_center: Union[str, tuple[int, int]] = 'center', upsample: Union[int, str] = 'nyquist', update_dataset: bool = True, n_center_indices: int = 25, phase_sign: str = 'positive', sharpness_metric: str = 'sparsity', reg_weight: float = 0.05, alignment_method: str = 'reference') -&gt; None\nDetermine the aberrations with the method given in correction_method.\nArgs: correction_method: How to determine the aberrations. “combined” (default) chains the bright-field-shift low-order+rotation fit with the sharpness autofocus (higher orders, when correct_order&gt;=2); “bright-field-shifts” is low-order+rotation only; “autofocus” is the autofocus only (rotation fixed). The legacy “total-variation” is a deprecated alias for “autofocus”. sharpness_metric: Autofocus objective for the higher-order stage: “sparsity” (default, L4/kurtosis) or “tv”. reg_weight: L2 regularization (scaled units) toward the seed in the autofocus optimizer. fit_rotation: Whether to fit the rotation. target_percentage_nonzero_pixels: Target percentage of nonzero pixels for the bright field. n_batches: Number of batches for the bright field shifts. registration_upsample_factor: Upsampling factor for the registration. lowpass_fwhm_bright_field: FWHM of the lowpass filter for the bright field. bin_factors: Bin factors for the bright field. The default is (2, 1, 1). arrow_scale: Scale for the arrows in the plot. verbosity: Verbosity level. lr: Learning rate for the optimizer. Used for the autofocus stage. bright_field_mask_threshold: Threshold for the bright field. Used for bright field shifts. roi_shape: Shape of the region of interest. Used for bright field shifts. roi_center: Center of the region of interest. upsample: Upsampling factor for the diffraction pattern. Used for bright field shifts. correct_order: Order of the aberrations to correct. Used for the autofocus stage. num_iterations: Number of optimization iterations. Used for the autofocus stage. n_center_indices: Number of center indices to use for the bright field shifts. The default is 25.\n\n\ndirect_ptychography\ndirect_ptychography(self, upsample: Union[float, str] = 'nyquist', verbosity: int = 0, n_batches: int = 25, return_snr: bool = False, phase_sign: str = 'positive', ssnr_method: str = 'analytical', **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor | None]\nPerform direct ptychography reconstruction.\n\n\ntilt_corrected_dark_field\ntilt_corrected_dark_field(self, n_dark_field_segments: int = 32, verbosity: int = 0, bright_field_mask_threshold: Optional[float] = None, upsample: Union[float, str] = 'nyquist', return_snr: bool = False, snr_blur_sigma: float = 0.0, shift_method: str = 'drizzle', drizzle_pixfrac: float = 1.0, drizzle_kde_sigma: float = 0.0, _segment_geometry=None) -&gt; tuple[torch.Tensor, torch.Tensor | None]\nPerform tilt corrected dark field reconstruction.\nshift_method defaults to \"drizzle\" — a non-negative, ringing-free area-overlap splat (with drizzle_pixfrac / drizzle_kde_sigma), preferable for sparse/low-dose data. Pass \"fourier\" for the Fourier phase-ramp path (marginally sharper on dense, high-dose data).\n\n\nfused_full_field\nfused_full_field(self, n_batches: int = 32, upsample: Union[int, str] = 'nyquist', verbosity: int = 0, bright_field_mask_threshold: Optional[float] = None, return_snr: bool = True, snr_blur_sigma: float = 0.0, ssnr_method: str = 'analytical', ptycho_lowq_cutoff_frac: float = 0.0, tcdf_shift_method: str = 'drizzle', drizzle_pixfrac: float = 1.0, drizzle_kde_sigma: float = 0.0, n_dark_field_segments: int | None = None) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor]\nPerform fused full field reconstruction. Combine direct ptychography and tilt corrected dark field with SSNR-weighted Fourier fusion.\nptycho_lowq_cutoff_frac &gt; 0 hands the low-q band (below this fraction of Nyquist) exclusively to the dark-field, removing the direct-ptychography low-frequency cupping halo that otherwise leaks into the fused image.\nArgs: n_batches: Number of batches for processing. upsample: Upsampling factor for the diffraction pattern. verbosity: Verbosity level. bright_field_mask_threshold: Threshold for the bright field. return_snr: Whether to compute SSNR for weighting. snr_blur_sigma: Gaussian blur sigma for the empirical ptycho SSNR and the tcDF SSNR (the analytical ptycho SSNR ignores it). ssnr_method: How to compute the ptychography SSNR (“empirical” or “analytical”). Changing this invalidates the cached ptycho SSNR.\nReturns: tuple[torch.Tensor, torch.Tensor, torch.Tensor]: (fused, phase_weighted, tcdf_weighted)\n\n\ncalibrate_reciprocal_from_bright_field\ncalibrate_reciprocal_from_bright_field(self, semiconvergence_angle: Optional[float] = None, thresh_lower: float = 0.1, thresh_upper: float = 0.99, method: str = 'area') -&gt; float\nCalibrate the reciprocal-space pixel size dk from the measured bright-field disk radius and the known semiconvergence angle.\nEncapsulates the crop -&gt; measure -&gt; dk = alpha / rBF / wavelength -&gt; self.sampling = (dr, dr, dk, dk) dance every demo repeats. self is updated in place (via the sampling setter, which propagates to self.meta.sampling); the crop used to measure the disk is a scratch object (crop_brightfield_ returns a new dataset, built with normalize=False, clip_neg_values=False so it never writes back through its unclonded view into this dataset’s storage) and this dataset’s array is left untouched – only self.origin’s detector-plane entries are recentred and self._radius_bright_field is set, matching crop_brightfield_’s existing (self-mutating) behavior.\nArgs: semiconvergence_angle: Beam convergence semi-angle in radians. Defaults to self.meta.semiconvergence_angle. thresh_lower, thresh_upper: Intensity-threshold sweep bounds used both for the bright-field crop and the radius measurement. method: Radius-measurement method, forwarded to bright_field_radius_and_center_ (“area” or “circle”).\nReturns: float: The calibrated reciprocal-space sampling dk.\n\n\nbright_field_radius_and_center\nbright_field_radius_and_center(self, thresh_lower: float = 0.1, thresh_upper: float = 0.6, N: int = 100, method: str = 'area', edge_method: str = 'canny', min_edge_points: int = 100, ransac_iterations: int = 1000, ransac_threshold: float = 2.0) -&gt; Tuple[float, numpy.ndarray[tuple[Any, ...], numpy.dtype[~_ScalarT]]]\nCenter and radius of the bright-field disk in pixels; center is [y, x].\nDelegates to :func:scatterem.utils.data.disk_fit.fit_bright_field_disk. The edge_method and ransac_* arguments belong to a RANSAC circle fit that this release does not carry; they are accepted so callers forwarding the full argument list keep working, and are otherwise unused.\n\n\nsave\nsave(self, path: 'str | Path', *, overwrite: 'bool' = False) -&gt; 'Path'\nWrite to path. Returns the path written.\n\n\nload\nload(path: 'str | Path', *, device: 'str | torch.device' = 'cpu')\nRead an instance of cls from path.\nRaises: SerializationError: the file holds a different class, a schema version this code cannot read, or a field list that does not match cls.SERIAL_FIELDS.\n\n\nDatasetVirtualBrightField4dstem\nA virtual bright field 4D STEM dataset with metadata for electron diffraction patterns.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#reconstruction",
+    "href": "docs/api.html#reconstruction",
+    "title": "API reference",
+    "section": "Reconstruction",
+    "text": "Reconstruction\nscatterem.reconstruction\n\ndirect_ptychography\ndirect_ptychography(dataset: scatterem.utils.data.datasets.Dataset4dstem | scatterem.utils.data.datasets.DatasetVirtualBrightField4dstem, upsample: Union[float, str] = 'nyquist', bright_field_mask_threshold: float = 0.5, verbosity: int = 0, n_batches: int = 25, return_snr: bool = False, phase_sign: Literal['preserve', 'positive', 'negative'] = 'positive', ssnr_method: str = 'analytical', **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor | None]\nPerforms a joint ptychography reconstruction and aberration determination. Args: dataset: Dataset4dstem or DatasetVirtualBrightField4dstem object containing the diffraction pattern. upsample: Upsampling factor for the diffraction pattern. bright_field_mask_threshold: Threshold for the bright field. verbosity: Verbosity level. n_batches: Number of batches for the vBF. return_snr: Whether to compute the ptychography SSNR (method selected by ssnr_method). phase_sign: Resolve the global phase sign ambiguity. “positive” flips negative-skew phase images so atom columns are positive, “negative” enforces the opposite sign, and “preserve” leaves the raw direct-ptycho sign unchanged. ssnr_method: How to compute the SSNR when return_snr is True. “analytical” (default) uses the phase-contrast-transfer-function noise model (CTF-aware: ptycho SSNR -&gt; 0 at low q, no DC/low-q transfer); “empirical” reconstructs a checkerboard BF half-split and forms the raw half-difference power ratio (data-driven, better at high dose).\nReturns: torch.Tensor: The reconstructed phase image (Imaginary part). torch.Tensor | None: The SNR of the reconstructed phase image if return_snr is True, otherwise None.\nRaises: ValueError: If the dataset is not a valid Dataset4dstem object. ValueError: If the upsample is invalid.\n\n\ntilt_corrected_dark_field\ntilt_corrected_dark_field(dataset: scatterem.utils.data.datasets.Dataset4dstem, n_dark_field_segments: int = 32, verbosity: int = 0, bright_field_mask_threshold: float = 0.3, upsample: Union[float, str] = 'nyquist', return_snr: bool = False, snr_blur_sigma: float = 0.0, shift_method: str = 'drizzle', drizzle_pixfrac: float = 1.0, drizzle_kde_sigma: float = 0.0, _segment_geometry: '_SegmentGeometry | None' = None) -&gt; tuple[torch.Tensor, torch.Tensor | None]\nTilt-corrected dark-field reconstruction.\nshift_method selects how each azimuthal dark-field segment is sub-pixel shifted (by its parallax shift) and accumulated onto the up-sampled grid:\n\n\"drizzle\" (default) — area-overlap drizzle (box splat + hit-map normalization). Non-negative and ringing-free, which is the physically correct behaviour for counting data: at low dose the segment images are single electron counts and Fourier shifting turns each into a sinc with ~20% negative side-lobes. drizzle_pixfrac sets the drop size (fraction of an input pixel; 1.0 fills the grid from one frame) and drizzle_kde_sigma optionally Nadaraya-Watson-smooths sparse holes.\n\"fourier\" — Fourier zero-pad upsample + phase-ramp shift. Marginally sharper on dense, well-sampled (high-dose) data, but rings on sparse data.\n\n_segment_geometry is a private hook for callers that hold the aberrations ORTHOGONAL to everything else and sweep them (the depth section): pass the :class:_SegmentGeometry from :func:_tcdf_segment_geometry to skip rebuilding the masks and re-gathering the 4D array on every step.\n\n\nfused_full_field\nfused_full_field(dataset: scatterem.utils.data.datasets.Dataset4dstem, ptycho_image: torch.Tensor, tcdf_image: torch.Tensor, ptycho_ssnr: torch.Tensor, tcdf_ssnr: torch.Tensor, verbosity=0, taper: bool = False, q_soft_start_frac: float = 0.5, q_soft_end_frac: float = 0.7, q_hard_cutoff_frac: float = 1.0, ptycho_lowq_cutoff_frac: float = 0.0) -&gt; torch.Tensor\nUndocumented.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#named-datasets",
+    "href": "docs/api.html#named-datasets",
+    "title": "API reference",
+    "section": "Named datasets",
+    "text": "Named datasets\nscatterem.datasets\n\nYou2026Carbon\nAmorphous carbon, 300 kV (paper Figure 2).\n\n\nYou2026Co3O4\nCo3O4, 200 kV (paper Figure 2).\n\n\nYou2026AuLowDose\nAu nanoparticle, 200 kV, low dose (paper Figure 4).\nThree files: the Dectris master plus its two external data blocks. The 180 deg rotation is this acquisition’s known scan/detector offset.\nArgs: repair_bad_pixels: Replace the known-bad 2x2 detector patch with the nanmean of its surrounding ring. Default True. scan_edge_crop: Number of scan rows/columns to drop from each edge. Default 128.\n\n\nYou2026Gd2O3\nGd2O3 nanoparticles, 60 kV (paper Figure 1).\n(512, 512, 112, 112) uint16, ~6.5 GB. The 84 deg scan rotation is load-bearing: the bright-field-shift parallax auto-fit is unreliable on this low-dose data, and without the correct rotation the aberration autofocus absorbs the error into a spurious ~85 A astigmatism.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#metadata",
+    "href": "docs/api.html#metadata",
+    "title": "API reference",
+    "section": "Metadata",
+    "text": "Metadata\nscatterem.utils.data.data_classes\n\nMetadata4dstem\nMetadata4dstem(energy: float, semiconvergence_angle: float, sampling: Union[numpy.ndarray[tuple[Any, …], numpy.dtype[~_ScalarT]], tuple, list, float, int], shape: numpy.ndarray[tuple[typing.Any, …], numpy.dtype[~_ScalarT]], units: Union[list[str], tuple, list, NoneType] = None, rotation: Optional[float] = 0, defocus_guess: Optional[float] = 0, aberrations: Optional[scatterem.utils.data.aberrations.Aberrations] = None, slice_thickness: Optional[float] = 0, sample_thickness_guess: Optional[float] = 0, vacuum_probe: Optional[torch.Tensor] = None, scan_affine: Optional[torch.Tensor] = None)",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#stem-eels-simulation",
+    "href": "docs/api.html#stem-eels-simulation",
+    "title": "API reference",
+    "section": "STEM-EELS simulation",
+    "text": "STEM-EELS simulation\nscatterem.simulation\n\nStemEelsSimulator\nSimulate energy-filtered 4D-STEM-EELS datasets.\n\nsimulate\nsimulate(self, batch_size: 'Optional[int]' = None) -&gt; 'StemEelsResult'\nRun the simulation at a single continuum energy self.epsilon and return the energy-filtered 4D-STEM dataset.\n\n\nsimulate_window\nsimulate_window(self, energy_range: 'Tuple[float, float]', n_energies: 'int' = 16, batch_size: 'Optional[int]' = None) -&gt; 'StemEelsResult'\nEnergy-integrated 4D-STEM-EELS over an energy-loss window.\nSweeps the continuum-electron energy epsilon across energy_range (energies above the ionization threshold, eV) on a uniform grid of n_energies points and trapezoid-integrates the per-energy datacubes.\nBecause the continuum states are energy-normalised (per unit energy), ∫ I(epsilon) d(epsilon) is the signal collected in the corresponding energy-loss window [onset + eps_min, onset + eps_max], where the edge onset = -E_bound is the binding energy of the ionized subshell. The mapping ΔE = epsilon + onset is linear, so integrating over epsilon equals integrating over energy loss.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-1",
+    "href": "docs/api.html#parameters-1",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\nenergy_range : (float, float) (eps_min, eps_max) above threshold [eV]; eps_min must be &gt; 0 (the energy-normalised continuum diverges at threshold) and eps_max &gt; eps_min. n_energies : int Number of energies sampled across the window (&gt;= 2). More points reduce the trapezoid-integration error at proportional cost. batch_size : int, optional Forwarded to the conventional multislice scan-position batching.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#notes",
+    "href": "docs/api.html#notes",
+    "title": "API reference",
+    "section": "Notes",
+    "text": "Notes\nTransition potentials are built once per energy (the GPAW continuum is additionally cached on disk), and the transmission functions are computed once per frozen phonon and reused across all energies. Memory scales with n_energies (one transition-potential stack is held per sampled energy).\n\nsimulate_edges\nsimulate_edges(self, edges: 'Sequence[Tuple[int, int, int]]', energy_range: 'Optional[Tuple[float, float]]' = None, n_energies: 'int' = 16, batch_size: 'Optional[int]' = None) -&gt; \"'dict[Tuple[int, int, int], StemEelsResult]'\"\nSimulate several ionization edges (elements/subshells) in one pass.\nThe elastic transmission functions and probes are shared across all edges – they are the dynamical scattering of the whole structure and do not depend on which element is ionized – so this is much cheaper than constructing a separate :class:StemEelsSimulator per element (which would recompute the transmissions, and the frozen-phonon passes, every time).",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-2",
+    "href": "docs/api.html#parameters-2",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\nedges : sequence of (Z, n, l) The ionized subshells, e.g. [(8, 1, 0), (22, 2, 1)] for the O-K and Ti-L edges. Every Z must be present in the structure. energy_range : (float, float), optional If given, each edge is energy-integrated over the same window of continuum energies above its own threshold (see :meth:simulate_window); the window therefore sits above each edge’s own onset. If None, each edge is evaluated at the single energy self.epsilon. n_energies : int Energies sampled per window when energy_range is given. batch_size : int, optional Forwarded to the conventional multislice scan-position batching.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#returns-1",
+    "href": "docs/api.html#returns-1",
+    "title": "API reference",
+    "section": "Returns",
+    "text": "Returns\ndict Maps each (Z, n, l) edge to its :class:StemEelsResult. (If the same edge is passed twice, only the last result is kept.)",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#notes-1",
+    "href": "docs/api.html#notes-1",
+    "title": "API reference",
+    "section": "Notes",
+    "text": "Notes\nAll edges’ transition potentials are held in memory simultaneously so the transmissions can be reused in a single frozen-phonon sweep; memory scales with the total number of (edge x energy) transition-potential stacks.\n\nStemEelsResult\nOutput of a STEM-EELS simulation.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#attributes",
+    "href": "docs/api.html#attributes",
+    "title": "API reference",
+    "section": "Attributes",
+    "text": "Attributes\ncube : Tensor Energy-filtered 4D-STEM dataset (scan_y, scan_x, det_y, det_x) (real, non-negative; diffraction patterns are corner-origin). edge : tuple[int, int, int] (Z, n, l) of the ionized subshell. epsilon : float Continuum-electron energy above threshold [eV]. For a windowed result (:meth:StemEelsSimulator.simulate_window) this is the mean of the integrated energy grid. energy_losses : ndarray For a single-energy result, the per-transition energy loss [eV] that was summed into cube. For a windowed result, the sampled energy-loss grid (length n_energies) that was integrated. energy : float Probe energy [eV]. sampling : tuple[float, float] Detector reciprocal-space sampling (dky, dkx) [1/Å]. energy_range : tuple[float, float] | None For a windowed result, the integrated energy-loss window (onset + eps_min, onset + eps_max) [eV]; None for a single energy. energies : ndarray | None For a windowed result, the continuum energies above threshold (the epsilon grid) that were integrated; None for a single energy.\n\nStructure\nA periodic (or vacuum-padded finite) atomic model.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-3",
+    "href": "docs/api.html#parameters-3",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\nunitcell : array_like Either the three orthorhombic cell edge lengths (a, b, c) in Angstrom, or a 3x3 matrix whose ROWS are the cell edge vectors a, b, c in Cartesian Angstrom. A matrix that is axis-aligned orthorhombic (to EPS) is reduced to its diagonal; any other matrix triggers :meth:_orthorhombic_supercell, which tiles the crystal into an orthorhombic supercell. atoms : array_like, shape (n_atoms, 4) [x, y, z, Z] – fractional coordinates and atomic number. Exactly four columns; occ and dwf are appended to give the six-column table documented in the module docstring. dwf : array_like, shape (n_atoms,) or None One-dimensional mean-square thermal displacement &lt;u^2&gt; [A^2]. None gives every atom 0.01 A^2. NOTE the argument ORDER: dwf is the third positional argument and occ the fourth, which is the reverse of the stored column order (column 4 is occ, column 5 is &lt;u^2&gt;). Pass them by keyword. occ : array_like, shape (n_atoms,) or None Site occupancies. None gives every atom 1.0. Title : str Free-form title; the first line of the source file for :meth:fromfile. EPS : float, default 1e-2 Tolerance for the orthorhombicity test and, if it fails, for the pseudo-rational supercell construction.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#attributes-1",
+    "href": "docs/api.html#attributes-1",
+    "title": "API reference",
+    "section": "Attributes",
+    "text": "Attributes\nunitcell : ndarray, shape (3,), float64 Orthorhombic cell edge lengths in Angstrom. Freshly allocated and writable – it never aliases the caller’s array. atoms : ndarray, shape (n_atoms, 6), float64 [x, y, z, Z, occ, &lt;u^2&gt;]; see the module docstring. Title : str fractional_occupancy : numpy.bool_ True iff any atom has |occ - 1| &gt; 1e-3. Consumers use it to gate the correlated-displacement path (see :func:find_equivalent_sites). It is computed once, at construction; :meth:tile and :meth:rotate cannot change occupancies, so it stays valid.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#notes-2",
+    "href": "docs/api.html#notes-2",
+    "title": "API reference",
+    "section": "Notes",
+    "text": "Notes\nHost NumPy only: this module never imports torch, never sees a device and performs no Fourier transform. Conversion to tensors happens in the consumers.\n\nfromfile\nfromfile(fnam, temperature_factor_units='ums', atomic_coordinates='fractional', EPS=0.01, T=None)\nRead a structure file and return a :class:Structure.\nThe format is chosen from the lowercased filename extension: .xyz (Prismatic), .p1 (VESTA P1 / POSCAR-shaped) or .xtl (muSTEM). The first line of every format is the title.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-4",
+    "href": "docs/api.html#parameters-4",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\nfnam : str or os.PathLike temperature_factor_units : {‘ums’, ‘urms’, ‘B’}, default ‘ums’ Units of the thermal parameter in the file. With :math:B = 8\\pi^2\\langle u^2\\rangle:\n============  ===========================================\n``'ums'``     already :math:`\\langle u^2\\rangle` [A^2]\n``'urms'``    :math:`u_{rms}` [A]; squared on read\n``'B'``       crystallographic B [A^2]; divided by 8 pi^2\n============  ===========================================\natomic_coordinates : {‘fractional’, ‘cartesian’}, default ‘fractional’ Interpretation of the coordinates in the FILE.\n.. warning::\n\n   The Prismatic ``.xyz`` specification stores CARTESIAN Angstrom,\n   so physically correct ``.xyz`` loading needs\n   ``atomic_coordinates='cartesian'``.  The default is\n   ``'fractional'`` for backwards compatibility, and with that\n   default the Angstrom values are stored unchanged in the\n   fractional slot -- every consumer then treats e.g. 4.0725 A as\n   the fractional coordinate 4.0725, which the downstream\n   ceiling-then-modulo pixel mapping and the ``z mod 1`` slice\n   assignment quietly alias.  Existing parity tests lock this in.\n\nUnlike the historical behaviour, an unrecognised value now raises\ninstead of silently doing nothing.\nEPS : float, default 1e-2 Passed to the constructor (orthorhombicity / supercell tolerance). T : array_like, shape (3, 3), optional Optional cell transformation (zone-axis or supercell redefinition), applied consistently in the row-vector convention:\n.. math::\n\n   r_{cart} = f M, \\qquad M' = M T^{\\mathsf T},\n   \\qquad f' = r_{cart}\\,(M')^{-1} \\bmod 1.\n\nA length-3 cell is promoted to ``diag(a, b, c)`` first, so ``T``\nworks with every reader.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#returns-2",
+    "href": "docs/api.html#returns-2",
+    "title": "API reference",
+    "section": "Returns",
+    "text": "Returns\nStructure\n\ntile\ntile(self, x=1, y=1, z=1)\nBuild the x by y by z supercell IN PLACE.\nThe cell edge along dimension :math:d becomes :math:n_d times longer and every atom is replicated at all integer lattice translations, with the coordinates re-expressed as fractions of the NEW cell:\n.. math::\nf^{new}_d(, m) = , m_d &lt; n_d .\nOutput ORDERING is part of the contract: copies are enumerated in C order over :math:m = (m_x, m_y, m_z) – flat index :math:m_x n_y n_z + m_y n_z + m_z – and the original atom order is preserved within each copy. The table is therefore copy-major and atom-minor: rows [c*n_atoms, (c+1)*n_atoms) belong to copy c. Consumers that pair a per-atom weight vector with structure.atoms rely on this.\nColumns 3-5 (Z, occ, &lt;u^2&gt;) are copied verbatim into every replica; neither Title nor fractional_occupancy changes.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#returns-3",
+    "href": "docs/api.html#returns-3",
+    "title": "API reference",
+    "section": "Returns",
+    "text": "Returns\nStructure self – this method MUTATES the structure. Copy first if you need to keep the untiled model.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#notes-3",
+    "href": "docs/api.html#notes-3",
+    "title": "API reference",
+    "section": "Notes",
+    "text": "Notes\nWorks whether unitcell is currently a length-3 vector (each edge length scaled) or a 3x3 matrix (each ROW scaled by its own factor); the latter is needed while the orthorhombic-supercell machinery is running.\n\nrotate\nrotate(self, theta, axis, origin=(0.5, 0.5, 0.5), wrap=True, margin=0.0, rebox=True)\nRigidly rotate the atoms and re-box them; returns a NEW structure.\nThe atom set is rotated by theta about the direction axis through the fractional point origin and then re-expressed in a (possibly new) axis-aligned orthorhombic box. self is not modified.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#pipeline",
+    "href": "docs/api.html#pipeline",
+    "title": "API reference",
+    "section": "Pipeline",
+    "text": "Pipeline\n\nCartesian positions and the pivot: :math:r = f \\odot L, :math:o = \\mathrm{origin} \\odot L, with :math:L the cell edge lengths.\n:math:r' = (r - o) R + o with :math:R from :func:_rot_matrix.\n.. warning::\nSign convention. R is the ACTIVE rotation of a COLUMN vector, but it is applied to ROW vectors on the right. Since r @ R = (R^T r^T)^T and :math:R^{\\mathsf T} = R(-\\theta), the atoms are rotated by minus theta about axis. Example: an atom at fractional (0.75, 0.5, 0.5) of a 4x4x4 A cell sits 1 A from the centre along +x, and rotate(pi/2, [0, 0, 1]) puts it at Cartesian (2, 1, 2), i.e. 1 A along -y. Using the textbook active convention here would mirror every tilt series.\nRe-boxing, selected by (rebox, wrap):\n\nrebox=False – keep the cell verbatim and just divide by it. Atoms leaving the box are neither wrapped nor clipped; a warning naming the observed fractional range is issued instead. Use this for a tilt SERIES of a vacuum-padded finite object, so that every tilt shares one cell, field of view and object placement.\nrebox=True, wrap=True (default) – fit a new axis-aligned box to the rotated CELL CORNERS, using the five fractional corners 000, 100, 010, 001, 111: the new origin is their componentwise minimum and the new edge lengths their componentwise peak-to-peak range. Atoms are then mapped into that box modulo 1. Five corners are exact for a rotation about a cardinal axis (the remaining corners 110, 101, 011 add nothing to the bounding box there); for a general off-axis direction the box can be undersized, and the modulo-1 reduction then maps atoms into wrong periodic images.\nrebox=True, wrap=False – fit the box to the true rotated ATOM extent: origin = componentwise minimum minus margin, edges = peak-to-peak plus 2*margin, with NO modulo-1 reduction. Exact for a finite, non-periodic specimen at an arbitrary tilt.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-5",
+    "href": "docs/api.html#parameters-5",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\ntheta : float Rotation angle in RADIANS. axis : array_like, shape (3,) Any nonzero direction; normalised internally. origin : array_like, shape (3,), default (0.5, 0.5, 0.5) FRACTIONAL coordinates of the pivot. wrap : bool, default True See above. Only consulted when rebox is True. margin : float, default 0.0 Vacuum padding in Angstrom added on EACH side in the wrap=False branch (total extent grows by 2*margin). rebox : bool, default True See above.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#returns-4",
+    "href": "docs/api.html#returns-4",
+    "title": "API reference",
+    "section": "Returns",
+    "text": "Returns\nStructure A new object. Columns 3-5, Title and fractional_occupancy are carried over unchanged.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#notes-4",
+    "href": "docs/api.html#notes-4",
+    "title": "API reference",
+    "section": "Notes",
+    "text": "Notes\nCoordinate columns are read as FRACTIONAL. Applied to a .xyz structure loaded with the default atomic_coordinates='fractional' (where the columns hold Cartesian Angstrom) this multiplies Angstrom by Angstrom – deterministic, but not physically meaningful.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#transition-potentials",
+    "href": "docs/api.html#transition-potentials",
+    "title": "API reference",
+    "section": "Transition potentials",
+    "text": "Transition potentials\nscatterem.simulation\n\nsubshell_transitions\nsubshell_transitions(Z: 'int', n: 'int', l: 'int', epsilon: 'float', lprimes: 'Optional[Sequence[int]]' = None, order: 'int' = 1, backend: 'str' = 'auto', xc: 'str' = 'PBE', potential_scale: 'float' = 1.0) -&gt; 'List[Transition]'\nEnumerate the ionization channels for a subshell.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-6",
+    "href": "docs/api.html#parameters-6",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\nZ, n, l : int Element and the ionized bound orbital (e.g. Fe L edge: Z=26, n=2, l=1). epsilon : float Energy of the ejected electron above the ionization threshold [eV]. Selecting different epsilon selects different points along the energy-loss edge. lprimes : sequence of int, optional Continuum angular momenta to include. Defaults to every l' with |l - l'| &lt;= order, i.e. range(max(l - order, 0), l + order + 1). This includes the monopole l' = l channel as well as the dipole l' = l +/- 1 channels; the published multislice-EELS treatments sum over this full set (order = 1 by default). The partial-wave / Wigner-3j parity rule in :func:_form_factor zeros any channels that do not actually contribute. order : int Maximum change in angular momentum |l - l'| retained when lprimes is not given explicitly. backend : str \"gpaw\", \"hydrogenic\" or \"auto\" (see :mod:.radial). xc : str Exchange-correlation functional for the GPAW backend. potential_scale : float Empirical multiplier on the GPAW continuum effective potential (default 1.0 = the published Brown 2019 physics; abTEM uses 1.02). Affects mainly the l’=l monopole s-wave; see :func:scatterem...radial.continuum_wavefunction.\n\nbuild_transition_potentials\nbuild_transition_potentials(transitions: 'Sequence[Transition]', Z: 'int', gpts: 'Sequence[int]', sampling: 'Sequence[float]', eV: 'float', bandwidth_limit: 'float' = 0.6666666666666666, device=None, dtype: 'torch.dtype' = torch.complex64, method: 'str' = 'auto') -&gt; 'TransitionPotentials'\nBuild real-space transition potentials on a scatterem grid.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-7",
+    "href": "docs/api.html#parameters-7",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\ntransitions : sequence of Transition Channels from :func:subshell_transitions. Z : int Atomic number of the ionized element. gpts : (2,) int Grid size (Ny, Nx). sampling : (2,) float Real-space pixel size (dy, dx) [Å]. eV : float Probe energy [eV]. bandwidth_limit : float Hard bandwidth limit (fraction of Nyquist) applied in reciprocal space. device : torch device, optional Device of the returned array. dtype : torch.dtype Output complex dtype (the heavy build is always done in complex128). method : {“auto”, “gpu”, “cpu”} Backend for the partial-wave / radial-overlap / form-factor build. \"auto\" (default) runs the GPU-vectorised path on CUDA when available and otherwise the numpy/scipy reference path. \"gpu\" forces CUDA; \"cpu\" forces the reference path. All paths are numerically identical to ~machine precision (the GPU path reproduces the reference to ~1e-12).\n\nTransitionPotentials\nStack of real-space transition potentials for one edge / energy point.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#attributes-2",
+    "href": "docs/api.html#attributes-2",
+    "title": "API reference",
+    "section": "Attributes",
+    "text": "Attributes\narray : Tensor Complex tensor (n_transitions, Ny, Nx) of real-space transition potentials :math:H_{n0}(\\mathbf r_\\perp). Z : int Atomic number of the ionized element (used to locate sites). energy : float Probe energy [eV]. sampling : tuple[float, float] Real-space pixel size (dy, dx) [Å]. energy_losses : ndarray Per-transition energy loss [eV].\n\nbound_wavefunction\nbound_wavefunction(Z: 'int', n: 'int', l: 'int', xc: 'str' = 'PBE', backend: 'str' = 'auto', use_cache: 'bool' = True) -&gt; 'RadialWavefunction'\nBound radial wavefunction for orbital (n, l) of element Z.\nbackend is \"gpaw\", \"hydrogenic\" or \"auto\" (GPAW if available, otherwise hydrogenic).\n\n\ncontinuum_wavefunction\ncontinuum_wavefunction(Z: 'int', lprime: 'int', epsilon: 'float', xc: 'str' = 'PBE', backend: 'str' = 'auto', use_cache: 'bool' = True, potential_scale: 'float' = 1.0) -&gt; 'RadialWavefunction'\nContinuum radial wavefunction of angular momentum lprime at energy epsilon (eV above threshold) for element Z.\npotential_scale multiplies the effective-potential term of the GPAW continuum radial equation (default 1.0 = the published Brown 2019 physics; abTEM uses 1.02). It is ignored by the analytic hydrogenic backend, whose free-particle continuum has no atomic potential.\n\n\ngpaw_available\ngpaw_available() -&gt; 'bool'\nTrue if the optional :mod:gpaw dependency can be imported.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#eels-algorithms",
+    "href": "docs/api.html#eels-algorithms",
+    "title": "API reference",
+    "section": "EELS algorithms",
+    "text": "EELS algorithms\nscatterem.simulation.eels\n\ntransition_potential_multislice\ntransition_potential_multislice(probes: 'Tensor', transmissions: 'Tensor', transition_potentials: 'TransitionPotentials', sites: 'np.ndarray', *, wavelength: 'float', gridsize: 'Sequence[float]', slice_distance: 'float', site_threshold: 'float' = 0.0, batch_size: 'Optional[int]' = None, return_real_space: 'bool' = False) -&gt; 'Tensor'\nEnergy-filtered diffraction patterns for a batch of probe positions.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-8",
+    "href": "docs/api.html#parameters-8",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\nprobes : Tensor Complex real-space probes (P, Ny, Nx) already placed at their scan positions. transmissions : Tensor Complex real-space transmission functions (NZ, Ny, Nx) – one per depth slice. transition_potentials : TransitionPotentials Real-space transition potentials for the chosen edge. sites : ndarray Fractional coordinates (Nsite, 3) (y, x, z) in [0, 1) of the ionizable atoms (element transition_potentials.Z) within the field of view. wavelength : float Probe wavelength [Å]. gridsize : (2,) float Field-of-view size (Ly, Lx) [Å]. slice_distance : float Inter-slice propagation distance Δz [Å]. site_threshold : float Skip an inelastic event when the integrated scattered intensity is below this fraction of the transition-potential norm (cheap speed-up). batch_size : int, optional Probe-position batch size (memory control). Defaults to all probes. return_real_space : bool If True, return the accumulated real-space exit intensity instead of the diffraction-space intensity.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#returns-5",
+    "href": "docs/api.html#returns-5",
+    "title": "API reference",
+    "section": "Returns",
+    "text": "Returns\nTensor Real, non-negative intensity (P, Ny, Nx) – the inelastically scattered diffraction pattern (corner origin) summed over all transitions and sites.\n\nprism_transition_potential\nprism_transition_potential(probe_q: 'Tensor', transmissions: 'Tensor', transition_potentials: 'TransitionPotentials', sites: 'np.ndarray', scan_pixels: 'Tensor', *, wavelength: 'float', gridsize: 'Sequence[float]', slice_distance: 'float', return_real_space: 'bool' = False, interpolation_factor=1, partition=None, scan_chunk: 'int' = 64) -&gt; 'Tensor'\nDual-scattering-matrix PRISM STEM-EELS (Brown & Ophus).\nImplements the two-scattering-matrix algorithm of Brown, Ciston & Ophus, Phys. Rev. Research 1, 033186 (2019), Eq. (11):\nS_{n,iz} = S2 . F . H_{n0} . F^{-1} . S1,\nwhere :math:\\mathcal S_1 propagates the probe-forming plane waves from the entrance surface to the ionization slice iz and :math:\\mathcal S_2 propagates the inelastically-scattered wave from iz to the exit surface.\nThe key to the full PRISM benefit (vs. :func:prism_transition_potential_hybrid) is the order of operations. Because every operator after :math:\\mathcal S_1 is linear, the exit wave for scan position p is::\npsi_exit(p) = S2[ H_n0 . (sum_b coeff_p[b] S1_col[b]) ]\n            = sum_b coeff_p[b] * S2[ H_n0 . S1_col[b] ],\nso the transition is applied to the Nbeams columns of :math:\\mathcal S_1 and those columns are propagated to the exit (the action of :math:\\mathcal S_2), then the scan positions are synthesised by the same linear combination used to form the probe. The expensive exit-surface multislice therefore runs Nbeams times per (site, transition) – independent of the number of scan positions P – instead of P times. For P &gt;&gt; Nbeams (a dense scan through a small aperture, the PRISM regime) this is the source of the near-linear scaling.\nWith the exact per-pixel scattering matrix (partition=None) the result is identical (to float rounding) to :func:prism_transition_potential_hybrid; this routine just reorders the work. Energy-filtered 4D output is preserved – S2 is applied as on-the-fly multislice of the column basis (the full exit diffraction pattern is kept, so no detector reduction is made). Detector-integrating the returned cube over an EELS aperture reproduces the Brown & Ophus I(x, y) image.\nShrinking the column count (two compatible levers).\n\ninterpolation_factor = f subsamples the aperture beams to Nbeams / f**2 columns – exact within the PRISM aliasing window – shrinking the exact columns of both legs (S1 build and exit) by f**2.\npartition (e.g. {\"n_radial\": 4}) builds S1 on Bp &lt;&lt; Nbeams parent beams (Pelz/Ophus partitioned PRISM), then reconstructs the exact aperture columns from the parents at the ionization plane and runs the same dual-S exit. This cheapens the S1 build + memory (Bp parent propagations) and is approximate (natural-neighbor reconstruction error – accurate in-focus / thin / small-aperture, degrading with thickness/aperture); the exit leg still propagates the reconstructed Nbeams / f**2 columns, so the dual-S P-independence is preserved. Note partitioning does not reduce the (usually dominant) exit leg – only the S1 build; interpolation_factor is the lever for the exit. The two compose (partition partitions the already-subsampled aperture). Unlike partitioning S2, this is correct: the reconstruction resolves the position-dependent NNW basis before H_{n0} is applied (see :meth:PartitionedScatteringMatrix.reconstruct_columns).",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-9",
+    "href": "docs/api.html#parameters-9",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\nprobe_q, transmissions, transition_potentials, sites, scan_pixels, wavelength, gridsize, slice_distance, return_real_space, interpolation_factor, partition As in :func:prism_transition_potential_hybrid. partition and interpolation_factor may be combined. scan_chunk : int Number of scan positions synthesised per batch (caps the (scan_chunk, Ny, Nx) temporary in the linear-combination step).",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#returns-6",
+    "href": "docs/api.html#returns-6",
+    "title": "API reference",
+    "section": "Returns",
+    "text": "Returns\nTensor Intensity (P, Ny, Nx) summed over transitions and sites.\n\nprism_eels_image\nprism_eels_image(probe_q: 'Tensor', transmissions: 'Tensor', transition_potentials: 'TransitionPotentials', sites: 'np.ndarray', scan_pixels: 'Tensor', *, wavelength: 'float', gridsize: 'Sequence[float]', slice_distance: 'float', detector_mrad: 'float', interpolation_factor=1, inelastic_crop: 'Optional[int]' = None, prism_mask: 'bool' = True, scan_shape: 'Optional[Sequence[int]]' = None, partition: 'Optional[dict]' = None, partition_s2: 'Optional[dict]' = None, qeels_axis: \"Optional[int | Literal['both']]\" = None, contract: 'str' = 'columns', mag_preserve: 'bool' = True, focal_backprop=None, scan_chunk: 'Optional[int]' = 8192) -&gt; 'Tensor | tuple[Tensor, Tensor]'\nDouble-channeling PRISM STEM-EELS image I(x, y).",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-10",
+    "href": "docs/api.html#parameters-10",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\nprobe_q : Tensor (Ny, Nx) Probe-forming aperture in reciprocal space (complex). transmissions : Tensor (NZ, Ny, Nx) Elastic transmission functions (|T| = 1; no absorption). transition_potentials : TransitionPotentials Transition potentials (.array (n_trans, Ny, Nx), centred at origin). sites : ndarray (Nsite, 3) Fractional (y, x, z) of the ionized atoms. scan_pixels : Tensor (P, 2) Scan positions in pixels. wavelength, gridsize, slice_distance As elsewhere. detector_mrad : float EELS detector collection semi-angle [mrad]; output beams within it. interpolation_factor : int or (int, int) PRISM interpolation factor for S1 (and the scan crop region). inelastic_crop : int, optional Crop the transition-potential / scattering-matrix window to (Ny, Nx) // inelastic_crop around each atom (the localized transition). None uses the full grid (exact; equals the detector-integrated 4D dual-S). prism_mask : bool Restrict each atom’s contribution to scan positions within the PRISM 1/f crop region around it (matches the interpolation-factor periodicity). scan_shape : (int, int), optional If given, the flat (P,) image is reshaped to scan_shape. partition : dict, optional If given (e.g. {\"n_radial\": 4}), build S1 on Bp parent beams (:class:PartitionedScatteringMatrix) and reconstruct the exact aperture columns on each atom’s crop window via natural-neighbor interpolation. This cheapens the S1 build/advance + memory (Bp parents) at the cost of the NNW reconstruction error. None uses the exact per-pixel S1. Overlapping windows may reuse a full-grid reconstruction for one slice. This uses a conservative additional-workspace budget of 2 GiB shared with S2; sparse windows and active focal referencing retain windowed reconstruction. This budget is not a bound on total simulation memory. partition_s2 : dict, optional Same idea for S2 (the detector matrix): build the transpose multislice on Bp parent detector beams and NNW-reconstruct the detector columns on the crop window. Reduces the (often dominant) resident S2 storage from ndet to Bp columns; stacks a second NNW error on the detector side. None keeps the full per-beam S2. qeels_axis : {0, 1, “both”}, optional Momentum-resolved (qEELS) output. None (default) returns the scalar elemental map. 0 or 1 resolves that detector-momentum axis and projects (sums) the perpendicular one away: the per-detector-beam intensities |amp_d|^2 are binned by their signed frequency along qeels_axis instead of summed over all d. Summing the spectrum back over the resolved axis recovers the map exactly. Works with partition / partition_s2 (binning is post-|amp|^2); for a faithful resolved axis use interpolation_factor = 1 along it. \"both\" retains each detector beam separately (no projection). mag_preserve : bool, default True Magnitude-preserving NNW reconstruction of the partitioned columns: keep the complex-sum phase but restore the interpolated magnitude. Counters the phase- decoherence amplitude loss of the naive complex average (which underestimates the absolute scale ~2x at low parent count); converges to the exact result at full parents. Set False for the original (eq-14-style) behaviour. focal_backprop : float or “centroid”, optional Interpolate S1 parents at a Fresnel-referenced plane, then propagate the reconstructed window back. “centroid” uses half the traversed distance; a number specifies a fraction. A partition dictionary can override this setting per matrix; S2 uses it only when partition_s2 specifies it. Only partition_s2 accepts dechirp (default True), which removes and restores the scalar detector vacuum beam phase during interpolation. scan_chunk : int or None, default 8192 Process at most this many masked scan positions at once in the per-atom contraction. Bounds the scan-dependent intermediate memory so the scan can be sampled arbitrarily finely without OOM (results are independent of the value; None processes all positions in one block). contract : {“columns”, “probe”}, default “columns” How the per-atom contraction is associated (same result, different cost):\n* ``\"columns\"`` forms the ``(n_det, B)`` intermediate\n  ``SHn0 = S2c·(H·S1c)`` once per atom and applies the scan coefficients\n  last (``amp = SHn0·c``). This intermediate is *scan-independent*, so the\n  per-scan cost is a cheap GEMM -- best when ``P`` is very large or the crop\n  window is the full grid.\n* ``\"probe\"`` does the beam sum first, rebuilding the physical probe on the\n  crop window (``probe = c·S1c``) and contracting it against the detector\n  columns (``amp = S2c·(H·probe)``). This avoids the ``O(n_det·B·|Ω|)``\n  intermediate and is markedly faster (~3-4x) when the crop window is small\n  and ``P`` is modest -- the typical map regime. Equivalent to\n  ``\"columns\"`` up to floating-point rounding (the contraction is reassociated).",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#returns-7",
+    "href": "docs/api.html#returns-7",
+    "title": "API reference",
+    "section": "Returns",
+    "text": "Returns\nTensor or (Tensor, Tensor) With qeels_axis=None: the STEM-EELS image, (P,) or scan_shape. Otherwise: (spectrum, q_pixels) where spectrum has a trailing momentum axis ((P, n_q) or scan_shape + (n_q,)) and q_pixels is the (n_q,) sorted signed-pixel frequency of each bin (physical q = q_pixels / gridsize[qeels_axis]). For \"both\", q_pixels has shape (n_q, 2) in (qy, qx) order, with one signed coordinate pair per retained beam; divide each column by its corresponding grid size to obtain inverse Angstroms.\n\nScatteringMatrix\nPlane-wave scattering matrix :math:\\mathcal S advanced by multislice.\nEach row is the multislice-propagated plane wave for one beam in the probe-forming aperture. Advancing the matrix to a given depth and forming a probe by linear combination reproduces the elastic wave at that depth for any scan position.\n\n\nPartitionedScatteringMatrix\nPartitioned-PRISM scattering matrix (Pelz 2021) for STEM-EELS.\nInstead of one multislice-propagated plane wave per aperture pixel, the matrix is built on a small set of Bp parent beams (a hex-ring subsample of the aperture). The probe at a scan position is synthesised by natural- neighbor interpolation of the de-tilted parent columns:\npsi(r, R) = sum_p S_dt[p](r) * basis_p(r - R),\nS_dt[p](r)   = S[p](r) * exp(-2 pi i g_p . r / N),      (de-tilted column)\nbasis_p(rho) = sum_b coeffs[b] w[b,p] exp(2 pi i g_b . rho / N),\nwhere w[b,p] are the natural-neighbor weights expressing aperture beam b in terms of the parents. In the full-parent limit (every beam its own parent, w the identity) this is algebraically the exact per-pixel probe, so :class:ScatteringMatrix is the Bp -&gt; B limit and serves as the oracle. Presents the advance_to / probe_at_current_plane interface of :class:ScatteringMatrix plus :meth:coeffs_at / :meth:reconstruct_columns, so it can drive either the hybrid path or the dual-scattering-matrix exit (the reconstructed columns are scalar-combinable). Accepts interpolation_factor so PRISM beam subsampling composes with partitioning. Accuracy is regime-dependent (the natural-neighbor reconstruction error).\n\n\nDetectorExitSMatrix\nS2: columns are detector-output beams back-propagated to the current slice.\nS2_d(r) is the adjoint (transpose) multislice of the conjugate detector plane wave e_d* from the exit surface back to the current slice, so that for any wave w at that slice sum_r S2_d(r) w(r) == fft(forward_exit(w))[d] – the amplitude reaching detector beam d. Built once covering all slices (slice 0 -&gt; exit) and :meth:peel_to advances the start slice forward (removing front slices) so it is reused across every atom.\nWith partition the transpose multislice is built on only Bp parent detector beams (a hex-ring subsample); the full detector columns are NNW-reconstructed on a crop window via :meth:columns_window. By reciprocity the de-tilted back-propagated columns are locally similar, so the same partitioned-PRISM interpolation applies – shrinking the resident S2 from ndet to Bp columns.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#multislice-substrate",
+    "href": "docs/api.html#multislice-substrate",
+    "title": "API reference",
+    "section": "Multislice substrate",
+    "text": "Multislice substrate\nscatterem.simulation\n\nmake_potential\nmake_potential(structure, pixels, subslices=[1.0], tiling=(1, 1), displacements=True, fractional_occupancy=True, sinc_deconvolution=True, bandwidthlimit=0.2, fe=None, device=None, dtype=torch.float32, seed=None, weights=None, weight_power=1, *, cache_fe: 'bool' = True) -&gt; 'torch.Tensor'\nProjected electrostatic potential of a structure on a pixel grid.\nEvaluates, for each depth slice s and grid node n,\n.. math::\nV_s(\\mathbf r_n) \\;=\\; \\frac{1}{L_y L_x} \\sum_{\\mathbf k} M(\\mathbf k)\n    \\Big[\\sum_{Z} f_e^{Z}(\\mathbf g_{\\mathbf k})\\,\n         \\tilde S_{Z,s}(\\mathbf k)\\Big]\\,\n    e^{+2\\pi i (k_y n_y/N_y + k_x n_x/N_x)},\nwhere :math:\\tilde S_{Z,s} is the sinc-deconvolved DFT of the bilinear splat of the species-Z atoms assigned to slice s, :math:f_e^Z is the electron scattering factor in V Å³, :math:M is the soft band-limit mask, :math:\\mathbf g_{\\mathbf k} = (k_y/L_y, k_x/L_x) in Å⁻¹, and :math:L_i are the tiled supercell edges. Equivalently, and this is what it is for: the convolution of the slice’s atomic delta comb with the per-species projected atomic potential. See the module docstring for the physics and the references.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-11",
+    "href": "docs/api.html#parameters-11",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\nstructure : Structure Must expose unitcell — the length-3 orthorhombic edge vector in Å — and atoms, an (natoms, 6) float array whose columns are [x, y, z, Z, occupancy, &lt;u^2&gt;]: x, y, z fractional coordinates nominally in [0, 1), Z the atomic number, occupancy in (0, 1], and &lt;u^2&gt; the one-dimensional mean-square thermal displacement in Å² (not the Debye-Waller B; B = 8 pi^2 &lt;u^2&gt;). Also fractional_occupancy, a bool. pixels : (2,) sequence of int Grid (Ny, Nx) covering the tiled supercell. A bare int is not accepted. subslices : float or (nss,) array_like, optional Upper fractional depths of the slices along c, non-decreasing, ending at 1.0. A bare float is treated as a single slice. Default [1.0]. tiling : (2,) sequence of int, optional Lateral repetition (t0, t1) of the unit cell. Default (1, 1). displacements : bool, optional Draw per-atom, per-replica Gaussian lateral displacements with sigma = sqrt(&lt;u^2&gt;) (Einstein frozen-phonon model). False gives the deterministic static-lattice potential. Default True. fractional_occupancy : bool, optional Honour the occupancy column, and make atoms sharing a site vibrate together. Inert when the structure is fully occupied. Default True. sinc_deconvolution : bool, optional Divide out one factor of the splat kernel’s sinc per axis. Default True. bandwidthlimit : float or None, optional Width of the erf taper at the Nyquist radius; None disables the mask. Default 0.2. fe : (M, Ny, Nx) numpy.ndarray or None, optional Precomputed scattering factors in V Å³, corner-origin (unshifted) order, indexed along axis 0 in this function’s element order list(set(atoms[:, 3].astype(int32))) — see Notes. Only the first Nx//2+1 columns are read. None (default) evaluates them. device : str, torch.device or None, optional None means CUDA if available, not CPU. dtype : torch.dtype, optional float32/complex64 (default) or float64/complex128; the output always carries the corresponding real dtype. seed : int or None, optional Seed for the displacement draw. Seeds a private generator, so the caller’s global RNG stream is untouched. weights : (natoms,) array_like or torch.Tensor, optional Per-atom weight multiplying the splat mass; may require grad. weight_power : int, optional Exponent p on weights. 1 (default) for the elastic potential, which is linear in the scattering amplitude; 2 for emission/TDS potentials, whose form factor is a product of two amplitudes and therefore scales as w^2.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#returns-8",
+    "href": "docs/api.html#returns-8",
+    "title": "API reference",
+    "section": "Returns",
+    "text": "Returns\ntorch.Tensor (nss, Ny, Nx) real potential in volt-angstrom, on device, with the real dtype derived from dtype. Multiply by the interaction constant sigma(E) in rad/(V Å) to get the multislice phase shift.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#notes-5",
+    "href": "docs/api.html#notes-5",
+    "title": "API reference",
+    "section": "Notes",
+    "text": "Notes\nElement order is an external contract. Species are enumerated as list(set(...)) over the int32 atomic numbers, i.e. CPython’s small-int hash order, which is not sorted: {8, 42, 16, 1, 92} enumerates as [1, 8, 42, 16, 92]. Callers that precompute fe build it against that order; replacing it with sorted() would silently permute form factors between species.\nIntegral invariant. sum(V) * dy * dx equals sum_m occ_m * w_m**p * fe_{Z_m}(0) over all atoms including tile replicas. This is the cheapest end-to-end check of the normalisation, and the gradient with respect to w_m is correspondingly fe_{Z_m}(0)/(dy*dx).\nDifferentiability. Gradients flow through weights only; positions and the slice/element index maps are non-differentiable buffers.\nDeterminism. On CUDA, scatter-add into a float buffer accumulates in nondeterministic order, so two identical calls can differ at the ULP level even with displacements=False.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#examples",
+    "href": "docs/api.html#examples",
+    "title": "API reference",
+    "section": "Examples",
+    "text": "Examples\n\n\n\nV = make_potential(structure, (256, 256), subslices=[0.5, 1.0], … displacements=False, device=“cpu”) # doctest: +SKIP V.shape # doctest: +SKIP torch.Size([2, 256, 256])\n\n\n\n\nmake_transmission_functions\nmake_transmission_functions(structure, pixels, eV, subslices: 'Sequence[float]' = (1.0,), tiling: 'Sequence[int]' = (1, 1), fe: 'Optional[Tensor]' = None, displacements: 'bool' = True, fftout: 'bool' = False, dtype: 'Optional[torch.dtype]' = None, device: 'Optional[Union[str, torch.device]]' = None, fractional_occupancy: 'bool' = True, seed: 'Optional[int]' = None, bandwidth_limit: 'Optional[Union[float, Sequence[float]]]' = 0.6666666666666666, V_abs: 'Optional[Tensor]' = None, dz: 'Optional[float]' = None, weights: 'Optional[Tensor]' = None) -&gt; 'Tensor'\nBuild the band-limited multislice transmission functions of a structure.\nThree stages:\n\nPotential. Delegate to :func:scatterem.simulation.potentials.make_potential for the real projected electrostatic potential V of shape (nsubslices, Ny, Nx) in VA. (That builder applies its own, separate soft antialias filter to the potential; bandwidth_limit here is the later, harder aperture applied to the transmission function*, and is not forwarded.)\nComplex exponential. Pure-elastic path,\n.. math:: T_j() = (i,,V_j()),\nso :math:|T| = 1 exactly. With V_abs supplied, the optical potential picks up an imaginary part :math:V^{\\text{tot}} = V^{\\text{DW}} + i\\,\\Delta z\\,V^{\\text{abs}} and\n.. math::\nT_j(\\mathbf{r}) = e^{\\,i\\sigma V_j(\\mathbf{r})}\\,\n                   e^{-\\sigma\\,\\Delta z\\,V^{\\text{abs}}_j(\\mathbf{r})},\na pure phase times a real attenuation: the Debye–Waller absorptive channel. Pass Debye–Waller-damped scattering factors through fe to make the elastic V the DW-smeared :math:V^{\\text{DW}}; the absorptive sink itself arrives ready-made in V_abs.\nBand limit and output space. Forward-FFT over the last two axes, zero everything outside the antialias ellipse, and either return that (fftout=True) or transform back (fftout=False, the default). In one line, for fftout=False::\nT = IFFT2( M * FFT2( exp(i*sigma*V - sigma*dz*V_abs) ) )",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-12",
+    "href": "docs/api.html#parameters-12",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\nstructure : Structure scatterem structure; needs .unitcell and an .atoms table with columns [x, y, z, Z, occupancy, mean-square displacement]. pixels : sequence of int Output grid (Ny, Nx). Must be a length-2 iterable; a bare int is not accepted. eV : float Accelerating voltage in volts. Must be positive. subslices : sequence of float, default (1.0,) Fractional depths at which each slice ends, in fractional (untiled) unit-cell coordinates, increasing and ending at 1.0 to tile the cell exactly – e.g. (0.5, 1.0) for two equal slices. The number of output slices is len(subslices). Not validated. tiling : sequence of int, default (1, 1) Lateral repeat (ty, tx) of the unit cell. fe : Tensor, optional Precomputed electron scattering factors. Pass to avoid recomputation, and as the mechanism for injecting Debye–Waller-damped factors. displacements : bool, default True Apply random frozen-phonon thermal displacements. With seed=None this makes the result nondeterministic. fftout : bool, default False Return the reciprocal-space (band-limited) transmission instead of the real-space one. dtype : torch.dtype, optional Working precision. None is exactly equivalent to torch.float32. A complex dtype is accepted and maps to the matching real precision internally. device : str or torch.device, optional Compute device. None resolves to CUDA when available, else CPU – so on a CUDA machine the default return is a GPU tensor. fractional_occupancy : bool, default True Weight each site by its occupancy. seed : int, optional Seeds the RNG used for the thermal displacements. Note this seeds the global torch RNG, so a seeded call is reproducible but perturbs any subsequent unseeded torch randomness in the process. bandwidth_limit : float or sequence of float or None, default 2/3 Antialias aperture radius as a fraction of the Nyquist frequency. A scalar applies to both axes; a sequence contributes its last two entries as [limit_y, limit_x]. None disables the aperture entirely (and then, for fftout=False, no transform is performed at all, so the result is the exponential exactly). V_abs : Tensor or array_like, optional Absorptive potential per unit thickness (units V), of shape (nsubslices, Ny, Nx) or anything broadcastable against it – (Ny, Nx) broadcasts over all slices. Moved to the potential’s device and cast to the real working precision. Must be non-negative for the exponential to damp rather than amplify; this is not validated. dz : float, optional Slice thickness in Angstrom, restoring the V*A scaling of V_abs. Required in spirit whenever V_abs is given; if omitted it is silently taken as 1.0 A. weights : Tensor, optional Per-atom scalar weights forwarded to the potential splat at power 1. May carry autograd gradients; the whole path stays differentiable.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#returns-9",
+    "href": "docs/api.html#returns-9",
+    "title": "API reference",
+    "section": "Returns",
+    "text": "Returns\nTensor Complex tensor of shape (len(subslices), Ny, Nx). The complex dtype is the partner of the real working precision: float32 (or None, or torch.complex64) -&gt; complex64; float64 -&gt; complex128. Axis order is (slice, y, x), row-major, with pixels[0] the slow axis.\nWith ``fftout=True`` the array is in standard **corner-origin** FFT\norder -- element ``[j, 0, 0]`` is DC, positive frequencies first,\nnegative frequencies in the upper half.  There is no ``fftshift``\nanywhere; a consumer wanting a centred q-grid must shift it itself.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#raises",
+    "href": "docs/api.html#raises",
+    "title": "API reference",
+    "section": "Raises",
+    "text": "Raises\nValueError If eV is not strictly positive.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#notes-6",
+    "href": "docs/api.html#notes-6",
+    "title": "API reference",
+    "section": "Notes",
+    "text": "Notes\nThe forward transform is unnormalised (norm=\"backward\") and the inverse carries the full 1/(Ny*Nx), so Parseval reads sum_r |T|^2 = (1/(Ny*Nx)) * sum_q |T_hat|^2 and the DC element equals sum_r T(r). Do not switch to norm=\"ortho\"; it would rescale the fftout=True return by sqrt(Ny*Nx).\n|T| = 1 holds only on the elastic path and only before the band limit. After band-limiting it departs from unity by of order 1% for a realistic potential, and with V_abs it is strictly below 1 by construction. A vacuum (atom-free) tile gives T = 1 everywhere before the aperture, but the aperture turns that into the inverse transform of a masked delta – a sinc-like kernel with DC = 1, not the constant 1. Tests asserting unitarity or vacuum-identity must set bandwidth_limit=None.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#references",
+    "href": "docs/api.html#references",
+    "title": "API reference",
+    "section": "References",
+    "text": "References\nCowley & Moodie, Acta Cryst. 10 (1957) 609. Kirkland, Advanced Computing in Electron Microscopy, 2nd ed., Ch. 6 (multislice; 2/3 antialias rule in Ch. 6.6) and Eq. 5.6 (sigma). Hall & Hirsch, Proc. R. Soc. A 286 (1965) 158; Bird & King, Acta Cryst. A46 (1990) 202 (absorptive potentials).\n\ninteraction_constant\ninteraction_constant(E: float, units: str = 'rad/VA') -&gt; float\nElectron interaction constant sigma.\nsigma converts projected electrostatic potential (V*Angstrom) into phase (radians), which is what the multislice transmission function needs.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#parameters-13",
+    "href": "docs/api.html#parameters-13",
+    "title": "API reference",
+    "section": "Parameters",
+    "text": "Parameters\nE : float Electron kinetic energy in eV. units : str \"rad/VA\" (default) returns sigma in rad/(V*Angstrom). \"rad/A\" returns the relativistic factor gamma/k0 in rad/Angstrom.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#returns-10",
+    "href": "docs/api.html#returns-10",
+    "title": "API reference",
+    "section": "Returns",
+    "text": "Returns\nfloat Interaction constant in the requested units.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#aberrations",
+    "href": "docs/api.html#aberrations",
+    "title": "API reference",
+    "section": "Aberrations",
+    "text": "Aberrations\nscatterem.utils.aberration_basis\n\ncartesian_chi\ncartesian_chi(qy: 'Tensor', qx: 'Tensor', wavelength: 'float', coefficients: 'Sequence[float] | Tensor') -&gt; 'Tensor'\nEvaluate the aberration phase chi in radians.\nArgs: qy: reciprocal-space y coordinates, in inverse Angstrom. qx: reciprocal-space x coordinates, same shape as qy. wavelength: electron wavelength in Angstrom (see :func:scatterem.utils.physics.electron_wavelength). coefficients: the 12 cartesian coefficients in :data:COEFFICIENT_NAMES order, in Angstrom.\nReturns: chi with the broadcast shape of qy and qx.\n\n\ncartesian_to_polar\ncartesian_to_polar(cartesian: 'Dict[str, float]') -&gt; 'Dict[str, float]'\nConvert cartesian aberration pairs to magnitude and angle.\nThe magnitude is non-negative and the angle is the one that satisfies C * cos(m * (phi - phi_m)) == Ca * cos(m*phi) + Cb * sin(m*phi), so the returned pair describes the same wavefront as its input. Missing entries are taken as zero.\nThe angle is only determined modulo 2*pi/m – an m-fold term is physically unchanged by such a rotation – and is returned in the branch atan2 gives, i.e. within +-pi/m.\n\n\npolar_to_cartesian\npolar_to_cartesian(polar: 'Dict[str, float]') -&gt; 'Dict[str, float]'\nConvert magnitude/angle aberrations to the cartesian pairs.\nMissing entries are taken as zero, so a caller may pass only the coefficients it cares about.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#calibration-helpers",
+    "href": "docs/api.html#calibration-helpers",
+    "title": "API reference",
+    "section": "Calibration helpers",
+    "text": "Calibration helpers\nscatterem.utils.data.disk_fit\n\nfit_bright_field_disk\nfit_bright_field_disk(dp, *, threshold_range: 'Tuple[float, float]' = (0.25, 0.75), n_thresholds: 'int' = 100, max_radius_fraction: 'float' = 0.4, min_contrast: 'float' = 3.0) -&gt; 'Tuple[float, NDArray]'\nRadius and centre of the central bright-field disk, in pixels.\nArgs: dp: 2D averaged diffraction pattern (torch tensor or numpy array). threshold_range: low and high sweep limits as fractions of the spike-free maximum. Keep it symmetric about 0.5 – that symmetry is what makes the median unbiased. Widen it for a very soft edge. n_thresholds: number of thresholds in the sweep. max_radius_fraction: reject a fit whose radius exceeds this fraction of the smaller detector dimension. Guards against “fitting” a pattern that has no compact disk, where the sweep returns a radius of order the detector itself. min_contrast: reject a fit whose median intensity inside the disk is not at least this many times the median outside it.\nReturns: (radius, centre) with radius in pixels as a float and centre as a 2-element numpy array ordered [y, x].\nRaises: ValueError: if dp is not 2D, or if the pattern contains no identifiable bright-field disk.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#physics",
+    "href": "docs/api.html#physics",
+    "title": "API reference",
+    "section": "Physics",
+    "text": "Physics\nscatterem.utils.physics\n\nelectron_wavelength\nelectron_wavelength(accelerating_voltage: 'float') -&gt; 'float'\nReturn the relativistic electron wavelength in Angstrom.\nAn electron accelerated through V volts gains kinetic energy eV. Its momentum follows from the relativistic energy-momentum relation, and the de Broglie relation turns that into a wavelength::\nlambda = h / sqrt(2 m0 e V (1 + e V / (2 m0 c^2)))\nThe bracketed factor is the relativistic correction; it is negligible below a few hundred volts and reaches ~1.2 at 200 kV, where ignoring it would overstate the wavelength by roughly 10%.\nArgs: accelerating_voltage: the accelerating voltage in volts (e.g. 200e3 for a 200 kV microscope). Must be positive.\nReturns: The wavelength in Angstrom.\nRaises: ValueError: if accelerating_voltage is not positive.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#grids",
+    "href": "docs/api.html#grids",
+    "title": "API reference",
+    "section": "Grids",
+    "text": "Grids\nscatterem.utils.grids\n\nfft_frequencies_2d\nfft_frequencies_2d(shape: 'Sequence[int]', sampling: 'Sequence[float]' = (1.0, 1.0), half_pixel_shift: 'bool' = False, device: 'str | torch.device' = 'cpu', dtype: 'torch.dtype | None' = None) -&gt; 'Tensor'\nStacked (qy, qx) FFT frequencies for a 2D grid.\nArgs: shape: grid dimensions (ny, nx). sampling: real-space pixel size (dy, dx); frequencies come out in the reciprocal of whatever unit this is given in. half_pixel_shift: offset both axes by half a frequency bin. Use for quantities defined on pixel centres rather than pixel edges. device: device for the returned tensor. dtype: floating dtype for the returned tensor; torch’s default if omitted.\nReturns: A tensor of shape (2, ny, nx) whose first slice is qy and second is qx, matching torch.fft axis order.\n\n\nradial_average\nradial_average(image, sampling: 'Sequence[float]')\nRadial average of a corner-origin 2D array, over FFT frequency bins.\nWritten from the definition.\nEach pixel contributes to the two bins its |q| falls between, in proportion to how close it lies to each — a linear (area-weighted) partition rather than nearest-bin assignment, which is what keeps a radial profile from developing sawtooth ripple at small radii where few pixels land per bin. The two contributions are accumulated in one pass by concatenating them, so the normalising count and the weighted sum each need a single bincount.\nArgs: image: 2D array with the zero frequency at [0, 0], as torch.fft produces. numpy array or torch tensor. sampling: real-space pixel size (dy, dx); the returned frequencies are in the reciprocal of that unit.\nReturns: (q_bins, profile), truncated to the largest frequency represented on both axes so the tail is not built from corner pixels alone.\nOne deliberate difference from the replaced function: it truncated at the x axis maximum only, so with anisotropic sampling it returned bins past the shorter axis’ Nyquist, where a “ring” is really a pair of corner wedges. This truncates at the smaller of the two. On a square grid with equal sampling — every case the published figures use — the two agree to machine precision (measured max abs difference 2e-15, same bin count); with anisotropic sampling this returns a shorter profile, which matters to a caller slicing the result by index.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#visualisation",
+    "href": "docs/api.html#visualisation",
+    "title": "API reference",
+    "section": "Visualisation",
+    "text": "Visualisation\nscatterem.vis.visualization\n\nshow_2d\nshow_2d(array, *, sampling=None, scalebar='auto', figax=None, axsize=(4, 4), tight_layout=True, combine_images=False, clip_percentile: Optional[Tuple[float, float]] = None, **kwargs)\nDisplay one or more 2D arrays in a grid.\nAccepts a numpy array, a torch tensor, or a (nested) sequence of either. sampling (a :class:Sampling or a dict of its fields) drives the physical scale bar; if omitted, the object’s .sampling_meta is used if present, otherwise the bar falls back to a.u..\nscalebar: \"auto\" (default) draws a bar; False/None disables it; a dict/ScalebarConfig configures it explicitly.\nclip_percentile: optional (low, high) percentiles (0-100). When given, the display vmin/vmax are computed from those percentiles of each array’s finite values, absorbing the common p02 = quantile(...); img -= p02 boilerplate.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#colour",
+    "href": "docs/api.html#colour",
+    "title": "API reference",
+    "section": "Colour",
+    "text": "Colour\nscatterem.vis.complex_color\n\ncomplex_to_rgba\ncomplex_to_rgba(amplitude: 'NDArray', phase: 'NDArray | None' = None, *, cmap: 'str' = 'gray', chroma: 'float' = 0.13) -&gt; 'NDArray'\nColour an image, using phase as hue when it is given.\nArgs: amplitude: values in [0, 1] (normalise before calling). phase: angles in radians. When None, cmap is applied and the result is an ordinary colormapped image. cmap: matplotlib colormap name, used only when phase is None. chroma: Oklab chroma for the phase wheel. The default is a compromise – high enough for hue to read, low enough to stay in gamut across most of the lightness range.\nReturns: (..., 4) RGBA in [0, 1], alpha fully opaque.\n\n\nphase_wheel\nphase_wheel(n: 'int' = 256, *, lightness: 'float' = 0.72, chroma: 'float' = 0.13)\n(colors, angles) for a phase colorbar: one full turn of hue.\nlightness is fixed so the bar reads as hue alone. The default sits near the middle of the range where the sRGB gamut is widest, so the wheel keeps its chroma all the way round instead of desaturating at some hues.\n\n\ntile_to_rgba\ntile_to_rgba(rows, *, norm=None, cmap: 'str' = 'gray', chroma: 'float' = 0.13) -&gt; 'NDArray'\nComposite a grid of same-shaped images into one RGBA mosaic.\nReplaces list_of_arrays_to_rgba. Each entry is coloured independently and the results are tiled, so a bright panel cannot darken its neighbours – the alternative, one normalisation across the whole grid, makes every panel but the brightest unreadable.\nArgs: rows: sequence of rows, each a sequence of same-shaped 2D arrays. norm: callable mapping amplitude to [0, 1], applied to each panel. If omitted, each panel is scaled by its own finite min and max.\n    This argument is not optional in spirit: :func:`complex_to_rgba`\n    requires ``[0, 1]`` and *clips*, so handing it raw data silently\n    renders a 0..1000 image as 99.9% pure white. An earlier version of\n    this function did exactly that.\ncmap: colormap for real-valued panels.\nchroma: Oklab chroma for the phase hue of complex panels.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#scale-bars",
+    "href": "docs/api.html#scale-bars",
+    "title": "API reference",
+    "section": "Scale bars",
+    "text": "Scale bars\nscatterem.vis.reconstruction_sampling\n\nreconstruction_sampling\nreconstruction_sampling(dataset: 'Any', image: 'Any' = None, *, shape: 'Sequence[int] | None' = None, units: 'tuple[str, str]' = ('Å', 'Å')) -&gt; 'Sampling'\nSampling describing one pixel of a reconstructed image.\nThe scan covered scan_px * scan_step of specimen; the reconstruction represents that same extent with image_px pixels, so::\npixel_size = scan_step * scan_px / image_px\nwhich needs no knowledge of the upsample factor that was requested – it reads the factor off the result. That matters because upsample=\"nyquist\" picks the factor from the data, so the caller may not know what it was.\nArgs: dataset: the dataset the reconstruction came from. image: the reconstruction. Its last two dimensions give the output shape. shape: output shape, if you would rather pass it than the image. units: axis unit labels for the returned Sampling.\nReturns: A :class:~scatterem.utils.data.sampling.Sampling for the two real-space axes.\nRaises: ValueError: neither image nor shape was given, or the shape is not two-dimensional.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/api.html#saving-and-loading",
+    "href": "docs/api.html#saving-and-loading",
+    "title": "API reference",
+    "section": "Saving and loading",
+    "text": "Saving and loading\nscatterem.io.store\n\nSerializable\nMixin giving :meth:save and :meth:load to a class with a declared schema.\nSubclasses set :attr:SERIAL_FIELDS to the attribute names to persist, and must be constructible from those names as keyword arguments – or override :meth:_from_fields if construction needs more than that.\n\n\nread_schema\nread_schema(path: 'str | Path') -&gt; 'dict[str, Any]'\nThe class, version and field list of a file, without constructing anything.\nUseful for telling why a load was refused.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "API reference"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html",
+    "href": "docs/calibration.html",
+    "title": "Calibration",
+    "section": "",
+    "text": "Most reconstruction problems are calibration problems. The fusion weights are functions of spatial frequency, so if the mapping from detector pixels to reciprocal space is wrong, the weights are wrong, and the result is a plausible image that is quietly incorrect. This page is the short list of things to get right.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html#the-reciprocal-pixel-size-dk",
+    "href": "docs/calibration.html#the-reciprocal-pixel-size-dk",
+    "title": "Calibration",
+    "section": "The reciprocal pixel size, dk",
+    "text": "The reciprocal pixel size, dk\ndk is measured, not assumed. The bright-field disk has a known angular radius — the convergence semi-angle you supplied — so fitting its radius in pixels gives the conversion directly:\n\\[ dk = \\frac{\\alpha}{r_{\\mathrm{BF}}\\,\\lambda} \\]\nwith \\(r_\\mathrm{BF}\\) the fitted radius in pixels and \\(\\lambda\\) the relativistic electron wavelength. Dataset4dstem.from_array runs this fit during construction, and the named datasets arrive already calibrated.\nThe fit sweeps a set of intensity thresholds and takes the median radius, which is what makes it insensitive to where exactly you consider the disk edge to be. It refuses rather than guesses when the pattern has no compact bright region — a fit whose radius exceeds 40% of the detector usually means the input was not an averaged diffraction pattern at all.\ndk = dataset.calibrate_reciprocal_from_bright_field()\nprint(dataset.sampling)   # (dy, dx, dky, dkx)\n\n\n\n\n\n\nCounting detectors: pass a hot-pixel threshold\n\n\n\nOn an event-counting detector a single stuck pixel can dominate the maximum the threshold sweep is relative to, and the fit then locks onto that one pixel. If your detector counts, pass hot_pixel_threshold and check the fitted radius is physically sensible before trusting it.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html#the-scan-rotation",
+    "href": "docs/calibration.html#the-scan-rotation",
+    "title": "Calibration",
+    "section": "The scan rotation",
+    "text": "The scan rotation\nThe angle between the scan axes and the detector axes has to be right, and nothing downstream can infer it: the autofocus holds rotation fixed while it fits aberrations. A wrong rotation shows up as a reconstruction that is sharp along one direction and smeared along the other, or as a fused image with directional artefacts that no amount of aberration fitting removes.\nIf you know it from the microscope, set it:\ndataset.meta.rotation = 84.0   # degrees\nIf you do not, the centre-of-mass field of the bright-field disk determines it: the correct rotation is the one that makes that field a gradient — curl-free — because it is the gradient of the projected potential.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html#detector-orientation",
+    "href": "docs/calibration.html#detector-orientation",
+    "title": "Calibration",
+    "section": "Detector orientation",
+    "text": "Detector orientation\nWorth checking early, because it is easy to miss and it produces a specific, recognisable failure. If the detector’s axes are flipped relative to the scan, the parallax shifts come out with the wrong handedness, defocus fits toward zero, and the aberration fit reports a suspiciously small C10 regardless of the real defocus. A defocus that will not move off zero is worth suspecting a flip rather than a fitting problem.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html#the-aberration-starting-guess",
+    "href": "docs/calibration.html#the-aberration-starting-guess",
+    "title": "Calibration",
+    "section": "The aberration starting guess",
+    "text": "The aberration starting guess\nThe autofocus is a local optimisation. It needs a starting defocus, and it raises if meta.aberrations is all zero rather than descending from nothing:\ndataset.meta.aberrations.array[0] = -50.0   # C10, Angstrom; defocus == -C10\ndataset.determine_aberrations_(correct_order=2)\nThe sign matters more than the magnitude — an estimate within a factor of two is plenty, but the wrong sign can settle into a mirror-image solution with inverted contrast. Through-focus contrast inversion in direct ptychography is physical, not a bug, so a reconstruction that looks inverted may simply be on the other side of focus.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html#scan-step-and-upsampling",
+    "href": "docs/calibration.html#scan-step-and-upsampling",
+    "title": "Calibration",
+    "section": "Scan step and upsampling",
+    "text": "Scan step and upsampling\nscan_step is the pitch of the scan, in Ångström. The reconstruction is upsampled relative to it, by default to the factor that brings the output pitch to what the data can support (upsample=\"nyquist\").\nThat upsampling is why a scale bar needs the reconstruction’s sampling, not the dataset’s:\nfrom scatterem.vis.reconstruction_sampling import reconstruction_sampling\n\nsampling = reconstruction_sampling(dataset, fused)\nGetting this wrong overstates the bar by the upsample factor — four-fold on the paper’s Fig. 4, which is the difference between a correct figure and a wrong one.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/calibration.html#sanity-checks-worth-running",
+    "href": "docs/calibration.html#sanity-checks-worth-running",
+    "title": "Calibration",
+    "section": "Sanity checks worth running",
+    "text": "Sanity checks worth running\n\ndk is not the placeholder. If dataset.sampling[2] is exactly 1.0, the bright-field fit fell back and everything downstream is in detector pixels, not inverse Ångström.\nThe reconstruction is finite. A NaN anywhere usually means a division by a zero SSNR, which in turn means an empty channel.\nThe bright-field radius is plausible. Print it. A radius near the detector half-width, or a couple of pixels, both mean the fit found the wrong thing.\nBoth channels look sensible on their own before you read the fused result. Fusion cannot rescue a channel that failed; it will just weight it down and leave a band with nothing in it.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "Calibration"
+    ]
+  },
+  {
+    "objectID": "docs/figures.html",
+    "href": "docs/figures.html",
+    "title": "Reproduce the paper",
+    "section": "",
+    "text": "Four scripts under experiments/ff_stem/, one per specimen. Each downloads its dataset from Zenodo on first run and verifies it by md5, so the only thing to decide is where the data should live:\nEach writes .png and .npy for all three channels into experiments/ff_stem/outputs/.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "Reproduce the paper"
+    ]
+  },
+  {
+    "objectID": "docs/figures.html#the-specimens",
+    "href": "docs/figures.html#the-specimens",
+    "title": "Reproduce the paper",
+    "section": "The specimens",
+    "text": "The specimens\n\n\n\nScript\nSpecimen\nDownload\nOutput\nPeak GPU\n\n\n\n\nFig2_carbon.py\namorphous carbon\n0.34 GB\n96²\n~1.2 GiB\n\n\nFig2_Co3O4.py\nCo₃O₄\n0.56 GB\n185²\n—\n\n\nFig4_diffraction.py\nAu, low dose\n0.50 GB\n1024²\n17.6 GiB\n\n\nFig1_Gd2O3.py\nGd₂O₃\n6.6 GB\n1024²\n~19.6 GiB\n\n\n\nCarbon is the one to run first: smallest download, about a second of reconstruction, and it exercises the whole pipeline.\n\n\n\n\n\n\nFitting a smaller GPU\n\n\n\nFig4_diffraction.py takes scan_edge_crop, which trims the scan and so shrinks the output. The paper uses 128 (256² scan → 1024² output, 17.6 GiB); 192 gives 128² → 512² at 4.4 GiB, which is what the Colab notebook runs; 224 gives 64² → 256² at 2.5 GiB.\nReducing the scan is the lever that works. Raising n_batches increases peak memory — measured 17.6, 21.0 and 24.5 GiB for 15, 60 and 150 batches, with bit-identical output.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "Reproduce the paper"
+    ]
+  },
+  {
+    "objectID": "docs/figures.html#what-each-script-does",
+    "href": "docs/figures.html#what-each-script-does",
+    "title": "Reproduce the paper",
+    "section": "What each script does",
+    "text": "What each script does\nThe same five steps, with per-specimen parameters:\n\nConstruct the named dataset, which downloads, verifies, and calibrates dk from the bright-field disk.\nSet the scan rotation, and a starting defocus for the autofocus.\ndetermine_aberrations_ — fit aberrations by sharpness, rotation held fixed.\nReconstruct all three channels.\nSave each with a physical scale bar.\n\nReading one script is enough to see how to apply the pipeline to your own data; Quickstart is the same thing without the paper’s parameters.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "Reproduce the paper"
+    ]
+  },
+  {
+    "objectID": "docs/figures.html#verifying-your-run",
+    "href": "docs/figures.html#verifying-your-run",
+    "title": "Reproduce the paper",
+    "section": "Verifying your run",
+    "text": "Verifying your run\nEach script prints a summary line and asserts the things that quietly go wrong:\n[Fig2-carbon] OK: dp(96, 96) tcdf(96, 96) fff(96, 96) dk=0.042126 finite=True\ndk must not be 1.0 — that is the uncalibrated placeholder, and it means the bright-field fit fell back. finite=True means no NaNs, which otherwise indicate a channel that produced nothing and a division by a zero SSNR.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "Reproduce the paper"
+    ]
+  },
+  {
+    "objectID": "docs/figures.html#comparison-plots",
+    "href": "docs/figures.html#comparison-plots",
+    "title": "Reproduce the paper",
+    "section": "Comparison plots",
+    "text": "Comparison plots\nWhere a reference is available — a simulated potential for carbon, a phantom for Co₃O₄ — the scripts also emit a side-by-side comparison. Those references are not in the Zenodo record, so the scripts skip that step and say so rather than failing:\n[Fig2-carbon] reference carbon72_potential.npy not found; skipping comparison plot.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "Reproduce the paper"
+    ]
+  },
+  {
+    "objectID": "docs/figures.html#numerical-differences-from-the-published-figures",
+    "href": "docs/figures.html#numerical-differences-from-the-published-figures",
+    "title": "Reproduce the paper",
+    "section": "Numerical differences from the published figures",
+    "text": "Numerical differences from the published figures\nTwo are worth knowing about.\nThe bright-field disk fit is an independent implementation, and end to end through the crop-and-refit it lands within 0.152% of the original dk. That shifts the reciprocal scale by well under the uncertainty on the convergence angle itself, but it is not bit-identical.\nScale-bar lengths are chosen on a 1-2-5 ladder, so a bar may be a different round number than in the paper — 10 Å where the paper shows 5 Å on the same field, for instance. The bar is correct; only which round number it picks differs.",
+    "crumbs": [
+      "Get started",
+      "Reference",
+      "Reproduce the paper"
+    ]
+  },
+  {
+    "objectID": "docs/method.html",
+    "href": "docs/method.html",
+    "title": "The method",
+    "section": "",
+    "text": "A converged probe illuminates a specimen and a pixelated detector records the full diffraction pattern at every scan position. What reaches the detector splits naturally in two, and the split is where the method starts.\nInside the bright-field disk, the transmitted beam interferes with itself. Weak-phase scattering shifts the intensity distribution across the disk in proportion to the local phase gradient, which is what single-side-band ptychography reads. That works beautifully at low and mid spatial frequencies — each frequency is measured by a pair of overlapping beams, and the overlap is large — but the overlap shrinks as the spatial frequency approaches twice the convergence angle, and past it there is none. Transfer falls to zero.\nOutside the disk, scattering is incoherent to good approximation, and a dark-field detector segment sees an image that shifts with defocus and with the segment’s angle — a parallax. Correcting those shifts and summing recovers high spatial frequencies well. But a dark-field segment carries almost no low-frequency information: at low frequency the parallax shift is small and the signal is dominated by thickness and composition rather than phase.\nSo each channel is strong exactly where the other is weak. Neither spans the band.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "The method"
+    ]
+  },
+  {
+    "objectID": "docs/method.html#two-channels-two-halves-of-the-band",
+    "href": "docs/method.html#two-channels-two-halves-of-the-band",
+    "title": "The method",
+    "section": "",
+    "text": "A converged probe illuminates a specimen and a pixelated detector records the full diffraction pattern at every scan position. What reaches the detector splits naturally in two, and the split is where the method starts.\nInside the bright-field disk, the transmitted beam interferes with itself. Weak-phase scattering shifts the intensity distribution across the disk in proportion to the local phase gradient, which is what single-side-band ptychography reads. That works beautifully at low and mid spatial frequencies — each frequency is measured by a pair of overlapping beams, and the overlap is large — but the overlap shrinks as the spatial frequency approaches twice the convergence angle, and past it there is none. Transfer falls to zero.\nOutside the disk, scattering is incoherent to good approximation, and a dark-field detector segment sees an image that shifts with defocus and with the segment’s angle — a parallax. Correcting those shifts and summing recovers high spatial frequencies well. But a dark-field segment carries almost no low-frequency information: at low frequency the parallax shift is small and the signal is dominated by thickness and composition rather than phase.\nSo each channel is strong exactly where the other is weak. Neither spans the band.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "The method"
+    ]
+  },
+  {
+    "objectID": "docs/method.html#fusing-them",
+    "href": "docs/method.html#fusing-them",
+    "title": "The method",
+    "section": "Fusing them",
+    "text": "Fusing them\nThe fusion is a Wiener combination in the Fourier domain. Writing \\(P(\\mathbf{q})\\) and \\(D(\\mathbf{q})\\) for the two channels’ spectra and \\(\\mathrm{SSNR}_P, \\mathrm{SSNR}_D\\) for their spectral signal-to-noise ratios,\n\\[\nF(\\mathbf{q}) \\;=\\;\n\\frac{\\mathrm{SSNR}_P(\\mathbf{q})\\, P(\\mathbf{q})\n    + \\mathrm{SSNR}_D(\\mathbf{q})\\, D(\\mathbf{q})}\n     {\\mathrm{SSNR}_P(\\mathbf{q}) + \\mathrm{SSNR}_D(\\mathbf{q})}\n\\]\nwhich is the minimum-variance linear estimator when the two channels’ noise is independent. Each frequency is taken from whichever channel measures it better, with the crossover placed by the data rather than by a chosen cutoff. Where one SSNR vanishes the sum reduces to the other channel; where both are finite the result is better than either.\nThe SSNR estimates are what make this more than a heuristic blend, and they are measured, not assumed: the scan is split into two interleaved half-sets in a checkerboard, each is reconstructed independently, and their difference gives the noise power while their mean gives the signal power, frequency by frequency. That costs two reconstructions per channel instead of one, and it means the weights adapt to dose, thickness and specimen without a parameter to tune.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "The method"
+    ]
+  },
+  {
+    "objectID": "docs/method.html#sub-pixel-accumulation",
+    "href": "docs/method.html#sub-pixel-accumulation",
+    "title": "The method",
+    "section": "Sub-pixel accumulation",
+    "text": "Sub-pixel accumulation\nTilt-corrected dark field shifts each azimuthal segment by its parallax shift and accumulates. How that shift is applied matters at low dose, and there are two options.\nshift_method=\"fourier\" zero-pads and applies a phase ramp. It is exact for dense, band-limited signals.\nshift_method=\"drizzle\" (the default) treats each input pixel as a small square drop, places it at the shifted position, and distributes its flux to the output pixels it overlaps by area — the drizzle of Fruchter & Hook (2002), specialised to pure translations on a regular grid. Because every weight is non-negative, the result is non-negative for non-negative input, and flux is conserved exactly.\nThe difference shows up when the frames are sparse. At very low dose a segment image is a handful of single electron counts, and Fourier shifting turns each isolated count into a sinc: roughly 20% negative side-lobes, with energy spread across the whole frame. Drizzle has no ringing to spread.\n\n\n\n\n\n\nNote\n\n\n\nThe paper’s figures were produced with the Fourier path; drizzle came afterwards. Both are available, and on dense high-dose data they agree closely — on amorphous carbon the fused images correlate to 0.9992.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "The method"
+    ]
+  },
+  {
+    "objectID": "docs/method.html#what-this-is-not",
+    "href": "docs/method.html#what-this-is-not",
+    "title": "The method",
+    "section": "What this is not",
+    "text": "What this is not\nThe direct ptychography here is non-iterative. It is a single linear inversion of the bright-field intensity, not a phase-retrieval loop, so it has no convergence behaviour, no step size and no initialisation beyond the aberration estimate. That is why it runs in under a second on a 96² scan. It also means it inherits the weak- phase approximation: strong scatterers and thick specimens depart from it, and an iterative multislice reconstruction will do better there.",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "The method"
+    ]
+  },
+  {
+    "objectID": "docs/method.html#reading-further",
+    "href": "docs/method.html#reading-further",
+    "title": "The method",
+    "section": "Reading further",
+    "text": "Reading further\n\nThe paper: doi:10.1002/advs.76620\nSingle-side-band ptychography: Rodenburg & Bates (1992); Pennycook et al. (2015)\nTilt-corrected bright/dark field and parallax: Ophus et al. (2016)\nDrizzle: Fruchter & Hook, PASP 114, 144 (2002)\nSub-pixel registration: Guizar-Sicairos, Thurman & Fienup, Opt. Lett. 33, 156 (2008)",
+    "crumbs": [
+      "Get started",
+      "Background",
+      "The method"
+    ]
+  }
+]

@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>API reference – scatterem</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../favicon.png" rel="icon" type="image/png">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-3d8452ecfae8c3f85aebb8f64324aded.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-14d3a37b6f786b9d4fabbbc9e32de471.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-328473771d537b82ae74f0ec73c3ee2d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-8ea79ed012ffb1437a0d65719b808cb6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-dark"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = true;
+    const darkModeDefault = authorPrefersDark;
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../logo.png" alt="scatterem" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">scatterem</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../docs/install.html" aria-current="page"> 
+<span class="menu-text">Get started</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../docs/method.html"> 
+<span class="menu-text">The method</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../docs/eels.html"> 
+<span class="menu-text">Simulate STEM-EELS</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../docs/figures.html"> 
+<span class="menu-text">Reproduce the paper</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../docs/api.html"> 
+<span class="menu-text">API</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/scatterem/scatterem"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../docs/figures.html">Reference</a></li><li class="breadcrumb-item"><a href="../docs/api.html">API reference</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scatterem</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Get started</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/install.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Install</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/quickstart.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quickstart</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Background</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/method.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/calibration.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Calibration</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Simulation</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/eels.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Simulate STEM-EELS</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/bip-prism.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BiP-PRISM</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reproduce the paper</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../docs/api.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">API reference</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#container" id="toc-container" class="nav-link active" data-scroll-target="#container">Container</a>
+  <ul class="collapse">
+  <li><a href="#dataset4dstem" id="toc-dataset4dstem" class="nav-link" data-scroll-target="#dataset4dstem"><code>Dataset4dstem</code></a></li>
+  </ul></li>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a>
+  <ul class="collapse">
+  <li><a href="#datasetvirtualbrightfield4dstem" id="toc-datasetvirtualbrightfield4dstem" class="nav-link" data-scroll-target="#datasetvirtualbrightfield4dstem"><code>DatasetVirtualBrightField4dstem</code></a></li>
+  </ul></li>
+  <li><a href="#reconstruction" id="toc-reconstruction" class="nav-link" data-scroll-target="#reconstruction">Reconstruction</a>
+  <ul class="collapse">
+  <li><a href="#direct_ptychography" id="toc-direct_ptychography" class="nav-link" data-scroll-target="#direct_ptychography"><code>direct_ptychography</code></a></li>
+  <li><a href="#tilt_corrected_dark_field" id="toc-tilt_corrected_dark_field" class="nav-link" data-scroll-target="#tilt_corrected_dark_field"><code>tilt_corrected_dark_field</code></a></li>
+  <li><a href="#fused_full_field" id="toc-fused_full_field" class="nav-link" data-scroll-target="#fused_full_field"><code>fused_full_field</code></a></li>
+  </ul></li>
+  <li><a href="#named-datasets" id="toc-named-datasets" class="nav-link" data-scroll-target="#named-datasets">Named datasets</a>
+  <ul class="collapse">
+  <li><a href="#you2026carbon" id="toc-you2026carbon" class="nav-link" data-scroll-target="#you2026carbon"><code>You2026Carbon</code></a></li>
+  <li><a href="#you2026co3o4" id="toc-you2026co3o4" class="nav-link" data-scroll-target="#you2026co3o4"><code>You2026Co3O4</code></a></li>
+  <li><a href="#you2026aulowdose" id="toc-you2026aulowdose" class="nav-link" data-scroll-target="#you2026aulowdose"><code>You2026AuLowDose</code></a></li>
+  <li><a href="#you2026gd2o3" id="toc-you2026gd2o3" class="nav-link" data-scroll-target="#you2026gd2o3"><code>You2026Gd2O3</code></a></li>
+  </ul></li>
+  <li><a href="#metadata" id="toc-metadata" class="nav-link" data-scroll-target="#metadata">Metadata</a>
+  <ul class="collapse">
+  <li><a href="#metadata4dstem" id="toc-metadata4dstem" class="nav-link" data-scroll-target="#metadata4dstem"><code>Metadata4dstem</code></a></li>
+  </ul></li>
+  <li><a href="#stem-eels-simulation" id="toc-stem-eels-simulation" class="nav-link" data-scroll-target="#stem-eels-simulation">STEM-EELS simulation</a>
+  <ul class="collapse">
+  <li><a href="#stemeelssimulator" id="toc-stemeelssimulator" class="nav-link" data-scroll-target="#stemeelssimulator"><code>StemEelsSimulator</code></a></li>
+  </ul></li>
+  <li><a href="#parameters-1" id="toc-parameters-1" class="nav-link" data-scroll-target="#parameters-1">Parameters</a></li>
+  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
+  <li><a href="#parameters-2" id="toc-parameters-2" class="nav-link" data-scroll-target="#parameters-2">Parameters</a></li>
+  <li><a href="#returns-1" id="toc-returns-1" class="nav-link" data-scroll-target="#returns-1">Returns</a></li>
+  <li><a href="#notes-1" id="toc-notes-1" class="nav-link" data-scroll-target="#notes-1">Notes</a>
+  <ul class="collapse">
+  <li><a href="#stemeelsresult" id="toc-stemeelsresult" class="nav-link" data-scroll-target="#stemeelsresult"><code>StemEelsResult</code></a></li>
+  </ul></li>
+  <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a>
+  <ul class="collapse">
+  <li><a href="#structure" id="toc-structure" class="nav-link" data-scroll-target="#structure"><code>Structure</code></a></li>
+  </ul></li>
+  <li><a href="#parameters-3" id="toc-parameters-3" class="nav-link" data-scroll-target="#parameters-3">Parameters</a></li>
+  <li><a href="#attributes-1" id="toc-attributes-1" class="nav-link" data-scroll-target="#attributes-1">Attributes</a></li>
+  <li><a href="#notes-2" id="toc-notes-2" class="nav-link" data-scroll-target="#notes-2">Notes</a></li>
+  <li><a href="#parameters-4" id="toc-parameters-4" class="nav-link" data-scroll-target="#parameters-4">Parameters</a></li>
+  <li><a href="#returns-2" id="toc-returns-2" class="nav-link" data-scroll-target="#returns-2">Returns</a></li>
+  <li><a href="#returns-3" id="toc-returns-3" class="nav-link" data-scroll-target="#returns-3">Returns</a></li>
+  <li><a href="#notes-3" id="toc-notes-3" class="nav-link" data-scroll-target="#notes-3">Notes</a></li>
+  <li><a href="#pipeline" id="toc-pipeline" class="nav-link" data-scroll-target="#pipeline">Pipeline</a></li>
+  <li><a href="#parameters-5" id="toc-parameters-5" class="nav-link" data-scroll-target="#parameters-5">Parameters</a></li>
+  <li><a href="#returns-4" id="toc-returns-4" class="nav-link" data-scroll-target="#returns-4">Returns</a></li>
+  <li><a href="#notes-4" id="toc-notes-4" class="nav-link" data-scroll-target="#notes-4">Notes</a></li>
+  <li><a href="#transition-potentials" id="toc-transition-potentials" class="nav-link" data-scroll-target="#transition-potentials">Transition potentials</a>
+  <ul class="collapse">
+  <li><a href="#subshell_transitions" id="toc-subshell_transitions" class="nav-link" data-scroll-target="#subshell_transitions"><code>subshell_transitions</code></a></li>
+  </ul></li>
+  <li><a href="#parameters-6" id="toc-parameters-6" class="nav-link" data-scroll-target="#parameters-6">Parameters</a>
+  <ul class="collapse">
+  <li><a href="#build_transition_potentials" id="toc-build_transition_potentials" class="nav-link" data-scroll-target="#build_transition_potentials"><code>build_transition_potentials</code></a></li>
+  </ul></li>
+  <li><a href="#parameters-7" id="toc-parameters-7" class="nav-link" data-scroll-target="#parameters-7">Parameters</a>
+  <ul class="collapse">
+  <li><a href="#transitionpotentials" id="toc-transitionpotentials" class="nav-link" data-scroll-target="#transitionpotentials"><code>TransitionPotentials</code></a></li>
+  </ul></li>
+  <li><a href="#attributes-2" id="toc-attributes-2" class="nav-link" data-scroll-target="#attributes-2">Attributes</a>
+  <ul class="collapse">
+  <li><a href="#bound_wavefunction" id="toc-bound_wavefunction" class="nav-link" data-scroll-target="#bound_wavefunction"><code>bound_wavefunction</code></a></li>
+  <li><a href="#continuum_wavefunction" id="toc-continuum_wavefunction" class="nav-link" data-scroll-target="#continuum_wavefunction"><code>continuum_wavefunction</code></a></li>
+  <li><a href="#gpaw_available" id="toc-gpaw_available" class="nav-link" data-scroll-target="#gpaw_available"><code>gpaw_available</code></a></li>
+  </ul></li>
+  <li><a href="#eels-algorithms" id="toc-eels-algorithms" class="nav-link" data-scroll-target="#eels-algorithms">EELS algorithms</a>
+  <ul class="collapse">
+  <li><a href="#transition_potential_multislice" id="toc-transition_potential_multislice" class="nav-link" data-scroll-target="#transition_potential_multislice"><code>transition_potential_multislice</code></a></li>
+  </ul></li>
+  <li><a href="#parameters-8" id="toc-parameters-8" class="nav-link" data-scroll-target="#parameters-8">Parameters</a></li>
+  <li><a href="#returns-5" id="toc-returns-5" class="nav-link" data-scroll-target="#returns-5">Returns</a>
+  <ul class="collapse">
+  <li><a href="#prism_transition_potential" id="toc-prism_transition_potential" class="nav-link" data-scroll-target="#prism_transition_potential"><code>prism_transition_potential</code></a></li>
+  </ul></li>
+  <li><a href="#parameters-9" id="toc-parameters-9" class="nav-link" data-scroll-target="#parameters-9">Parameters</a></li>
+  <li><a href="#returns-6" id="toc-returns-6" class="nav-link" data-scroll-target="#returns-6">Returns</a>
+  <ul class="collapse">
+  <li><a href="#prism_eels_image" id="toc-prism_eels_image" class="nav-link" data-scroll-target="#prism_eels_image"><code>prism_eels_image</code></a></li>
+  </ul></li>
+  <li><a href="#parameters-10" id="toc-parameters-10" class="nav-link" data-scroll-target="#parameters-10">Parameters</a></li>
+  <li><a href="#returns-7" id="toc-returns-7" class="nav-link" data-scroll-target="#returns-7">Returns</a>
+  <ul class="collapse">
+  <li><a href="#scatteringmatrix" id="toc-scatteringmatrix" class="nav-link" data-scroll-target="#scatteringmatrix"><code>ScatteringMatrix</code></a></li>
+  <li><a href="#partitionedscatteringmatrix" id="toc-partitionedscatteringmatrix" class="nav-link" data-scroll-target="#partitionedscatteringmatrix"><code>PartitionedScatteringMatrix</code></a></li>
+  <li><a href="#detectorexitsmatrix" id="toc-detectorexitsmatrix" class="nav-link" data-scroll-target="#detectorexitsmatrix"><code>DetectorExitSMatrix</code></a></li>
+  </ul></li>
+  <li><a href="#multislice-substrate" id="toc-multislice-substrate" class="nav-link" data-scroll-target="#multislice-substrate">Multislice substrate</a>
+  <ul class="collapse">
+  <li><a href="#make_potential" id="toc-make_potential" class="nav-link" data-scroll-target="#make_potential"><code>make_potential</code></a></li>
+  </ul></li>
+  <li><a href="#parameters-11" id="toc-parameters-11" class="nav-link" data-scroll-target="#parameters-11">Parameters</a></li>
+  <li><a href="#returns-8" id="toc-returns-8" class="nav-link" data-scroll-target="#returns-8">Returns</a></li>
+  <li><a href="#notes-5" id="toc-notes-5" class="nav-link" data-scroll-target="#notes-5">Notes</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a>
+  <ul class="collapse">
+  <li><a href="#make_transmission_functions" id="toc-make_transmission_functions" class="nav-link" data-scroll-target="#make_transmission_functions"><code>make_transmission_functions</code></a></li>
+  </ul></li>
+  <li><a href="#parameters-12" id="toc-parameters-12" class="nav-link" data-scroll-target="#parameters-12">Parameters</a></li>
+  <li><a href="#returns-9" id="toc-returns-9" class="nav-link" data-scroll-target="#returns-9">Returns</a></li>
+  <li><a href="#raises" id="toc-raises" class="nav-link" data-scroll-target="#raises">Raises</a></li>
+  <li><a href="#notes-6" id="toc-notes-6" class="nav-link" data-scroll-target="#notes-6">Notes</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a>
+  <ul class="collapse">
+  <li><a href="#interaction_constant" id="toc-interaction_constant" class="nav-link" data-scroll-target="#interaction_constant"><code>interaction_constant</code></a></li>
+  </ul></li>
+  <li><a href="#parameters-13" id="toc-parameters-13" class="nav-link" data-scroll-target="#parameters-13">Parameters</a></li>
+  <li><a href="#returns-10" id="toc-returns-10" class="nav-link" data-scroll-target="#returns-10">Returns</a></li>
+  <li><a href="#aberrations" id="toc-aberrations" class="nav-link" data-scroll-target="#aberrations">Aberrations</a>
+  <ul class="collapse">
+  <li><a href="#cartesian_chi" id="toc-cartesian_chi" class="nav-link" data-scroll-target="#cartesian_chi"><code>cartesian_chi</code></a></li>
+  <li><a href="#cartesian_to_polar" id="toc-cartesian_to_polar" class="nav-link" data-scroll-target="#cartesian_to_polar"><code>cartesian_to_polar</code></a></li>
+  <li><a href="#polar_to_cartesian" id="toc-polar_to_cartesian" class="nav-link" data-scroll-target="#polar_to_cartesian"><code>polar_to_cartesian</code></a></li>
+  </ul></li>
+  <li><a href="#calibration-helpers" id="toc-calibration-helpers" class="nav-link" data-scroll-target="#calibration-helpers">Calibration helpers</a>
+  <ul class="collapse">
+  <li><a href="#fit_bright_field_disk" id="toc-fit_bright_field_disk" class="nav-link" data-scroll-target="#fit_bright_field_disk"><code>fit_bright_field_disk</code></a></li>
+  </ul></li>
+  <li><a href="#physics" id="toc-physics" class="nav-link" data-scroll-target="#physics">Physics</a>
+  <ul class="collapse">
+  <li><a href="#electron_wavelength" id="toc-electron_wavelength" class="nav-link" data-scroll-target="#electron_wavelength"><code>electron_wavelength</code></a></li>
+  </ul></li>
+  <li><a href="#grids" id="toc-grids" class="nav-link" data-scroll-target="#grids">Grids</a>
+  <ul class="collapse">
+  <li><a href="#fft_frequencies_2d" id="toc-fft_frequencies_2d" class="nav-link" data-scroll-target="#fft_frequencies_2d"><code>fft_frequencies_2d</code></a></li>
+  <li><a href="#radial_average" id="toc-radial_average" class="nav-link" data-scroll-target="#radial_average"><code>radial_average</code></a></li>
+  </ul></li>
+  <li><a href="#visualisation" id="toc-visualisation" class="nav-link" data-scroll-target="#visualisation">Visualisation</a>
+  <ul class="collapse">
+  <li><a href="#show_2d" id="toc-show_2d" class="nav-link" data-scroll-target="#show_2d"><code>show_2d</code></a></li>
+  </ul></li>
+  <li><a href="#colour" id="toc-colour" class="nav-link" data-scroll-target="#colour">Colour</a>
+  <ul class="collapse">
+  <li><a href="#complex_to_rgba" id="toc-complex_to_rgba" class="nav-link" data-scroll-target="#complex_to_rgba"><code>complex_to_rgba</code></a></li>
+  <li><a href="#phase_wheel" id="toc-phase_wheel" class="nav-link" data-scroll-target="#phase_wheel"><code>phase_wheel</code></a></li>
+  <li><a href="#tile_to_rgba" id="toc-tile_to_rgba" class="nav-link" data-scroll-target="#tile_to_rgba"><code>tile_to_rgba</code></a></li>
+  </ul></li>
+  <li><a href="#scale-bars" id="toc-scale-bars" class="nav-link" data-scroll-target="#scale-bars">Scale bars</a>
+  <ul class="collapse">
+  <li><a href="#reconstruction_sampling" id="toc-reconstruction_sampling" class="nav-link" data-scroll-target="#reconstruction_sampling"><code>reconstruction_sampling</code></a></li>
+  </ul></li>
+  <li><a href="#saving-and-loading" id="toc-saving-and-loading" class="nav-link" data-scroll-target="#saving-and-loading">Saving and loading</a>
+  <ul class="collapse">
+  <li><a href="#serializable" id="toc-serializable" class="nav-link" data-scroll-target="#serializable"><code>Serializable</code></a></li>
+  <li><a href="#read_schema" id="toc-read_schema" class="nav-link" data-scroll-target="#read_schema"><code>read_schema</code></a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/scatterem/scatterem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li><li><a href="https://github.com/scatterem/scatterem/blob/main/docs/api.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../docs/figures.html">Reference</a></li><li class="breadcrumb-item"><a href="../docs/api.html">API reference</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">API reference</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Generated from the source by <code>docs/_generate_api.py</code>, so it cannot drift from the code. Everything below is public; anything not listed here is internal and may change without notice.</p>
+<section id="container" class="level2">
+<h2 class="anchored" data-anchor-id="container">Container</h2>
+<p><code>scatterem.utils.data.datasets</code></p>
+<section id="dataset4dstem" class="level3">
+<h3 class="anchored" data-anchor-id="dataset4dstem"><code>Dataset4dstem</code></h3>
+<p><em>Undocumented.</em></p>
+<section id="dataset4dstem-from_array" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-from_array"><code>from_array</code></h4>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>from_array(array: Any, name: <span class="bu">str</span> <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>, origin: Union[numpy.ndarray[<span class="bu">tuple</span>[Any, ...], numpy.dtype[<span class="op">~</span>_ScalarT]], <span class="bu">tuple</span>, <span class="bu">list</span>, <span class="bu">float</span>, <span class="bu">int</span>, NoneType] <span class="op">=</span> <span class="va">None</span>, sampling: Union[numpy.ndarray[<span class="bu">tuple</span>[Any, ...], numpy.dtype[<span class="op">~</span>_ScalarT]], <span class="bu">tuple</span>, <span class="bu">list</span>, <span class="bu">float</span>, <span class="bu">int</span>, NoneType] <span class="op">=</span> <span class="va">None</span>, units: Union[<span class="bu">list</span>[<span class="bu">str</span>], <span class="bu">tuple</span>, <span class="bu">list</span>, NoneType] <span class="op">=</span> <span class="va">None</span>, signal_units: <span class="bu">str</span> <span class="op">=</span> <span class="st">'arb. units'</span>, meta: Optional[scatterem.utils.data.data_classes.Metadata4dstem] <span class="op">=</span> <span class="va">None</span>, transform_to_amplitudes: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, fourier_shift_dim: Tuple <span class="op">=</span> <span class="va">None</span>, normalize: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>, clip_neg_values: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>, copy: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>, device: torch.device <span class="op">=</span> device(<span class="bu">type</span><span class="op">=</span><span class="st">'cpu'</span>), is_cropped: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, out_of_core: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, ooc_row_block: <span class="bu">int</span> <span class="op">=</span> <span class="dv">8</span>, g_residency: <span class="bu">str</span> <span class="op">=</span> <span class="st">'auto'</span>, energy: <span class="bu">float</span> <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>, semiconvergence_angle: <span class="bu">float</span> <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>, scan_step: Union[<span class="bu">float</span>, <span class="bu">tuple</span>, <span class="bu">list</span>, numpy.ndarray[<span class="bu">tuple</span>[Any, ...], numpy.dtype[<span class="op">~</span>_ScalarT]], NoneType] <span class="op">=</span> <span class="va">None</span>, reciprocal_step: Union[<span class="bu">float</span>, <span class="bu">tuple</span>, <span class="bu">list</span>, numpy.ndarray[<span class="bu">tuple</span>[Any, ...], numpy.dtype[<span class="op">~</span>_ScalarT]], NoneType] <span class="op">=</span> <span class="va">None</span>, rotation: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, aberrations: Optional[ForwardRef(<span class="st">'Aberrations'</span>)] <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="st">'Dataset4dstem'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Validates and creates a Dataset from an array.</p>
+</section>
+</section>
+</section>
+<section id="parameters" class="level2">
+<h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
+<p>array: Any The array to validate and create a Dataset from. name: str | None The name of the Dataset. origin: Union[NDArray, tuple, list, float, int] | None The origin of the Dataset. sampling: Union[NDArray, tuple, list, float, int] | None The sampling of the Dataset. units: Union[list[str], tuple, list] | None The units of the Dataset. signal_units: str The units of the signal. out_of_core: bool Keep the raw (uint16) cube as a CPU numpy array/memmap and stream it; nothing is uploaded to <code>device</code> here. See <code>scatterem.utils.data.out_of_core</code>. ooc_row_block: int Scan-row block size for streamed reductions (out-of-core only). g_residency: str “gpu” | “vbf_gpu” | “cpu_pinned” | “auto” — where the streaming vBF provider keeps G (out-of-core only). energy, semiconvergence_angle, scan_step, reciprocal_step, rotation, aberrations: Physics convenience path: when <code>meta</code> is None and <code>energy</code> is given, a <code>Metadata4dstem</code> is built internally (shape derived from <code>array</code>, <code>sampling = (dr, dr, dk, dk)</code> with <code>dr</code> from <code>scan_step</code> and <code>dk</code> from <code>reciprocal_step</code> – both scalar or a length-2 pair, <code>dk</code> defaulting to a <code>(1.0, 1.0)</code> placeholder to be calibrated later, e.g.&nbsp;via <code>calibrate_reciprocal_from_bright_field</code>). <code>origin</code> defaults to the array center in this path when not given explicitly.</p>
+</section>
+<section id="returns" class="level2">
+<h2 class="anchored" data-anchor-id="returns">Returns</h2>
+<p>Dataset The container, with any unset axis metadata filled in from the array’s rank.</p>
+<section id="dataset4dstem-determine_aberrations_" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-determine_aberrations_"><code>determine_aberrations_</code></h4>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>determine_aberrations_(<span class="va">self</span>, correction_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'combined'</span>, fit_rotation: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, target_percentage_nonzero_pixels: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.75</span>, n_batches: <span class="bu">int</span> <span class="op">=</span> <span class="dv">25</span>, registration_upsample_factor: <span class="bu">int</span> <span class="op">=</span> <span class="dv">10</span>, lowpass_fwhm_bright_field: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>, bin_factors: <span class="bu">tuple</span>[<span class="bu">int</span>, ...] <span class="op">=</span> (<span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">1</span>), verbosity: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>, correct_order: <span class="bu">int</span> <span class="op">=</span> <span class="dv">1</span>, gradient_mask: Optional[torch.Tensor] <span class="op">=</span> <span class="va">None</span>, num_iterations: <span class="bu">int</span> <span class="op">=</span> <span class="dv">10</span>, lr: <span class="bu">float</span> <span class="op">=</span> <span class="dv">20</span>, bright_field_mask_threshold: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>, roi_shape: <span class="bu">tuple</span>[<span class="bu">int</span>, <span class="bu">int</span>] <span class="op">=</span> (<span class="dv">128</span>, <span class="dv">128</span>), roi_center: Union[<span class="bu">str</span>, <span class="bu">tuple</span>[<span class="bu">int</span>, <span class="bu">int</span>]] <span class="op">=</span> <span class="st">'center'</span>, upsample: Union[<span class="bu">int</span>, <span class="bu">str</span>] <span class="op">=</span> <span class="st">'nyquist'</span>, update_dataset: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>, n_center_indices: <span class="bu">int</span> <span class="op">=</span> <span class="dv">25</span>, phase_sign: <span class="bu">str</span> <span class="op">=</span> <span class="st">'positive'</span>, sharpness_metric: <span class="bu">str</span> <span class="op">=</span> <span class="st">'sparsity'</span>, reg_weight: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.05</span>, alignment_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'reference'</span>) <span class="op">-&gt;</span> <span class="va">None</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Determine the aberrations with the method given in correction_method.</p>
+<p>Args: correction_method: How to determine the aberrations. “combined” (default) chains the bright-field-shift low-order+rotation fit with the sharpness autofocus (higher orders, when correct_order&gt;=2); “bright-field-shifts” is low-order+rotation only; “autofocus” is the autofocus only (rotation fixed). The legacy “total-variation” is a deprecated alias for “autofocus”. sharpness_metric: Autofocus objective for the higher-order stage: “sparsity” (default, L4/kurtosis) or “tv”. reg_weight: L2 regularization (scaled units) toward the seed in the autofocus optimizer. fit_rotation: Whether to fit the rotation. target_percentage_nonzero_pixels: Target percentage of nonzero pixels for the bright field. n_batches: Number of batches for the bright field shifts. registration_upsample_factor: Upsampling factor for the registration. lowpass_fwhm_bright_field: FWHM of the lowpass filter for the bright field. bin_factors: Bin factors for the bright field. The default is (2, 1, 1). arrow_scale: Scale for the arrows in the plot. verbosity: Verbosity level. lr: Learning rate for the optimizer. Used for the autofocus stage. bright_field_mask_threshold: Threshold for the bright field. Used for bright field shifts. roi_shape: Shape of the region of interest. Used for bright field shifts. roi_center: Center of the region of interest. upsample: Upsampling factor for the diffraction pattern. Used for bright field shifts. correct_order: Order of the aberrations to correct. Used for the autofocus stage. num_iterations: Number of optimization iterations. Used for the autofocus stage. n_center_indices: Number of center indices to use for the bright field shifts. The default is 25.</p>
+</section>
+<section id="dataset4dstem-direct_ptychography" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-direct_ptychography"><code>direct_ptychography</code></h4>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>direct_ptychography(<span class="va">self</span>, upsample: Union[<span class="bu">float</span>, <span class="bu">str</span>] <span class="op">=</span> <span class="st">'nyquist'</span>, verbosity: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>, n_batches: <span class="bu">int</span> <span class="op">=</span> <span class="dv">25</span>, return_snr: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, phase_sign: <span class="bu">str</span> <span class="op">=</span> <span class="st">'positive'</span>, ssnr_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'analytical'</span>, <span class="op">**</span>kwargs) <span class="op">-&gt;</span> <span class="bu">tuple</span>[torch.Tensor, torch.Tensor <span class="op">|</span> <span class="va">None</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Perform direct ptychography reconstruction.</p>
+</section>
+<section id="dataset4dstem-tilt_corrected_dark_field" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-tilt_corrected_dark_field"><code>tilt_corrected_dark_field</code></h4>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>tilt_corrected_dark_field(<span class="va">self</span>, n_dark_field_segments: <span class="bu">int</span> <span class="op">=</span> <span class="dv">32</span>, verbosity: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>, bright_field_mask_threshold: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>, upsample: Union[<span class="bu">float</span>, <span class="bu">str</span>] <span class="op">=</span> <span class="st">'nyquist'</span>, return_snr: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, snr_blur_sigma: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, shift_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'drizzle'</span>, drizzle_pixfrac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span>, drizzle_kde_sigma: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, _segment_geometry<span class="op">=</span><span class="va">None</span>) <span class="op">-&gt;</span> <span class="bu">tuple</span>[torch.Tensor, torch.Tensor <span class="op">|</span> <span class="va">None</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Perform tilt corrected dark field reconstruction.</p>
+<p><code>shift_method</code> defaults to <code>"drizzle"</code> — a non-negative, ringing-free area-overlap splat (with <code>drizzle_pixfrac</code> / <code>drizzle_kde_sigma</code>), preferable for sparse/low-dose data. Pass <code>"fourier"</code> for the Fourier phase-ramp path (marginally sharper on dense, high-dose data).</p>
+</section>
+<section id="dataset4dstem-fused_full_field" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-fused_full_field"><code>fused_full_field</code></h4>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fused_full_field(<span class="va">self</span>, n_batches: <span class="bu">int</span> <span class="op">=</span> <span class="dv">32</span>, upsample: Union[<span class="bu">int</span>, <span class="bu">str</span>] <span class="op">=</span> <span class="st">'nyquist'</span>, verbosity: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>, bright_field_mask_threshold: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>, return_snr: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>, snr_blur_sigma: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, ssnr_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'analytical'</span>, ptycho_lowq_cutoff_frac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, tcdf_shift_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'drizzle'</span>, drizzle_pixfrac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span>, drizzle_kde_sigma: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, n_dark_field_segments: <span class="bu">int</span> <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="bu">tuple</span>[torch.Tensor, torch.Tensor, torch.Tensor]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Perform fused full field reconstruction. Combine direct ptychography and tilt corrected dark field with SSNR-weighted Fourier fusion.</p>
+<p><code>ptycho_lowq_cutoff_frac</code> &gt; 0 hands the low-q band (below this fraction of Nyquist) exclusively to the dark-field, removing the direct-ptychography low-frequency cupping halo that otherwise leaks into the fused image.</p>
+<p>Args: n_batches: Number of batches for processing. upsample: Upsampling factor for the diffraction pattern. verbosity: Verbosity level. bright_field_mask_threshold: Threshold for the bright field. return_snr: Whether to compute SSNR for weighting. snr_blur_sigma: Gaussian blur sigma for the empirical ptycho SSNR and the tcDF SSNR (the analytical ptycho SSNR ignores it). ssnr_method: How to compute the ptychography SSNR (“empirical” or “analytical”). Changing this invalidates the cached ptycho SSNR.</p>
+<p>Returns: tuple[torch.Tensor, torch.Tensor, torch.Tensor]: (fused, phase_weighted, tcdf_weighted)</p>
+</section>
+<section id="dataset4dstem-calibrate_reciprocal_from_bright_field" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-calibrate_reciprocal_from_bright_field"><code>calibrate_reciprocal_from_bright_field</code></h4>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>calibrate_reciprocal_from_bright_field(<span class="va">self</span>, semiconvergence_angle: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>, thresh_lower: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.1</span>, thresh_upper: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.99</span>, method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'area'</span>) <span class="op">-&gt;</span> <span class="bu">float</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Calibrate the reciprocal-space pixel size <code>dk</code> from the measured bright-field disk radius and the known semiconvergence angle.</p>
+<p>Encapsulates the crop -&gt; measure -&gt; <code>dk = alpha / rBF / wavelength</code> -&gt; <code>self.sampling = (dr, dr, dk, dk)</code> dance every demo repeats. <code>self</code> is updated in place (via the <code>sampling</code> setter, which propagates to <code>self.meta.sampling</code>); the crop used to measure the disk is a scratch object (<code>crop_brightfield_</code> returns a new dataset, built with <code>normalize=False, clip_neg_values=False</code> so it never writes back through its unclonded view into this dataset’s storage) and this dataset’s array is left untouched – only <code>self.origin</code>’s detector-plane entries are recentred and <code>self._radius_bright_field</code> is set, matching <code>crop_brightfield_</code>’s existing (self-mutating) behavior.</p>
+<p>Args: semiconvergence_angle: Beam convergence semi-angle in radians. Defaults to <code>self.meta.semiconvergence_angle</code>. thresh_lower, thresh_upper: Intensity-threshold sweep bounds used both for the bright-field crop and the radius measurement. method: Radius-measurement method, forwarded to <code>bright_field_radius_and_center_</code> (“area” or “circle”).</p>
+<p>Returns: float: The calibrated reciprocal-space sampling <code>dk</code>.</p>
+</section>
+<section id="dataset4dstem-bright_field_radius_and_center" class="level4">
+<h4 class="anchored" data-anchor-id="dataset4dstem-bright_field_radius_and_center"><code>bright_field_radius_and_center</code></h4>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>bright_field_radius_and_center(<span class="va">self</span>, thresh_lower: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.1</span>, thresh_upper: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.6</span>, N: <span class="bu">int</span> <span class="op">=</span> <span class="dv">100</span>, method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'area'</span>, edge_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'canny'</span>, min_edge_points: <span class="bu">int</span> <span class="op">=</span> <span class="dv">100</span>, ransac_iterations: <span class="bu">int</span> <span class="op">=</span> <span class="dv">1000</span>, ransac_threshold: <span class="bu">float</span> <span class="op">=</span> <span class="fl">2.0</span>) <span class="op">-&gt;</span> Tuple[<span class="bu">float</span>, numpy.ndarray[<span class="bu">tuple</span>[Any, ...], numpy.dtype[<span class="op">~</span>_ScalarT]]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Center and radius of the bright-field disk in pixels; center is [y, x].</p>
+<p>Delegates to :func:<code>scatterem.utils.data.disk_fit.fit_bright_field_disk</code>. The <code>edge_method</code> and <code>ransac_*</code> arguments belong to a RANSAC circle fit that this release does not carry; they are accepted so callers forwarding the full argument list keep working, and are otherwise unused.</p>
+</section>
+<section id="serializable-save" class="level4">
+<h4 class="anchored" data-anchor-id="serializable-save"><code>save</code></h4>
+<div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>save(<span class="va">self</span>, path: <span class="st">'str | Path'</span>, <span class="op">*</span>, overwrite: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">False</span>) <span class="op">-&gt;</span> <span class="st">'Path'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Write to <code>path</code>. Returns the path written.</p>
+</section>
+<section id="serializable-load" class="level4">
+<h4 class="anchored" data-anchor-id="serializable-load"><code>load</code></h4>
+<div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>load(path: <span class="st">'str | Path'</span>, <span class="op">*</span>, device: <span class="st">'str | torch.device'</span> <span class="op">=</span> <span class="st">'cpu'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Read an instance of <code>cls</code> from <code>path</code>.</p>
+<p>Raises: SerializationError: the file holds a different class, a schema version this code cannot read, or a field list that does not match <code>cls.SERIAL_FIELDS</code>.</p>
+</section>
+<section id="datasetvirtualbrightfield4dstem" class="level3">
+<h3 class="anchored" data-anchor-id="datasetvirtualbrightfield4dstem"><code>DatasetVirtualBrightField4dstem</code></h3>
+<p>A virtual bright field 4D STEM dataset with metadata for electron diffraction patterns.</p>
+</section>
+</section>
+<section id="reconstruction" class="level2">
+<h2 class="anchored" data-anchor-id="reconstruction">Reconstruction</h2>
+<p><code>scatterem.reconstruction</code></p>
+<section id="direct_ptychography" class="level3">
+<h3 class="anchored" data-anchor-id="direct_ptychography"><code>direct_ptychography</code></h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>direct_ptychography(dataset: scatterem.utils.data.datasets.Dataset4dstem <span class="op">|</span> scatterem.utils.data.datasets.DatasetVirtualBrightField4dstem, upsample: Union[<span class="bu">float</span>, <span class="bu">str</span>] <span class="op">=</span> <span class="st">'nyquist'</span>, bright_field_mask_threshold: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.5</span>, verbosity: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>, n_batches: <span class="bu">int</span> <span class="op">=</span> <span class="dv">25</span>, return_snr: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, phase_sign: Literal[<span class="st">'preserve'</span>, <span class="st">'positive'</span>, <span class="st">'negative'</span>] <span class="op">=</span> <span class="st">'positive'</span>, ssnr_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'analytical'</span>, <span class="op">**</span>kwargs) <span class="op">-&gt;</span> <span class="bu">tuple</span>[torch.Tensor, torch.Tensor <span class="op">|</span> <span class="va">None</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Performs a joint ptychography reconstruction and aberration determination. Args: dataset: Dataset4dstem or DatasetVirtualBrightField4dstem object containing the diffraction pattern. upsample: Upsampling factor for the diffraction pattern. bright_field_mask_threshold: Threshold for the bright field. verbosity: Verbosity level. n_batches: Number of batches for the vBF. return_snr: Whether to compute the ptychography SSNR (method selected by ssnr_method). phase_sign: Resolve the global phase sign ambiguity. “positive” flips negative-skew phase images so atom columns are positive, “negative” enforces the opposite sign, and “preserve” leaves the raw direct-ptycho sign unchanged. ssnr_method: How to compute the SSNR when return_snr is True. “analytical” (default) uses the phase-contrast-transfer-function noise model (CTF-aware: ptycho SSNR -&gt; 0 at low q, no DC/low-q transfer); “empirical” reconstructs a checkerboard BF half-split and forms the raw half-difference power ratio (data-driven, better at high dose).</p>
+<p>Returns: torch.Tensor: The reconstructed phase image (Imaginary part). torch.Tensor | None: The SNR of the reconstructed phase image if return_snr is True, otherwise None.</p>
+<p>Raises: ValueError: If the dataset is not a valid Dataset4dstem object. ValueError: If the upsample is invalid.</p>
+</section>
+<section id="tilt_corrected_dark_field" class="level3">
+<h3 class="anchored" data-anchor-id="tilt_corrected_dark_field"><code>tilt_corrected_dark_field</code></h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>tilt_corrected_dark_field(dataset: scatterem.utils.data.datasets.Dataset4dstem, n_dark_field_segments: <span class="bu">int</span> <span class="op">=</span> <span class="dv">32</span>, verbosity: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>, bright_field_mask_threshold: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.3</span>, upsample: Union[<span class="bu">float</span>, <span class="bu">str</span>] <span class="op">=</span> <span class="st">'nyquist'</span>, return_snr: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, snr_blur_sigma: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, shift_method: <span class="bu">str</span> <span class="op">=</span> <span class="st">'drizzle'</span>, drizzle_pixfrac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span>, drizzle_kde_sigma: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, _segment_geometry: <span class="st">'_SegmentGeometry | None'</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="bu">tuple</span>[torch.Tensor, torch.Tensor <span class="op">|</span> <span class="va">None</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Tilt-corrected dark-field reconstruction.</p>
+<p><code>shift_method</code> selects how each azimuthal dark-field segment is sub-pixel shifted (by its parallax shift) and accumulated onto the up-sampled grid:</p>
+<ul>
+<li><code>"drizzle"</code> (default) — area-overlap drizzle (box splat + hit-map normalization). Non-negative and ringing-free, which is the physically correct behaviour for counting data: at low dose the segment images are single electron counts and Fourier shifting turns each into a sinc with ~20% negative side-lobes. <code>drizzle_pixfrac</code> sets the drop size (fraction of an input pixel; 1.0 fills the grid from one frame) and <code>drizzle_kde_sigma</code> optionally Nadaraya-Watson-smooths sparse holes.</li>
+<li><code>"fourier"</code> — Fourier zero-pad upsample + phase-ramp shift. Marginally sharper on dense, well-sampled (high-dose) data, but rings on sparse data.</li>
+</ul>
+<p><code>_segment_geometry</code> is a private hook for callers that hold the aberrations ORTHOGONAL to everything else and sweep them (the depth section): pass the :class:<code>_SegmentGeometry</code> from :func:<code>_tcdf_segment_geometry</code> to skip rebuilding the masks and re-gathering the 4D array on every step.</p>
+</section>
+<section id="fused_full_field" class="level3">
+<h3 class="anchored" data-anchor-id="fused_full_field"><code>fused_full_field</code></h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fused_full_field(dataset: scatterem.utils.data.datasets.Dataset4dstem, ptycho_image: torch.Tensor, tcdf_image: torch.Tensor, ptycho_ssnr: torch.Tensor, tcdf_ssnr: torch.Tensor, verbosity<span class="op">=</span><span class="dv">0</span>, taper: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>, q_soft_start_frac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.5</span>, q_soft_end_frac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.7</span>, q_hard_cutoff_frac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span>, ptycho_lowq_cutoff_frac: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>) <span class="op">-&gt;</span> torch.Tensor</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><em>Undocumented.</em></p>
+</section>
+</section>
+<section id="named-datasets" class="level2">
+<h2 class="anchored" data-anchor-id="named-datasets">Named datasets</h2>
+<p><code>scatterem.datasets</code></p>
+<section id="you2026carbon" class="level3">
+<h3 class="anchored" data-anchor-id="you2026carbon"><code>You2026Carbon</code></h3>
+<p>Amorphous carbon, 300 kV (paper Figure 2).</p>
+</section>
+<section id="you2026co3o4" class="level3">
+<h3 class="anchored" data-anchor-id="you2026co3o4"><code>You2026Co3O4</code></h3>
+<p>Co3O4, 200 kV (paper Figure 2).</p>
+</section>
+<section id="you2026aulowdose" class="level3">
+<h3 class="anchored" data-anchor-id="you2026aulowdose"><code>You2026AuLowDose</code></h3>
+<p>Au nanoparticle, 200 kV, low dose (paper Figure 4).</p>
+<p>Three files: the Dectris master plus its two external data blocks. The 180 deg rotation is this acquisition’s known scan/detector offset.</p>
+<p>Args: repair_bad_pixels: Replace the known-bad 2x2 detector patch with the nanmean of its surrounding ring. Default <code>True</code>. scan_edge_crop: Number of scan rows/columns to drop from each edge. Default <code>128</code>.</p>
+</section>
+<section id="you2026gd2o3" class="level3">
+<h3 class="anchored" data-anchor-id="you2026gd2o3"><code>You2026Gd2O3</code></h3>
+<p>Gd2O3 nanoparticles, 60 kV (paper Figure 1).</p>
+<p><code>(512, 512, 112, 112)</code> uint16, ~6.5 GB. The 84 deg scan rotation is load-bearing: the bright-field-shift parallax auto-fit is unreliable on this low-dose data, and without the correct rotation the aberration autofocus absorbs the error into a spurious ~85 A astigmatism.</p>
+</section>
+</section>
+<section id="metadata" class="level2">
+<h2 class="anchored" data-anchor-id="metadata">Metadata</h2>
+<p><code>scatterem.utils.data.data_classes</code></p>
+<section id="metadata4dstem" class="level3">
+<h3 class="anchored" data-anchor-id="metadata4dstem"><code>Metadata4dstem</code></h3>
+<p>Metadata4dstem(energy: float, semiconvergence_angle: float, sampling: Union[numpy.ndarray[tuple[Any, …], numpy.dtype[~_ScalarT]], tuple, list, float, int], shape: numpy.ndarray[tuple[typing.Any, …], numpy.dtype[~_ScalarT]], units: Union[list[str], tuple, list, NoneType] = None, rotation: Optional[float] = 0, defocus_guess: Optional[float] = 0, aberrations: Optional[scatterem.utils.data.aberrations.Aberrations] = None, slice_thickness: Optional[float] = 0, sample_thickness_guess: Optional[float] = 0, vacuum_probe: Optional[torch.Tensor] = None, scan_affine: Optional[torch.Tensor] = None)</p>
+</section>
+</section>
+<section id="stem-eels-simulation" class="level2">
+<h2 class="anchored" data-anchor-id="stem-eels-simulation">STEM-EELS simulation</h2>
+<p><code>scatterem.simulation</code></p>
+<section id="stemeelssimulator" class="level3">
+<h3 class="anchored" data-anchor-id="stemeelssimulator"><code>StemEelsSimulator</code></h3>
+<p>Simulate energy-filtered 4D-STEM-EELS datasets.</p>
+<section id="stemeelssimulator-simulate" class="level4">
+<h4 class="anchored" data-anchor-id="stemeelssimulator-simulate"><code>simulate</code></h4>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>simulate(<span class="va">self</span>, batch_size: <span class="st">'Optional[int]'</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="st">'StemEelsResult'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Run the simulation at a single continuum energy <code>self.epsilon</code> and return the energy-filtered 4D-STEM dataset.</p>
+</section>
+<section id="stemeelssimulator-simulate_window" class="level4">
+<h4 class="anchored" data-anchor-id="stemeelssimulator-simulate_window"><code>simulate_window</code></h4>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>simulate_window(<span class="va">self</span>, energy_range: <span class="st">'Tuple[float, float]'</span>, n_energies: <span class="st">'int'</span> <span class="op">=</span> <span class="dv">16</span>, batch_size: <span class="st">'Optional[int]'</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="st">'StemEelsResult'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Energy-integrated 4D-STEM-EELS over an energy-loss window.</p>
+<p>Sweeps the continuum-electron energy <code>epsilon</code> across <code>energy_range</code> (energies <em>above the ionization threshold</em>, eV) on a uniform grid of <code>n_energies</code> points and trapezoid-integrates the per-energy datacubes.</p>
+<p>Because the continuum states are energy-normalised (per unit energy), <code>∫ I(epsilon) d(epsilon)</code> is the signal collected in the corresponding energy-loss window <code>[onset + eps_min, onset + eps_max]</code>, where the edge onset <code>= -E_bound</code> is the binding energy of the ionized subshell. The mapping <code>ΔE = epsilon + onset</code> is linear, so integrating over <code>epsilon</code> equals integrating over energy loss.</p>
+</section>
+</section>
+</section>
+<section id="parameters-1" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-1">Parameters</h2>
+<p>energy_range : (float, float) <code>(eps_min, eps_max)</code> above threshold [eV]; <code>eps_min</code> must be <code>&gt; 0</code> (the energy-normalised continuum diverges at threshold) and <code>eps_max &gt; eps_min</code>. n_energies : int Number of energies sampled across the window (<code>&gt;= 2</code>). More points reduce the trapezoid-integration error at proportional cost. batch_size : int, optional Forwarded to the conventional multislice scan-position batching.</p>
+</section>
+<section id="notes" class="level2">
+<h2 class="anchored" data-anchor-id="notes">Notes</h2>
+<p>Transition potentials are built once per energy (the GPAW continuum is additionally cached on disk), and the transmission functions are computed once per frozen phonon and reused across all energies. Memory scales with <code>n_energies</code> (one transition-potential stack is held per sampled energy).</p>
+<section id="stemeelssimulator-simulate_edges" class="level4">
+<h4 class="anchored" data-anchor-id="stemeelssimulator-simulate_edges"><code>simulate_edges</code></h4>
+<div class="sourceCode" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>simulate_edges(<span class="va">self</span>, edges: <span class="st">'Sequence[Tuple[int, int, int]]'</span>, energy_range: <span class="st">'Optional[Tuple[float, float]]'</span> <span class="op">=</span> <span class="va">None</span>, n_energies: <span class="st">'int'</span> <span class="op">=</span> <span class="dv">16</span>, batch_size: <span class="st">'Optional[int]'</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="st">"'dict[Tuple[int, int, int], StemEelsResult]'"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Simulate several ionization edges (elements/subshells) in one pass.</p>
+<p>The elastic transmission functions and probes are shared across <strong>all</strong> edges – they are the dynamical scattering of the whole structure and do not depend on which element is ionized – so this is much cheaper than constructing a separate :class:<code>StemEelsSimulator</code> per element (which would recompute the transmissions, and the frozen-phonon passes, every time).</p>
+</section>
+</section>
+<section id="parameters-2" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-2">Parameters</h2>
+<p>edges : sequence of (Z, n, l) The ionized subshells, e.g.&nbsp;<code>[(8, 1, 0), (22, 2, 1)]</code> for the O-K and Ti-L edges. Every <code>Z</code> must be present in the structure. energy_range : (float, float), optional If given, each edge is energy-integrated over the <strong>same</strong> window of continuum energies above its own threshold (see :meth:<code>simulate_window</code>); the window therefore sits above each edge’s own onset. If <code>None</code>, each edge is evaluated at the single energy <code>self.epsilon</code>. n_energies : int Energies sampled per window when <code>energy_range</code> is given. batch_size : int, optional Forwarded to the conventional multislice scan-position batching.</p>
+</section>
+<section id="returns-1" class="level2">
+<h2 class="anchored" data-anchor-id="returns-1">Returns</h2>
+<p>dict Maps each <code>(Z, n, l)</code> edge to its :class:<code>StemEelsResult</code>. (If the same edge is passed twice, only the last result is kept.)</p>
+</section>
+<section id="notes-1" class="level2">
+<h2 class="anchored" data-anchor-id="notes-1">Notes</h2>
+<p>All edges’ transition potentials are held in memory simultaneously so the transmissions can be reused in a single frozen-phonon sweep; memory scales with the total number of (edge x energy) transition-potential stacks.</p>
+<section id="stemeelsresult" class="level3">
+<h3 class="anchored" data-anchor-id="stemeelsresult"><code>StemEelsResult</code></h3>
+<p>Output of a STEM-EELS simulation.</p>
+</section>
+</section>
+<section id="attributes" class="level2">
+<h2 class="anchored" data-anchor-id="attributes">Attributes</h2>
+<p>cube : Tensor Energy-filtered 4D-STEM dataset <code>(scan_y, scan_x, det_y, det_x)</code> (real, non-negative; diffraction patterns are corner-origin). edge : tuple[int, int, int] <code>(Z, n, l)</code> of the ionized subshell. epsilon : float Continuum-electron energy above threshold [eV]. For a windowed result (:meth:<code>StemEelsSimulator.simulate_window</code>) this is the mean of the integrated energy grid. energy_losses : ndarray For a single-energy result, the per-transition energy loss [eV] that was summed into <code>cube</code>. For a windowed result, the sampled energy-loss grid (length <code>n_energies</code>) that was integrated. energy : float Probe energy [eV]. sampling : tuple[float, float] Detector reciprocal-space sampling <code>(dky, dkx)</code> [1/Å]. energy_range : tuple[float, float] | None For a windowed result, the integrated energy-loss window <code>(onset + eps_min, onset + eps_max)</code> [eV]; <code>None</code> for a single energy. energies : ndarray | None For a windowed result, the continuum energies above threshold (the <code>epsilon</code> grid) that were integrated; <code>None</code> for a single energy.</p>
+<section id="structure" class="level3">
+<h3 class="anchored" data-anchor-id="structure"><code>Structure</code></h3>
+<p>A periodic (or vacuum-padded finite) atomic model.</p>
+</section>
+</section>
+<section id="parameters-3" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-3">Parameters</h2>
+<p>unitcell : array_like Either the three orthorhombic cell edge lengths <code>(a, b, c)</code> in Angstrom, or a 3x3 matrix whose ROWS are the cell edge vectors <strong>a</strong>, <strong>b</strong>, <strong>c</strong> in Cartesian Angstrom. A matrix that is axis-aligned orthorhombic (to <code>EPS</code>) is reduced to its diagonal; any other matrix triggers :meth:<code>_orthorhombic_supercell</code>, which tiles the crystal into an orthorhombic supercell. atoms : array_like, shape (n_atoms, 4) <code>[x, y, z, Z]</code> – fractional coordinates and atomic number. Exactly four columns; <code>occ</code> and <code>dwf</code> are appended to give the six-column table documented in the module docstring. dwf : array_like, shape (n_atoms,) or None One-dimensional mean-square thermal displacement <code>&lt;u^2&gt;</code> [A^2]. <code>None</code> gives every atom 0.01 A^2. NOTE the argument ORDER: <code>dwf</code> is the third positional argument and <code>occ</code> the fourth, which is the reverse of the stored column order (column 4 is <code>occ</code>, column 5 is <code>&lt;u^2&gt;</code>). Pass them by keyword. occ : array_like, shape (n_atoms,) or None Site occupancies. <code>None</code> gives every atom 1.0. Title : str Free-form title; the first line of the source file for :meth:<code>fromfile</code>. EPS : float, default 1e-2 Tolerance for the orthorhombicity test and, if it fails, for the pseudo-rational supercell construction.</p>
+</section>
+<section id="attributes-1" class="level2">
+<h2 class="anchored" data-anchor-id="attributes-1">Attributes</h2>
+<p>unitcell : ndarray, shape (3,), float64 Orthorhombic cell edge lengths in Angstrom. Freshly allocated and writable – it never aliases the caller’s array. atoms : ndarray, shape (n_atoms, 6), float64 <code>[x, y, z, Z, occ, &lt;u^2&gt;]</code>; see the module docstring. Title : str fractional_occupancy : numpy.bool_ True iff any atom has <code>|occ - 1| &gt; 1e-3</code>. Consumers use it to gate the correlated-displacement path (see :func:<code>find_equivalent_sites</code>). It is computed once, at construction; :meth:<code>tile</code> and :meth:<code>rotate</code> cannot change occupancies, so it stays valid.</p>
+</section>
+<section id="notes-2" class="level2">
+<h2 class="anchored" data-anchor-id="notes-2">Notes</h2>
+<p>Host NumPy only: this module never imports torch, never sees a device and performs no Fourier transform. Conversion to tensors happens in the consumers.</p>
+<section id="structure-fromfile" class="level4">
+<h4 class="anchored" data-anchor-id="structure-fromfile"><code>fromfile</code></h4>
+<div class="sourceCode" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fromfile(fnam, temperature_factor_units<span class="op">=</span><span class="st">'ums'</span>, atomic_coordinates<span class="op">=</span><span class="st">'fractional'</span>, EPS<span class="op">=</span><span class="fl">0.01</span>, T<span class="op">=</span><span class="va">None</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Read a structure file and return a :class:<code>Structure</code>.</p>
+<p>The format is chosen from the lowercased filename extension: <code>.xyz</code> (Prismatic), <code>.p1</code> (VESTA P1 / POSCAR-shaped) or <code>.xtl</code> (muSTEM). The first line of every format is the title.</p>
+</section>
+</section>
+<section id="parameters-4" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-4">Parameters</h2>
+<p>fnam : str or os.PathLike temperature_factor_units : {‘ums’, ‘urms’, ‘B’}, default ‘ums’ Units of the thermal parameter in the file. With :math:<code>B = 8\pi^2\langle u^2\rangle</code>:</p>
+<pre><code>============  ===========================================
+``'ums'``     already :math:`\langle u^2\rangle` [A^2]
+``'urms'``    :math:`u_{rms}` [A]; squared on read
+``'B'``       crystallographic B [A^2]; divided by 8 pi^2
+============  ===========================================</code></pre>
+<p>atomic_coordinates : {‘fractional’, ‘cartesian’}, default ‘fractional’ Interpretation of the coordinates in the FILE.</p>
+<pre><code>.. warning::
+
+   The Prismatic ``.xyz`` specification stores CARTESIAN Angstrom,
+   so physically correct ``.xyz`` loading needs
+   ``atomic_coordinates='cartesian'``.  The default is
+   ``'fractional'`` for backwards compatibility, and with that
+   default the Angstrom values are stored unchanged in the
+   fractional slot -- every consumer then treats e.g. 4.0725 A as
+   the fractional coordinate 4.0725, which the downstream
+   ceiling-then-modulo pixel mapping and the ``z mod 1`` slice
+   assignment quietly alias.  Existing parity tests lock this in.
+
+Unlike the historical behaviour, an unrecognised value now raises
+instead of silently doing nothing.</code></pre>
+<p>EPS : float, default 1e-2 Passed to the constructor (orthorhombicity / supercell tolerance). T : array_like, shape (3, 3), optional Optional cell transformation (zone-axis or supercell redefinition), applied consistently in the row-vector convention:</p>
+<pre><code>.. math::
+
+   r_{cart} = f M, \qquad M' = M T^{\mathsf T},
+   \qquad f' = r_{cart}\,(M')^{-1} \bmod 1.
+
+A length-3 cell is promoted to ``diag(a, b, c)`` first, so ``T``
+works with every reader.</code></pre>
+</section>
+<section id="returns-2" class="level2">
+<h2 class="anchored" data-anchor-id="returns-2">Returns</h2>
+<p>Structure</p>
+<section id="structure-tile" class="level4">
+<h4 class="anchored" data-anchor-id="structure-tile"><code>tile</code></h4>
+<div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>tile(<span class="va">self</span>, x<span class="op">=</span><span class="dv">1</span>, y<span class="op">=</span><span class="dv">1</span>, z<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Build the <code>x</code> by <code>y</code> by <code>z</code> supercell IN PLACE.</p>
+<p>The cell edge along dimension :math:<code>d</code> becomes :math:<code>n_d</code> times longer and every atom is replicated at all integer lattice translations, with the coordinates re-expressed as fractions of the NEW cell:</p>
+<p>.. math::</p>
+<p>f^{new}_d(, m) = , m_d &lt; n_d .</p>
+<p>Output ORDERING is part of the contract: copies are enumerated in C order over :math:<code>m = (m_x, m_y, m_z)</code> – flat index :math:<code>m_x n_y n_z + m_y n_z + m_z</code> – and the original atom order is preserved within each copy. The table is therefore copy-major and atom-minor: rows <code>[c*n_atoms, (c+1)*n_atoms)</code> belong to copy <code>c</code>. Consumers that pair a per-atom weight vector with <code>structure.atoms</code> rely on this.</p>
+<p>Columns 3-5 (<code>Z</code>, <code>occ</code>, <code>&lt;u^2&gt;</code>) are copied verbatim into every replica; neither <code>Title</code> nor <code>fractional_occupancy</code> changes.</p>
+</section>
+</section>
+<section id="returns-3" class="level2">
+<h2 class="anchored" data-anchor-id="returns-3">Returns</h2>
+<p>Structure <code>self</code> – this method MUTATES the structure. Copy first if you need to keep the untiled model.</p>
+</section>
+<section id="notes-3" class="level2">
+<h2 class="anchored" data-anchor-id="notes-3">Notes</h2>
+<p>Works whether <code>unitcell</code> is currently a length-3 vector (each edge length scaled) or a 3x3 matrix (each ROW scaled by its own factor); the latter is needed while the orthorhombic-supercell machinery is running.</p>
+<section id="structure-rotate" class="level4">
+<h4 class="anchored" data-anchor-id="structure-rotate"><code>rotate</code></h4>
+<div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>rotate(<span class="va">self</span>, theta, axis, origin<span class="op">=</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>), wrap<span class="op">=</span><span class="va">True</span>, margin<span class="op">=</span><span class="fl">0.0</span>, rebox<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Rigidly rotate the atoms and re-box them; returns a NEW structure.</p>
+<p>The atom set is rotated by <code>theta</code> about the direction <code>axis</code> through the fractional point <code>origin</code> and then re-expressed in a (possibly new) axis-aligned orthorhombic box. <code>self</code> is not modified.</p>
+</section>
+</section>
+<section id="pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="pipeline">Pipeline</h2>
+<ol type="1">
+<li><p>Cartesian positions and the pivot: :math:<code>r = f \odot L</code>, :math:<code>o = \mathrm{origin} \odot L</code>, with :math:<code>L</code> the cell edge lengths.</p></li>
+<li><p>:math:<code>r' = (r - o) R + o</code> with :math:<code>R</code> from :func:<code>_rot_matrix</code>.</p>
+<p>.. warning::</p>
+<p><strong>Sign convention.</strong> <code>R</code> is the ACTIVE rotation of a COLUMN vector, but it is applied to ROW vectors on the right. Since <code>r @ R = (R^T r^T)^T</code> and :math:<code>R^{\mathsf T} = R(-\theta)</code>, the atoms are rotated by <strong>minus</strong> <code>theta</code> about <code>axis</code>. Example: an atom at fractional <code>(0.75, 0.5, 0.5)</code> of a 4x4x4 A cell sits 1 A from the centre along +x, and <code>rotate(pi/2, [0, 0, 1])</code> puts it at Cartesian <code>(2, 1, 2)</code>, i.e.&nbsp;1 A along <strong>-y</strong>. Using the textbook active convention here would mirror every tilt series.</p></li>
+<li><p>Re-boxing, selected by <code>(rebox, wrap)</code>:</p>
+<ul>
+<li><code>rebox=False</code> – keep the cell verbatim and just divide by it. Atoms leaving the box are neither wrapped nor clipped; a warning naming the observed fractional range is issued instead. Use this for a tilt SERIES of a vacuum-padded finite object, so that every tilt shares one cell, field of view and object placement.</li>
+<li><code>rebox=True, wrap=True</code> (default) – fit a new axis-aligned box to the rotated CELL CORNERS, using the five fractional corners 000, 100, 010, 001, 111: the new origin is their componentwise minimum and the new edge lengths their componentwise peak-to-peak range. Atoms are then mapped into that box modulo 1. Five corners are exact for a rotation about a cardinal axis (the remaining corners 110, 101, 011 add nothing to the bounding box there); for a general off-axis direction the box can be undersized, and the modulo-1 reduction then maps atoms into wrong periodic images.</li>
+<li><code>rebox=True, wrap=False</code> – fit the box to the true rotated ATOM extent: origin = componentwise minimum minus <code>margin</code>, edges = peak-to-peak plus <code>2*margin</code>, with NO modulo-1 reduction. Exact for a finite, non-periodic specimen at an arbitrary tilt.</li>
+</ul></li>
+</ol>
+</section>
+<section id="parameters-5" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-5">Parameters</h2>
+<p>theta : float Rotation angle in RADIANS. axis : array_like, shape (3,) Any nonzero direction; normalised internally. origin : array_like, shape (3,), default (0.5, 0.5, 0.5) FRACTIONAL coordinates of the pivot. wrap : bool, default True See above. Only consulted when <code>rebox</code> is True. margin : float, default 0.0 Vacuum padding in Angstrom added on EACH side in the <code>wrap=False</code> branch (total extent grows by <code>2*margin</code>). rebox : bool, default True See above.</p>
+</section>
+<section id="returns-4" class="level2">
+<h2 class="anchored" data-anchor-id="returns-4">Returns</h2>
+<p>Structure A new object. Columns 3-5, <code>Title</code> and <code>fractional_occupancy</code> are carried over unchanged.</p>
+</section>
+<section id="notes-4" class="level2">
+<h2 class="anchored" data-anchor-id="notes-4">Notes</h2>
+<p>Coordinate columns are read as FRACTIONAL. Applied to a <code>.xyz</code> structure loaded with the default <code>atomic_coordinates='fractional'</code> (where the columns hold Cartesian Angstrom) this multiplies Angstrom by Angstrom – deterministic, but not physically meaningful.</p>
+</section>
+<section id="transition-potentials" class="level2">
+<h2 class="anchored" data-anchor-id="transition-potentials">Transition potentials</h2>
+<p><code>scatterem.simulation</code></p>
+<section id="subshell_transitions" class="level3">
+<h3 class="anchored" data-anchor-id="subshell_transitions"><code>subshell_transitions</code></h3>
+<div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>subshell_transitions(Z: <span class="st">'int'</span>, n: <span class="st">'int'</span>, l: <span class="st">'int'</span>, epsilon: <span class="st">'float'</span>, lprimes: <span class="st">'Optional[Sequence[int]]'</span> <span class="op">=</span> <span class="va">None</span>, order: <span class="st">'int'</span> <span class="op">=</span> <span class="dv">1</span>, backend: <span class="st">'str'</span> <span class="op">=</span> <span class="st">'auto'</span>, xc: <span class="st">'str'</span> <span class="op">=</span> <span class="st">'PBE'</span>, potential_scale: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">1.0</span>) <span class="op">-&gt;</span> <span class="st">'List[Transition]'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Enumerate the ionization channels for a subshell.</p>
+</section>
+</section>
+<section id="parameters-6" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-6">Parameters</h2>
+<p>Z, n, l : int Element and the ionized bound orbital (e.g.&nbsp;Fe <code>L</code> edge: Z=26, n=2, l=1). epsilon : float Energy of the ejected electron above the ionization threshold [eV]. Selecting different <code>epsilon</code> selects different points along the energy-loss edge. lprimes : sequence of int, optional Continuum angular momenta to include. Defaults to every <code>l'</code> with <code>|l - l'| &lt;= order</code>, i.e.&nbsp;<code>range(max(l - order, 0), l + order + 1)</code>. This includes the monopole <code>l' = l</code> channel as well as the dipole <code>l' = l +/- 1</code> channels; the published multislice-EELS treatments sum over this full set (<code>order = 1</code> by default). The partial-wave / Wigner-3j parity rule in :func:<code>_form_factor</code> zeros any channels that do not actually contribute. order : int Maximum change in angular momentum <code>|l - l'|</code> retained when <code>lprimes</code> is not given explicitly. backend : str <code>"gpaw"</code>, <code>"hydrogenic"</code> or <code>"auto"</code> (see :mod:<code>.radial</code>). xc : str Exchange-correlation functional for the GPAW backend. potential_scale : float Empirical multiplier on the GPAW continuum effective potential (default 1.0 = the published Brown 2019 physics; abTEM uses 1.02). Affects mainly the l’=l monopole s-wave; see :func:<code>scatterem...radial.continuum_wavefunction</code>.</p>
+<section id="build_transition_potentials" class="level3">
+<h3 class="anchored" data-anchor-id="build_transition_potentials"><code>build_transition_potentials</code></h3>
+<div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>build_transition_potentials(transitions: <span class="st">'Sequence[Transition]'</span>, Z: <span class="st">'int'</span>, gpts: <span class="st">'Sequence[int]'</span>, sampling: <span class="st">'Sequence[float]'</span>, eV: <span class="st">'float'</span>, bandwidth_limit: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">0.6666666666666666</span>, device<span class="op">=</span><span class="va">None</span>, dtype: <span class="st">'torch.dtype'</span> <span class="op">=</span> torch.complex64, method: <span class="st">'str'</span> <span class="op">=</span> <span class="st">'auto'</span>) <span class="op">-&gt;</span> <span class="st">'TransitionPotentials'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Build real-space transition potentials on a scatterem grid.</p>
+</section>
+</section>
+<section id="parameters-7" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-7">Parameters</h2>
+<p>transitions : sequence of Transition Channels from :func:<code>subshell_transitions</code>. Z : int Atomic number of the ionized element. gpts : (2,) int Grid size <code>(Ny, Nx)</code>. sampling : (2,) float Real-space pixel size <code>(dy, dx)</code> [Å]. eV : float Probe energy [eV]. bandwidth_limit : float Hard bandwidth limit (fraction of Nyquist) applied in reciprocal space. device : torch device, optional Device of the returned <code>array</code>. dtype : torch.dtype Output complex dtype (the heavy build is always done in complex128). method : {“auto”, “gpu”, “cpu”} Backend for the partial-wave / radial-overlap / form-factor build. <code>"auto"</code> (default) runs the GPU-vectorised path on CUDA when available and otherwise the numpy/scipy reference path. <code>"gpu"</code> forces CUDA; <code>"cpu"</code> forces the reference path. All paths are numerically identical to ~machine precision (the GPU path reproduces the reference to ~1e-12).</p>
+<section id="transitionpotentials" class="level3">
+<h3 class="anchored" data-anchor-id="transitionpotentials"><code>TransitionPotentials</code></h3>
+<p>Stack of real-space transition potentials for one edge / energy point.</p>
+</section>
+</section>
+<section id="attributes-2" class="level2">
+<h2 class="anchored" data-anchor-id="attributes-2">Attributes</h2>
+<p>array : Tensor Complex tensor <code>(n_transitions, Ny, Nx)</code> of real-space transition potentials :math:<code>H_{n0}(\mathbf r_\perp)</code>. Z : int Atomic number of the ionized element (used to locate sites). energy : float Probe energy [eV]. sampling : tuple[float, float] Real-space pixel size <code>(dy, dx)</code> [Å]. energy_losses : ndarray Per-transition energy loss [eV].</p>
+<section id="bound_wavefunction" class="level3">
+<h3 class="anchored" data-anchor-id="bound_wavefunction"><code>bound_wavefunction</code></h3>
+<div class="sourceCode" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>bound_wavefunction(Z: <span class="st">'int'</span>, n: <span class="st">'int'</span>, l: <span class="st">'int'</span>, xc: <span class="st">'str'</span> <span class="op">=</span> <span class="st">'PBE'</span>, backend: <span class="st">'str'</span> <span class="op">=</span> <span class="st">'auto'</span>, use_cache: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">True</span>) <span class="op">-&gt;</span> <span class="st">'RadialWavefunction'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Bound radial wavefunction for orbital <code>(n, l)</code> of element <code>Z</code>.</p>
+<p><code>backend</code> is <code>"gpaw"</code>, <code>"hydrogenic"</code> or <code>"auto"</code> (GPAW if available, otherwise hydrogenic).</p>
+</section>
+<section id="continuum_wavefunction" class="level3">
+<h3 class="anchored" data-anchor-id="continuum_wavefunction"><code>continuum_wavefunction</code></h3>
+<div class="sourceCode" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>continuum_wavefunction(Z: <span class="st">'int'</span>, lprime: <span class="st">'int'</span>, epsilon: <span class="st">'float'</span>, xc: <span class="st">'str'</span> <span class="op">=</span> <span class="st">'PBE'</span>, backend: <span class="st">'str'</span> <span class="op">=</span> <span class="st">'auto'</span>, use_cache: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">True</span>, potential_scale: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">1.0</span>) <span class="op">-&gt;</span> <span class="st">'RadialWavefunction'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Continuum radial wavefunction of angular momentum <code>lprime</code> at energy <code>epsilon</code> (eV above threshold) for element <code>Z</code>.</p>
+<p><code>potential_scale</code> multiplies the effective-potential term of the GPAW continuum radial equation (default 1.0 = the published Brown 2019 physics; abTEM uses 1.02). It is ignored by the analytic <code>hydrogenic</code> backend, whose free-particle continuum has no atomic potential.</p>
+</section>
+<section id="gpaw_available" class="level3">
+<h3 class="anchored" data-anchor-id="gpaw_available"><code>gpaw_available</code></h3>
+<div class="sourceCode" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>gpaw_available() <span class="op">-&gt;</span> <span class="st">'bool'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>True if the optional :mod:<code>gpaw</code> dependency can be imported.</p>
+</section>
+</section>
+<section id="eels-algorithms" class="level2">
+<h2 class="anchored" data-anchor-id="eels-algorithms">EELS algorithms</h2>
+<p><code>scatterem.simulation.eels</code></p>
+<section id="transition_potential_multislice" class="level3">
+<h3 class="anchored" data-anchor-id="transition_potential_multislice"><code>transition_potential_multislice</code></h3>
+<div class="sourceCode" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>transition_potential_multislice(probes: <span class="st">'Tensor'</span>, transmissions: <span class="st">'Tensor'</span>, transition_potentials: <span class="st">'TransitionPotentials'</span>, sites: <span class="st">'np.ndarray'</span>, <span class="op">*</span>, wavelength: <span class="st">'float'</span>, gridsize: <span class="st">'Sequence[float]'</span>, slice_distance: <span class="st">'float'</span>, site_threshold: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">0.0</span>, batch_size: <span class="st">'Optional[int]'</span> <span class="op">=</span> <span class="va">None</span>, return_real_space: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">False</span>) <span class="op">-&gt;</span> <span class="st">'Tensor'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Energy-filtered diffraction patterns for a batch of probe positions.</p>
+</section>
+</section>
+<section id="parameters-8" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-8">Parameters</h2>
+<p>probes : Tensor Complex real-space probes <code>(P, Ny, Nx)</code> already placed at their scan positions. transmissions : Tensor Complex real-space transmission functions <code>(NZ, Ny, Nx)</code> – one per depth slice. transition_potentials : TransitionPotentials Real-space transition potentials for the chosen edge. sites : ndarray Fractional coordinates <code>(Nsite, 3)</code> <code>(y, x, z)</code> in <code>[0, 1)</code> of the ionizable atoms (element <code>transition_potentials.Z</code>) within the field of view. wavelength : float Probe wavelength [Å]. gridsize : (2,) float Field-of-view size <code>(Ly, Lx)</code> [Å]. slice_distance : float Inter-slice propagation distance Δz [Å]. site_threshold : float Skip an inelastic event when the integrated scattered intensity is below this fraction of the transition-potential norm (cheap speed-up). batch_size : int, optional Probe-position batch size (memory control). Defaults to all probes. return_real_space : bool If True, return the accumulated real-space exit intensity instead of the diffraction-space intensity.</p>
+</section>
+<section id="returns-5" class="level2">
+<h2 class="anchored" data-anchor-id="returns-5">Returns</h2>
+<p>Tensor Real, non-negative intensity <code>(P, Ny, Nx)</code> – the inelastically scattered diffraction pattern (corner origin) summed over all transitions and sites.</p>
+<section id="prism_transition_potential" class="level3">
+<h3 class="anchored" data-anchor-id="prism_transition_potential"><code>prism_transition_potential</code></h3>
+<div class="sourceCode" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>prism_transition_potential(probe_q: <span class="st">'Tensor'</span>, transmissions: <span class="st">'Tensor'</span>, transition_potentials: <span class="st">'TransitionPotentials'</span>, sites: <span class="st">'np.ndarray'</span>, scan_pixels: <span class="st">'Tensor'</span>, <span class="op">*</span>, wavelength: <span class="st">'float'</span>, gridsize: <span class="st">'Sequence[float]'</span>, slice_distance: <span class="st">'float'</span>, return_real_space: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">False</span>, interpolation_factor<span class="op">=</span><span class="dv">1</span>, partition<span class="op">=</span><span class="va">None</span>, scan_chunk: <span class="st">'int'</span> <span class="op">=</span> <span class="dv">64</span>) <span class="op">-&gt;</span> <span class="st">'Tensor'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Dual-scattering-matrix PRISM STEM-EELS (Brown &amp; Ophus).</p>
+<p>Implements the two-scattering-matrix algorithm of Brown, Ciston &amp; Ophus, Phys. Rev.&nbsp;Research <strong>1</strong>, 033186 (2019), Eq. (11):</p>
+<pre><code>S_{n,iz} = S2 . F . H_{n0} . F^{-1} . S1,</code></pre>
+<p>where :math:<code>\mathcal S_1</code> propagates the probe-forming plane waves from the entrance surface to the ionization slice <code>iz</code> and :math:<code>\mathcal S_2</code> propagates the inelastically-scattered wave from <code>iz</code> to the exit surface.</p>
+<p>The key to the full PRISM benefit (vs.&nbsp;:func:<code>prism_transition_potential_hybrid</code>) is the <em>order of operations</em>. Because every operator after :math:<code>\mathcal S_1</code> is linear, the exit wave for scan position <code>p</code> is::</p>
+<pre><code>psi_exit(p) = S2[ H_n0 . (sum_b coeff_p[b] S1_col[b]) ]
+            = sum_b coeff_p[b] * S2[ H_n0 . S1_col[b] ],</code></pre>
+<p>so the transition is applied to the <code>Nbeams</code> columns of :math:<code>\mathcal S_1</code> and <strong>those columns</strong> are propagated to the exit (the action of :math:<code>\mathcal S_2</code>), <em>then</em> the scan positions are synthesised by the same linear combination used to form the probe. The expensive exit-surface multislice therefore runs <code>Nbeams</code> times per (site, transition) – <strong>independent of the number of scan positions</strong> <code>P</code> – instead of <code>P</code> times. For <code>P &gt;&gt; Nbeams</code> (a dense scan through a small aperture, the PRISM regime) this is the source of the near-linear scaling.</p>
+<p>With the exact per-pixel scattering matrix (<code>partition=None</code>) the result is identical (to float rounding) to :func:<code>prism_transition_potential_hybrid</code>; this routine just reorders the work. Energy-filtered 4D output is preserved – <code>S2</code> is applied as on-the-fly multislice of the column basis (the full exit diffraction pattern is kept, so no detector reduction is made). Detector-integrating the returned cube over an EELS aperture reproduces the Brown &amp; Ophus <code>I(x, y)</code> image.</p>
+<p><strong>Shrinking the column count (two compatible levers).</strong></p>
+<ul>
+<li><code>interpolation_factor = f</code> subsamples the aperture beams to <code>Nbeams / f**2</code> columns – exact within the PRISM aliasing window – shrinking the exact columns of <strong>both</strong> legs (S1 build and exit) by <code>f**2</code>.</li>
+<li><code>partition</code> (e.g.&nbsp;<code>{"n_radial": 4}</code>) builds S1 on <code>Bp &lt;&lt; Nbeams</code> parent beams (Pelz/Ophus partitioned PRISM), then reconstructs the exact aperture columns from the parents at the ionization plane and runs the same dual-S exit. This cheapens the <strong>S1 build + memory</strong> (<code>Bp</code> parent propagations) and is <em>approximate</em> (natural-neighbor reconstruction error – accurate in-focus / thin / small-aperture, degrading with thickness/aperture); the exit leg still propagates the reconstructed <code>Nbeams / f**2</code> columns, so the dual-S <code>P</code>-independence is preserved. Note partitioning does <strong>not</strong> reduce the (usually dominant) exit leg – only the S1 build; <code>interpolation_factor</code> is the lever for the exit. The two compose (<code>partition</code> partitions the already-subsampled aperture). Unlike partitioning <em>S2</em>, this is correct: the reconstruction resolves the position-dependent NNW basis <em>before</em> <code>H_{n0}</code> is applied (see :meth:<code>PartitionedScatteringMatrix.reconstruct_columns</code>).</li>
+</ul>
+</section>
+</section>
+<section id="parameters-9" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-9">Parameters</h2>
+<p>probe_q, transmissions, transition_potentials, sites, scan_pixels, wavelength, gridsize, slice_distance, return_real_space, interpolation_factor, partition As in :func:<code>prism_transition_potential_hybrid</code>. <code>partition</code> and <code>interpolation_factor</code> may be combined. scan_chunk : int Number of scan positions synthesised per batch (caps the <code>(scan_chunk, Ny, Nx)</code> temporary in the linear-combination step).</p>
+</section>
+<section id="returns-6" class="level2">
+<h2 class="anchored" data-anchor-id="returns-6">Returns</h2>
+<p>Tensor Intensity <code>(P, Ny, Nx)</code> summed over transitions and sites.</p>
+<section id="prism_eels_image" class="level3">
+<h3 class="anchored" data-anchor-id="prism_eels_image"><code>prism_eels_image</code></h3>
+<div class="sourceCode" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>prism_eels_image(probe_q: <span class="st">'Tensor'</span>, transmissions: <span class="st">'Tensor'</span>, transition_potentials: <span class="st">'TransitionPotentials'</span>, sites: <span class="st">'np.ndarray'</span>, scan_pixels: <span class="st">'Tensor'</span>, <span class="op">*</span>, wavelength: <span class="st">'float'</span>, gridsize: <span class="st">'Sequence[float]'</span>, slice_distance: <span class="st">'float'</span>, detector_mrad: <span class="st">'float'</span>, interpolation_factor<span class="op">=</span><span class="dv">1</span>, inelastic_crop: <span class="st">'Optional[int]'</span> <span class="op">=</span> <span class="va">None</span>, prism_mask: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">True</span>, scan_shape: <span class="st">'Optional[Sequence[int]]'</span> <span class="op">=</span> <span class="va">None</span>, partition: <span class="st">'Optional[dict]'</span> <span class="op">=</span> <span class="va">None</span>, partition_s2: <span class="st">'Optional[dict]'</span> <span class="op">=</span> <span class="va">None</span>, qeels_axis: <span class="st">"Optional[int | Literal['both']]"</span> <span class="op">=</span> <span class="va">None</span>, contract: <span class="st">'str'</span> <span class="op">=</span> <span class="st">'columns'</span>, mag_preserve: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">True</span>, focal_backprop<span class="op">=</span><span class="va">None</span>, scan_chunk: <span class="st">'Optional[int]'</span> <span class="op">=</span> <span class="dv">8192</span>) <span class="op">-&gt;</span> <span class="st">'Tensor | tuple[Tensor, Tensor]'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Double-channeling PRISM STEM-EELS image <code>I(x, y)</code>.</p>
+</section>
+</section>
+<section id="parameters-10" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-10">Parameters</h2>
+<p>probe_q : Tensor (Ny, Nx) Probe-forming aperture in reciprocal space (complex). transmissions : Tensor (NZ, Ny, Nx) Elastic transmission functions (<code>|T| = 1</code>; no absorption). transition_potentials : TransitionPotentials Transition potentials (<code>.array</code> (n_trans, Ny, Nx), centred at origin). sites : ndarray (Nsite, 3) Fractional <code>(y, x, z)</code> of the ionized atoms. scan_pixels : Tensor (P, 2) Scan positions in pixels. wavelength, gridsize, slice_distance As elsewhere. detector_mrad : float EELS detector collection semi-angle [mrad]; output beams within it. interpolation_factor : int or (int, int) PRISM interpolation factor for <code>S1</code> (and the scan crop region). inelastic_crop : int, optional Crop the transition-potential / scattering-matrix window to <code>(Ny, Nx) // inelastic_crop</code> around each atom (the localized transition). <code>None</code> uses the full grid (exact; equals the detector-integrated 4D dual-S). prism_mask : bool Restrict each atom’s contribution to scan positions within the PRISM <code>1/f</code> crop region around it (matches the interpolation-factor periodicity). scan_shape : (int, int), optional If given, the flat <code>(P,)</code> image is reshaped to <code>scan_shape</code>. partition : dict, optional If given (e.g.&nbsp;<code>{"n_radial": 4}</code>), build <code>S1</code> on <code>Bp</code> parent beams (:class:<code>PartitionedScatteringMatrix</code>) and reconstruct the exact aperture columns on each atom’s crop window via natural-neighbor interpolation. This cheapens the <code>S1</code> build/advance + memory (<code>Bp</code> parents) at the cost of the NNW reconstruction error. <code>None</code> uses the exact per-pixel <code>S1</code>. Overlapping windows may reuse a full-grid reconstruction for one slice. This uses a conservative additional-workspace budget of 2 GiB shared with S2; sparse windows and active focal referencing retain windowed reconstruction. This budget is not a bound on total simulation memory. partition_s2 : dict, optional Same idea for <code>S2</code> (the detector matrix): build the transpose multislice on <code>Bp</code> parent detector beams and NNW-reconstruct the detector columns on the crop window. Reduces the (often dominant) resident <code>S2</code> storage from <code>ndet</code> to <code>Bp</code> columns; stacks a second NNW error on the detector side. <code>None</code> keeps the full per-beam <code>S2</code>. qeels_axis : {0, 1, “both”}, optional Momentum-resolved (qEELS) output. <code>None</code> (default) returns the scalar elemental map. <code>0</code> or <code>1</code> <em>resolves</em> that detector-momentum axis and projects (sums) the perpendicular one away: the per-detector-beam intensities <code>|amp_d|^2</code> are binned by their signed frequency along <code>qeels_axis</code> instead of summed over all <code>d</code>. Summing the spectrum back over the resolved axis recovers the map exactly. Works with <code>partition</code> / <code>partition_s2</code> (binning is post-<code>|amp|^2</code>); for a faithful resolved axis use <code>interpolation_factor</code> <code>= 1</code> along it. <code>"both"</code> retains each detector beam separately (no projection). mag_preserve : bool, default True Magnitude-preserving NNW reconstruction of the partitioned columns: keep the complex-sum phase but restore the interpolated magnitude. Counters the phase- decoherence amplitude loss of the naive complex average (which underestimates the absolute scale ~2x at low parent count); converges to the exact result at full parents. Set False for the original (eq-14-style) behaviour. focal_backprop : float or “centroid”, optional Interpolate S1 parents at a Fresnel-referenced plane, then propagate the reconstructed window back. “centroid” uses half the traversed distance; a number specifies a fraction. A partition dictionary can override this setting per matrix; S2 uses it only when partition_s2 specifies it. Only partition_s2 accepts dechirp (default True), which removes and restores the scalar detector vacuum beam phase during interpolation. scan_chunk : int or None, default 8192 Process at most this many masked scan positions at once in the per-atom contraction. Bounds the scan-dependent intermediate memory so the scan can be sampled arbitrarily finely without OOM (results are independent of the value; <code>None</code> processes all positions in one block). contract : {“columns”, “probe”}, default “columns” How the per-atom contraction is associated (same result, different cost):</p>
+<pre><code>* ``"columns"`` forms the ``(n_det, B)`` intermediate
+  ``SHn0 = S2c·(H·S1c)`` once per atom and applies the scan coefficients
+  last (``amp = SHn0·c``). This intermediate is *scan-independent*, so the
+  per-scan cost is a cheap GEMM -- best when ``P`` is very large or the crop
+  window is the full grid.
+* ``"probe"`` does the beam sum first, rebuilding the physical probe on the
+  crop window (``probe = c·S1c``) and contracting it against the detector
+  columns (``amp = S2c·(H·probe)``). This avoids the ``O(n_det·B·|Ω|)``
+  intermediate and is markedly faster (~3-4x) when the crop window is small
+  and ``P`` is modest -- the typical map regime. Equivalent to
+  ``"columns"`` up to floating-point rounding (the contraction is reassociated).</code></pre>
+</section>
+<section id="returns-7" class="level2">
+<h2 class="anchored" data-anchor-id="returns-7">Returns</h2>
+<p>Tensor or (Tensor, Tensor) With <code>qeels_axis=None</code>: the STEM-EELS image, <code>(P,)</code> or <code>scan_shape</code>. Otherwise: <code>(spectrum, q_pixels)</code> where <code>spectrum</code> has a trailing momentum axis (<code>(P, n_q)</code> or <code>scan_shape + (n_q,)</code>) and <code>q_pixels</code> is the <code>(n_q,)</code> sorted signed-pixel frequency of each bin (physical <code>q = q_pixels / gridsize[qeels_axis]</code>). For <code>"both"</code>, <code>q_pixels</code> has shape <code>(n_q, 2)</code> in (qy, qx) order, with one signed coordinate pair per retained beam; divide each column by its corresponding grid size to obtain inverse Angstroms.</p>
+<section id="scatteringmatrix" class="level3">
+<h3 class="anchored" data-anchor-id="scatteringmatrix"><code>ScatteringMatrix</code></h3>
+<p>Plane-wave scattering matrix :math:<code>\mathcal S</code> advanced by multislice.</p>
+<p>Each row is the multislice-propagated plane wave for one beam in the probe-forming aperture. Advancing the matrix to a given depth and forming a probe by linear combination reproduces the elastic wave at that depth for any scan position.</p>
+</section>
+<section id="partitionedscatteringmatrix" class="level3">
+<h3 class="anchored" data-anchor-id="partitionedscatteringmatrix"><code>PartitionedScatteringMatrix</code></h3>
+<p>Partitioned-PRISM scattering matrix (Pelz 2021) for STEM-EELS.</p>
+<p>Instead of one multislice-propagated plane wave per aperture pixel, the matrix is built on a small set of <code>Bp</code> <em>parent</em> beams (a hex-ring subsample of the aperture). The probe at a scan position is synthesised by natural- neighbor interpolation of the <em>de-tilted</em> parent columns:</p>
+<pre><code>psi(r, R) = sum_p S_dt[p](r) * basis_p(r - R),
+S_dt[p](r)   = S[p](r) * exp(-2 pi i g_p . r / N),      (de-tilted column)
+basis_p(rho) = sum_b coeffs[b] w[b,p] exp(2 pi i g_b . rho / N),</code></pre>
+<p>where <code>w[b,p]</code> are the natural-neighbor weights expressing aperture beam <code>b</code> in terms of the parents. In the full-parent limit (every beam its own parent, <code>w</code> the identity) this is algebraically the exact per-pixel probe, so :class:<code>ScatteringMatrix</code> is the <code>Bp -&gt; B</code> limit and serves as the oracle. Presents the <code>advance_to</code> / <code>probe_at_current_plane</code> interface of :class:<code>ScatteringMatrix</code> plus :meth:<code>coeffs_at</code> / :meth:<code>reconstruct_columns</code>, so it can drive either the hybrid path or the dual-scattering-matrix exit (the reconstructed columns are scalar-combinable). Accepts <code>interpolation_factor</code> so PRISM beam subsampling composes with partitioning. Accuracy is regime-dependent (the natural-neighbor reconstruction error).</p>
+</section>
+<section id="detectorexitsmatrix" class="level3">
+<h3 class="anchored" data-anchor-id="detectorexitsmatrix"><code>DetectorExitSMatrix</code></h3>
+<p>S2: columns are detector-output beams back-propagated to the current slice.</p>
+<p><code>S2_d(r)</code> is the adjoint (transpose) multislice of the conjugate detector plane wave <code>e_d*</code> from the exit surface back to the current slice, so that for any wave <code>w</code> at that slice <code>sum_r S2_d(r) w(r) == fft(forward_exit(w))[d]</code> – the amplitude reaching detector beam <code>d</code>. Built once covering all slices (slice 0 -&gt; exit) and :meth:<code>peel_to</code> advances the start slice forward (removing front slices) so it is reused across every atom.</p>
+<p>With <code>partition</code> the transpose multislice is built on only <code>Bp</code> <em>parent</em> detector beams (a hex-ring subsample); the full detector columns are NNW-reconstructed on a crop window via :meth:<code>columns_window</code>. By reciprocity the de-tilted back-propagated columns are locally similar, so the same partitioned-PRISM interpolation applies – shrinking the resident S2 from <code>ndet</code> to <code>Bp</code> columns.</p>
+</section>
+</section>
+<section id="multislice-substrate" class="level2">
+<h2 class="anchored" data-anchor-id="multislice-substrate">Multislice substrate</h2>
+<p><code>scatterem.simulation</code></p>
+<section id="make_potential" class="level3">
+<h3 class="anchored" data-anchor-id="make_potential"><code>make_potential</code></h3>
+<div class="sourceCode" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>make_potential(structure, pixels, subslices<span class="op">=</span>[<span class="fl">1.0</span>], tiling<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">1</span>), displacements<span class="op">=</span><span class="va">True</span>, fractional_occupancy<span class="op">=</span><span class="va">True</span>, sinc_deconvolution<span class="op">=</span><span class="va">True</span>, bandwidthlimit<span class="op">=</span><span class="fl">0.2</span>, fe<span class="op">=</span><span class="va">None</span>, device<span class="op">=</span><span class="va">None</span>, dtype<span class="op">=</span>torch.float32, seed<span class="op">=</span><span class="va">None</span>, weights<span class="op">=</span><span class="va">None</span>, weight_power<span class="op">=</span><span class="dv">1</span>, <span class="op">*</span>, cache_fe: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">True</span>) <span class="op">-&gt;</span> <span class="st">'torch.Tensor'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Projected electrostatic potential of a structure on a pixel grid.</p>
+<p>Evaluates, for each depth slice <code>s</code> and grid node <code>n</code>,</p>
+<p>.. math::</p>
+<pre><code>V_s(\mathbf r_n) \;=\; \frac{1}{L_y L_x} \sum_{\mathbf k} M(\mathbf k)
+    \Big[\sum_{Z} f_e^{Z}(\mathbf g_{\mathbf k})\,
+         \tilde S_{Z,s}(\mathbf k)\Big]\,
+    e^{+2\pi i (k_y n_y/N_y + k_x n_x/N_x)},</code></pre>
+<p>where :math:<code>\tilde S_{Z,s}</code> is the sinc-deconvolved DFT of the bilinear splat of the species-<code>Z</code> atoms assigned to slice <code>s</code>, :math:<code>f_e^Z</code> is the electron scattering factor in V Å³, :math:<code>M</code> is the soft band-limit mask, :math:<code>\mathbf g_{\mathbf k} = (k_y/L_y, k_x/L_x)</code> in Å⁻¹, and :math:<code>L_i</code> are the tiled supercell edges. Equivalently, and this is what it is <em>for</em>: the convolution of the slice’s atomic delta comb with the per-species projected atomic potential. See the module docstring for the physics and the references.</p>
+</section>
+</section>
+<section id="parameters-11" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-11">Parameters</h2>
+<p>structure : Structure Must expose <code>unitcell</code> — the length-3 <strong>orthorhombic</strong> edge vector in Å — and <code>atoms</code>, an <code>(natoms, 6)</code> float array whose columns are <code>[x, y, z, Z, occupancy, &lt;u^2&gt;]</code>: <code>x, y, z</code> <strong>fractional</strong> coordinates nominally in <code>[0, 1)</code>, <code>Z</code> the atomic number, occupancy in <code>(0, 1]</code>, and <code>&lt;u^2&gt;</code> the one-dimensional mean-square thermal displacement in Å² (<strong>not</strong> the Debye-Waller <code>B</code>; <code>B = 8 pi^2 &lt;u^2&gt;</code>). Also <code>fractional_occupancy</code>, a bool. pixels : (2,) sequence of int Grid <code>(Ny, Nx)</code> covering the <em>tiled</em> supercell. A bare int is not accepted. subslices : float or (nss,) array_like, optional Upper fractional depths of the slices along <code>c</code>, non-decreasing, ending at 1.0. A bare float is treated as a single slice. Default <code>[1.0]</code>. tiling : (2,) sequence of int, optional Lateral repetition <code>(t0, t1)</code> of the unit cell. Default <code>(1, 1)</code>. displacements : bool, optional Draw per-atom, per-replica Gaussian lateral displacements with <code>sigma = sqrt(&lt;u^2&gt;)</code> (Einstein frozen-phonon model). <code>False</code> gives the deterministic static-lattice potential. Default True. fractional_occupancy : bool, optional Honour the occupancy column, and make atoms sharing a site vibrate together. Inert when the structure is fully occupied. Default True. sinc_deconvolution : bool, optional Divide out one factor of the splat kernel’s sinc per axis. Default True. bandwidthlimit : float or None, optional Width of the erf taper at the Nyquist radius; <code>None</code> disables the mask. Default 0.2. fe : (M, Ny, Nx) numpy.ndarray or None, optional Precomputed scattering factors in V Å³, corner-origin (unshifted) order, <strong>indexed along axis 0 in this function’s element order</strong> <code>list(set(atoms[:, 3].astype(int32)))</code> — see Notes. Only the first <code>Nx//2+1</code> columns are read. <code>None</code> (default) evaluates them. device : str, torch.device or None, optional <code>None</code> means CUDA if available, <strong>not</strong> CPU. dtype : torch.dtype, optional <code>float32</code>/<code>complex64</code> (default) or <code>float64</code>/<code>complex128</code>; the output always carries the corresponding <em>real</em> dtype. seed : int or None, optional Seed for the displacement draw. Seeds a private generator, so the caller’s global RNG stream is untouched. weights : (natoms,) array_like or torch.Tensor, optional Per-atom weight multiplying the splat mass; may require grad. weight_power : int, optional Exponent <code>p</code> on <code>weights</code>. <code>1</code> (default) for the elastic potential, which is linear in the scattering amplitude; <code>2</code> for emission/TDS potentials, whose form factor is a product of two amplitudes and therefore scales as <code>w^2</code>.</p>
+</section>
+<section id="returns-8" class="level2">
+<h2 class="anchored" data-anchor-id="returns-8">Returns</h2>
+<p>torch.Tensor <code>(nss, Ny, Nx)</code> real potential in volt-angstrom, on <code>device</code>, with the real dtype derived from <code>dtype</code>. Multiply by the interaction constant <code>sigma(E)</code> in rad/(V Å) to get the multislice phase shift.</p>
+</section>
+<section id="notes-5" class="level2">
+<h2 class="anchored" data-anchor-id="notes-5">Notes</h2>
+<p><strong>Element order is an external contract.</strong> Species are enumerated as <code>list(set(...))</code> over the int32 atomic numbers, i.e.&nbsp;CPython’s small-int hash order, which is <em>not</em> sorted: <code>{8, 42, 16, 1, 92}</code> enumerates as <code>[1, 8, 42, 16, 92]</code>. Callers that precompute <code>fe</code> build it against that order; replacing it with <code>sorted()</code> would silently permute form factors between species.</p>
+<p><strong>Integral invariant.</strong> <code>sum(V) * dy * dx</code> equals <code>sum_m occ_m * w_m**p * fe_{Z_m}(0)</code> over all atoms including tile replicas. This is the cheapest end-to-end check of the normalisation, and the gradient with respect to <code>w_m</code> is correspondingly <code>fe_{Z_m}(0)/(dy*dx)</code>.</p>
+<p><strong>Differentiability.</strong> Gradients flow through <code>weights</code> only; positions and the slice/element index maps are non-differentiable buffers.</p>
+<p><strong>Determinism.</strong> On CUDA, scatter-add into a float buffer accumulates in nondeterministic order, so two identical calls can differ at the ULP level even with <code>displacements=False</code>.</p>
+</section>
+<section id="examples" class="level2">
+<h2 class="anchored" data-anchor-id="examples">Examples</h2>
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<p>V = make_potential(structure, (256, 256), subslices=[0.5, 1.0], … displacements=False, device=“cpu”) # doctest: +SKIP V.shape # doctest: +SKIP torch.Size([2, 256, 256])</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<section id="make_transmission_functions" class="level3">
+<h3 class="anchored" data-anchor-id="make_transmission_functions"><code>make_transmission_functions</code></h3>
+<div class="sourceCode" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>make_transmission_functions(structure, pixels, eV, subslices: <span class="st">'Sequence[float]'</span> <span class="op">=</span> (<span class="fl">1.0</span>,), tiling: <span class="st">'Sequence[int]'</span> <span class="op">=</span> (<span class="dv">1</span>, <span class="dv">1</span>), fe: <span class="st">'Optional[Tensor]'</span> <span class="op">=</span> <span class="va">None</span>, displacements: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">True</span>, fftout: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">False</span>, dtype: <span class="st">'Optional[torch.dtype]'</span> <span class="op">=</span> <span class="va">None</span>, device: <span class="st">'Optional[Union[str, torch.device]]'</span> <span class="op">=</span> <span class="va">None</span>, fractional_occupancy: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">True</span>, seed: <span class="st">'Optional[int]'</span> <span class="op">=</span> <span class="va">None</span>, bandwidth_limit: <span class="st">'Optional[Union[float, Sequence[float]]]'</span> <span class="op">=</span> <span class="fl">0.6666666666666666</span>, V_abs: <span class="st">'Optional[Tensor]'</span> <span class="op">=</span> <span class="va">None</span>, dz: <span class="st">'Optional[float]'</span> <span class="op">=</span> <span class="va">None</span>, weights: <span class="st">'Optional[Tensor]'</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="st">'Tensor'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Build the band-limited multislice transmission functions of a structure.</p>
+<p>Three stages:</p>
+<ol type="1">
+<li><p><strong>Potential.</strong> Delegate to :func:<code>scatterem.simulation.potentials.make_potential</code> for the real projected electrostatic potential <code>V</code> of shape <code>(nsubslices, Ny, Nx)</code> in V<em>A. (That builder applies its own, separate soft antialias filter to the potential; <code>bandwidth_limit</code> here is the later, harder aperture applied to the </em>transmission function*, and is not forwarded.)</p></li>
+<li><p><strong>Complex exponential.</strong> Pure-elastic path,</p>
+<p>.. math:: T_j() = (i,,V_j()),</p>
+<p>so :math:<code>|T| = 1</code> exactly. With <code>V_abs</code> supplied, the optical potential picks up an imaginary part :math:<code>V^{\text{tot}} = V^{\text{DW}} + i\,\Delta z\,V^{\text{abs}}</code> and</p>
+<p>.. math::</p>
+<pre><code>T_j(\mathbf{r}) = e^{\,i\sigma V_j(\mathbf{r})}\,
+                   e^{-\sigma\,\Delta z\,V^{\text{abs}}_j(\mathbf{r})},</code></pre>
+<p>a pure phase times a real attenuation: the Debye–Waller absorptive channel. Pass Debye–Waller-damped scattering factors through <code>fe</code> to make the elastic <code>V</code> the DW-smeared :math:<code>V^{\text{DW}}</code>; the absorptive sink itself arrives ready-made in <code>V_abs</code>.</p></li>
+<li><p><strong>Band limit and output space.</strong> Forward-FFT over the last two axes, zero everything outside the antialias ellipse, and either return that (<code>fftout=True</code>) or transform back (<code>fftout=False</code>, the default). In one line, for <code>fftout=False</code>::</p>
+<pre><code>T = IFFT2( M * FFT2( exp(i*sigma*V - sigma*dz*V_abs) ) )</code></pre></li>
+</ol>
+</section>
+</section>
+<section id="parameters-12" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-12">Parameters</h2>
+<p>structure : Structure scatterem structure; needs <code>.unitcell</code> and an <code>.atoms</code> table with columns <code>[x, y, z, Z, occupancy, mean-square displacement]</code>. pixels : sequence of int Output grid <code>(Ny, Nx)</code>. Must be a length-2 iterable; a bare int is not accepted. eV : float Accelerating voltage in volts. Must be positive. subslices : sequence of float, default <code>(1.0,)</code> Fractional depths at which each slice <strong>ends</strong>, in fractional (untiled) unit-cell coordinates, increasing and ending at 1.0 to tile the cell exactly – e.g.&nbsp;<code>(0.5, 1.0)</code> for two equal slices. The number of output slices is <code>len(subslices)</code>. Not validated. tiling : sequence of int, default <code>(1, 1)</code> Lateral repeat <code>(ty, tx)</code> of the unit cell. fe : Tensor, optional Precomputed electron scattering factors. Pass to avoid recomputation, and as the mechanism for injecting Debye–Waller-damped factors. displacements : bool, default True Apply random frozen-phonon thermal displacements. With <code>seed=None</code> this makes the result nondeterministic. fftout : bool, default False Return the reciprocal-space (band-limited) transmission instead of the real-space one. dtype : torch.dtype, optional Working precision. <code>None</code> is exactly equivalent to <code>torch.float32</code>. A complex dtype is accepted and maps to the matching real precision internally. device : str or torch.device, optional Compute device. <code>None</code> resolves to CUDA when available, else CPU – so on a CUDA machine the default return is a <strong>GPU</strong> tensor. fractional_occupancy : bool, default True Weight each site by its occupancy. seed : int, optional Seeds the RNG used for the thermal displacements. Note this seeds the <em>global</em> torch RNG, so a seeded call is reproducible but perturbs any subsequent unseeded torch randomness in the process. bandwidth_limit : float or sequence of float or None, default 2/3 Antialias aperture radius as a fraction of the Nyquist frequency. A scalar applies to both axes; a sequence contributes its last two entries as <code>[limit_y, limit_x]</code>. <code>None</code> disables the aperture entirely (and then, for <code>fftout=False</code>, no transform is performed at all, so the result is the exponential exactly). V_abs : Tensor or array_like, optional Absorptive potential <strong>per unit thickness</strong> (units V), of shape <code>(nsubslices, Ny, Nx)</code> or anything broadcastable against it – <code>(Ny, Nx)</code> broadcasts over all slices. Moved to the potential’s device and cast to the real working precision. Must be non-negative for the exponential to damp rather than amplify; this is not validated. dz : float, optional Slice thickness in Angstrom, restoring the V*A scaling of <code>V_abs</code>. Required in spirit whenever <code>V_abs</code> is given; if omitted it is silently taken as 1.0 A. weights : Tensor, optional Per-atom scalar weights forwarded to the potential splat at power 1. May carry autograd gradients; the whole path stays differentiable.</p>
+</section>
+<section id="returns-9" class="level2">
+<h2 class="anchored" data-anchor-id="returns-9">Returns</h2>
+<p>Tensor Complex tensor of shape <code>(len(subslices), Ny, Nx)</code>. The complex dtype is the partner of the real working precision: float32 (or <code>None</code>, or <code>torch.complex64</code>) -&gt; <code>complex64</code>; float64 -&gt; <code>complex128</code>. Axis order is <code>(slice, y, x)</code>, row-major, with <code>pixels[0]</code> the slow axis.</p>
+<pre><code>With ``fftout=True`` the array is in standard **corner-origin** FFT
+order -- element ``[j, 0, 0]`` is DC, positive frequencies first,
+negative frequencies in the upper half.  There is no ``fftshift``
+anywhere; a consumer wanting a centred q-grid must shift it itself.</code></pre>
+</section>
+<section id="raises" class="level2">
+<h2 class="anchored" data-anchor-id="raises">Raises</h2>
+<p>ValueError If <code>eV</code> is not strictly positive.</p>
+</section>
+<section id="notes-6" class="level2">
+<h2 class="anchored" data-anchor-id="notes-6">Notes</h2>
+<p>The forward transform is unnormalised (<code>norm="backward"</code>) and the inverse carries the full <code>1/(Ny*Nx)</code>, so Parseval reads <code>sum_r |T|^2 = (1/(Ny*Nx)) * sum_q |T_hat|^2</code> and the DC element equals <code>sum_r T(r)</code>. Do not switch to <code>norm="ortho"</code>; it would rescale the <code>fftout=True</code> return by <code>sqrt(Ny*Nx)</code>.</p>
+<p><code>|T| = 1</code> holds only on the elastic path and only <em>before</em> the band limit. After band-limiting it departs from unity by of order 1% for a realistic potential, and with <code>V_abs</code> it is strictly below 1 by construction. A vacuum (atom-free) tile gives <code>T = 1</code> everywhere before the aperture, but the aperture turns that into the inverse transform of a masked delta – a sinc-like kernel with DC = 1, not the constant 1. Tests asserting unitarity or vacuum-identity must set <code>bandwidth_limit=None</code>.</p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<p>Cowley &amp; Moodie, <em>Acta Cryst.</em> <strong>10</strong> (1957) 609. Kirkland, <em>Advanced Computing in Electron Microscopy</em>, 2nd ed., Ch. 6 (multislice; 2/3 antialias rule in Ch. 6.6) and Eq. 5.6 (sigma). Hall &amp; Hirsch, <em>Proc. R. Soc. A</em> <strong>286</strong> (1965) 158; Bird &amp; King, <em>Acta Cryst.</em> <strong>A46</strong> (1990) 202 (absorptive potentials).</p>
+<section id="interaction_constant" class="level3">
+<h3 class="anchored" data-anchor-id="interaction_constant"><code>interaction_constant</code></h3>
+<div class="sourceCode" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>interaction_constant(E: <span class="bu">float</span>, units: <span class="bu">str</span> <span class="op">=</span> <span class="st">'rad/VA'</span>) <span class="op">-&gt;</span> <span class="bu">float</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Electron interaction constant sigma.</p>
+<p>sigma converts projected electrostatic potential (V*Angstrom) into phase (radians), which is what the multislice transmission function needs.</p>
+</section>
+</section>
+<section id="parameters-13" class="level2">
+<h2 class="anchored" data-anchor-id="parameters-13">Parameters</h2>
+<p>E : float Electron kinetic energy in eV. units : str <code>"rad/VA"</code> (default) returns sigma in rad/(V*Angstrom). <code>"rad/A"</code> returns the relativistic factor gamma/k0 in rad/Angstrom.</p>
+</section>
+<section id="returns-10" class="level2">
+<h2 class="anchored" data-anchor-id="returns-10">Returns</h2>
+<p>float Interaction constant in the requested units.</p>
+</section>
+<section id="aberrations" class="level2">
+<h2 class="anchored" data-anchor-id="aberrations">Aberrations</h2>
+<p><code>scatterem.utils.aberration_basis</code></p>
+<section id="cartesian_chi" class="level3">
+<h3 class="anchored" data-anchor-id="cartesian_chi"><code>cartesian_chi</code></h3>
+<div class="sourceCode" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>cartesian_chi(qy: <span class="st">'Tensor'</span>, qx: <span class="st">'Tensor'</span>, wavelength: <span class="st">'float'</span>, coefficients: <span class="st">'Sequence[float] | Tensor'</span>) <span class="op">-&gt;</span> <span class="st">'Tensor'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Evaluate the aberration phase <code>chi</code> in radians.</p>
+<p>Args: qy: reciprocal-space y coordinates, in inverse Angstrom. qx: reciprocal-space x coordinates, same shape as <code>qy</code>. wavelength: electron wavelength in Angstrom (see :func:<code>scatterem.utils.physics.electron_wavelength</code>). coefficients: the 12 cartesian coefficients in :data:<code>COEFFICIENT_NAMES</code> order, in Angstrom.</p>
+<p>Returns: <code>chi</code> with the broadcast shape of <code>qy</code> and <code>qx</code>.</p>
+</section>
+<section id="cartesian_to_polar" class="level3">
+<h3 class="anchored" data-anchor-id="cartesian_to_polar"><code>cartesian_to_polar</code></h3>
+<div class="sourceCode" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>cartesian_to_polar(cartesian: <span class="st">'Dict[str, float]'</span>) <span class="op">-&gt;</span> <span class="st">'Dict[str, float]'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Convert cartesian aberration pairs to magnitude and angle.</p>
+<p>The magnitude is non-negative and the angle is the one that satisfies <code>C * cos(m * (phi - phi_m)) == Ca * cos(m*phi) + Cb * sin(m*phi)</code>, so the returned pair describes the same wavefront as its input. Missing entries are taken as zero.</p>
+<p>The angle is only determined modulo <code>2*pi/m</code> – an <code>m</code>-fold term is physically unchanged by such a rotation – and is returned in the branch <code>atan2</code> gives, i.e.&nbsp;within <code>+-pi/m</code>.</p>
+</section>
+<section id="polar_to_cartesian" class="level3">
+<h3 class="anchored" data-anchor-id="polar_to_cartesian"><code>polar_to_cartesian</code></h3>
+<div class="sourceCode" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>polar_to_cartesian(polar: <span class="st">'Dict[str, float]'</span>) <span class="op">-&gt;</span> <span class="st">'Dict[str, float]'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Convert magnitude/angle aberrations to the cartesian pairs.</p>
+<p>Missing entries are taken as zero, so a caller may pass only the coefficients it cares about.</p>
+</section>
+</section>
+<section id="calibration-helpers" class="level2">
+<h2 class="anchored" data-anchor-id="calibration-helpers">Calibration helpers</h2>
+<p><code>scatterem.utils.data.disk_fit</code></p>
+<section id="fit_bright_field_disk" class="level3">
+<h3 class="anchored" data-anchor-id="fit_bright_field_disk"><code>fit_bright_field_disk</code></h3>
+<div class="sourceCode" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>fit_bright_field_disk(dp, <span class="op">*</span>, threshold_range: <span class="st">'Tuple[float, float]'</span> <span class="op">=</span> (<span class="fl">0.25</span>, <span class="fl">0.75</span>), n_thresholds: <span class="st">'int'</span> <span class="op">=</span> <span class="dv">100</span>, max_radius_fraction: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">0.4</span>, min_contrast: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">3.0</span>) <span class="op">-&gt;</span> <span class="st">'Tuple[float, NDArray]'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Radius and centre of the central bright-field disk, in pixels.</p>
+<p>Args: dp: 2D averaged diffraction pattern (torch tensor or numpy array). threshold_range: low and high sweep limits as fractions of the spike-free maximum. Keep it <strong>symmetric about 0.5</strong> – that symmetry is what makes the median unbiased. Widen it for a very soft edge. n_thresholds: number of thresholds in the sweep. max_radius_fraction: reject a fit whose radius exceeds this fraction of the smaller detector dimension. Guards against “fitting” a pattern that has no compact disk, where the sweep returns a radius of order the detector itself. min_contrast: reject a fit whose median intensity inside the disk is not at least this many times the median outside it.</p>
+<p>Returns: <code>(radius, centre)</code> with <code>radius</code> in pixels as a <code>float</code> and <code>centre</code> as a 2-element <code>numpy</code> array ordered <code>[y, x]</code>.</p>
+<p>Raises: ValueError: if <code>dp</code> is not 2D, or if the pattern contains no identifiable bright-field disk.</p>
+</section>
+</section>
+<section id="physics" class="level2">
+<h2 class="anchored" data-anchor-id="physics">Physics</h2>
+<p><code>scatterem.utils.physics</code></p>
+<section id="electron_wavelength" class="level3">
+<h3 class="anchored" data-anchor-id="electron_wavelength"><code>electron_wavelength</code></h3>
+<div class="sourceCode" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>electron_wavelength(accelerating_voltage: <span class="st">'float'</span>) <span class="op">-&gt;</span> <span class="st">'float'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Return the relativistic electron wavelength in Angstrom.</p>
+<p>An electron accelerated through <code>V</code> volts gains kinetic energy <code>eV</code>. Its momentum follows from the relativistic energy-momentum relation, and the de Broglie relation turns that into a wavelength::</p>
+<pre><code>lambda = h / sqrt(2 m0 e V (1 + e V / (2 m0 c^2)))</code></pre>
+<p>The bracketed factor is the relativistic correction; it is negligible below a few hundred volts and reaches ~1.2 at 200 kV, where ignoring it would overstate the wavelength by roughly 10%.</p>
+<p>Args: accelerating_voltage: the accelerating voltage in volts (e.g.&nbsp;<code>200e3</code> for a 200 kV microscope). Must be positive.</p>
+<p>Returns: The wavelength in Angstrom.</p>
+<p>Raises: ValueError: if <code>accelerating_voltage</code> is not positive.</p>
+</section>
+</section>
+<section id="grids" class="level2">
+<h2 class="anchored" data-anchor-id="grids">Grids</h2>
+<p><code>scatterem.utils.grids</code></p>
+<section id="fft_frequencies_2d" class="level3">
+<h3 class="anchored" data-anchor-id="fft_frequencies_2d"><code>fft_frequencies_2d</code></h3>
+<div class="sourceCode" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>fft_frequencies_2d(shape: <span class="st">'Sequence[int]'</span>, sampling: <span class="st">'Sequence[float]'</span> <span class="op">=</span> (<span class="fl">1.0</span>, <span class="fl">1.0</span>), half_pixel_shift: <span class="st">'bool'</span> <span class="op">=</span> <span class="va">False</span>, device: <span class="st">'str | torch.device'</span> <span class="op">=</span> <span class="st">'cpu'</span>, dtype: <span class="st">'torch.dtype | None'</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="st">'Tensor'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Stacked <code>(qy, qx)</code> FFT frequencies for a 2D grid.</p>
+<p>Args: shape: grid dimensions <code>(ny, nx)</code>. sampling: real-space pixel size <code>(dy, dx)</code>; frequencies come out in the reciprocal of whatever unit this is given in. half_pixel_shift: offset both axes by half a frequency bin. Use for quantities defined on pixel centres rather than pixel edges. device: device for the returned tensor. dtype: floating dtype for the returned tensor; <code>torch</code>’s default if omitted.</p>
+<p>Returns: A tensor of shape <code>(2, ny, nx)</code> whose first slice is <code>qy</code> and second is <code>qx</code>, matching <code>torch.fft</code> axis order.</p>
+</section>
+<section id="radial_average" class="level3">
+<h3 class="anchored" data-anchor-id="radial_average"><code>radial_average</code></h3>
+<div class="sourceCode" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>radial_average(image, sampling: <span class="st">'Sequence[float]'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Radial average of a corner-origin 2D array, over FFT frequency bins.</p>
+<p>Written from the definition.</p>
+<p>Each pixel contributes to the two bins its <code>|q|</code> falls between, in proportion to how close it lies to each — a linear (area-weighted) partition rather than nearest-bin assignment, which is what keeps a radial profile from developing sawtooth ripple at small radii where few pixels land per bin. The two contributions are accumulated in one pass by concatenating them, so the normalising count and the weighted sum each need a single <code>bincount</code>.</p>
+<p>Args: image: 2D array with the zero frequency at <code>[0, 0]</code>, as <code>torch.fft</code> produces. numpy array or torch tensor. sampling: real-space pixel size <code>(dy, dx)</code>; the returned frequencies are in the reciprocal of that unit.</p>
+<p>Returns: <code>(q_bins, profile)</code>, truncated to the largest frequency represented on both axes so the tail is not built from corner pixels alone.</p>
+<p>One deliberate difference from the replaced function: it truncated at the <code>x</code> axis maximum only, so with <strong>anisotropic</strong> sampling it returned bins past the shorter axis’ Nyquist, where a “ring” is really a pair of corner wedges. This truncates at the smaller of the two. On a square grid with equal sampling — every case the published figures use — the two agree to machine precision (measured max abs difference 2e-15, same bin count); with anisotropic sampling this returns a shorter profile, which matters to a caller slicing the result by index.</p>
+</section>
+</section>
+<section id="visualisation" class="level2">
+<h2 class="anchored" data-anchor-id="visualisation">Visualisation</h2>
+<p><code>scatterem.vis.visualization</code></p>
+<section id="show_2d" class="level3">
+<h3 class="anchored" data-anchor-id="show_2d"><code>show_2d</code></h3>
+<div class="sourceCode" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>show_2d(array, <span class="op">*</span>, sampling<span class="op">=</span><span class="va">None</span>, scalebar<span class="op">=</span><span class="st">'auto'</span>, figax<span class="op">=</span><span class="va">None</span>, axsize<span class="op">=</span>(<span class="dv">4</span>, <span class="dv">4</span>), tight_layout<span class="op">=</span><span class="va">True</span>, combine_images<span class="op">=</span><span class="va">False</span>, clip_percentile: Optional[Tuple[<span class="bu">float</span>, <span class="bu">float</span>]] <span class="op">=</span> <span class="va">None</span>, <span class="op">**</span>kwargs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Display one or more 2D arrays in a grid.</p>
+<p>Accepts a numpy array, a torch tensor, or a (nested) sequence of either. <code>sampling</code> (a :class:<code>Sampling</code> or a dict of its fields) drives the physical scale bar; if omitted, the object’s <code>.sampling_meta</code> is used if present, otherwise the bar falls back to <code>a.u.</code>.</p>
+<p><code>scalebar</code>: <code>"auto"</code> (default) draws a bar; <code>False</code>/<code>None</code> disables it; a dict/<code>ScalebarConfig</code> configures it explicitly.</p>
+<p><code>clip_percentile</code>: optional <code>(low, high)</code> percentiles (0-100). When given, the display vmin/vmax are computed from those percentiles of each array’s finite values, absorbing the common <code>p02 = quantile(...); img -= p02</code> boilerplate.</p>
+</section>
+</section>
+<section id="colour" class="level2">
+<h2 class="anchored" data-anchor-id="colour">Colour</h2>
+<p><code>scatterem.vis.complex_color</code></p>
+<section id="complex_to_rgba" class="level3">
+<h3 class="anchored" data-anchor-id="complex_to_rgba"><code>complex_to_rgba</code></h3>
+<div class="sourceCode" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>complex_to_rgba(amplitude: <span class="st">'NDArray'</span>, phase: <span class="st">'NDArray | None'</span> <span class="op">=</span> <span class="va">None</span>, <span class="op">*</span>, cmap: <span class="st">'str'</span> <span class="op">=</span> <span class="st">'gray'</span>, chroma: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">0.13</span>) <span class="op">-&gt;</span> <span class="st">'NDArray'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Colour an image, using <code>phase</code> as hue when it is given.</p>
+<p>Args: amplitude: values in <code>[0, 1]</code> (normalise before calling). phase: angles in radians. When None, <code>cmap</code> is applied and the result is an ordinary colormapped image. cmap: matplotlib colormap name, used only when <code>phase</code> is None. chroma: Oklab chroma for the phase wheel. The default is a compromise – high enough for hue to read, low enough to stay in gamut across most of the lightness range.</p>
+<p>Returns: <code>(..., 4)</code> RGBA in <code>[0, 1]</code>, alpha fully opaque.</p>
+</section>
+<section id="phase_wheel" class="level3">
+<h3 class="anchored" data-anchor-id="phase_wheel"><code>phase_wheel</code></h3>
+<div class="sourceCode" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>phase_wheel(n: <span class="st">'int'</span> <span class="op">=</span> <span class="dv">256</span>, <span class="op">*</span>, lightness: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">0.72</span>, chroma: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">0.13</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>(colors, angles)</code> for a phase colorbar: one full turn of hue.</p>
+<p><code>lightness</code> is fixed so the bar reads as hue alone. The default sits near the middle of the range where the sRGB gamut is widest, so the wheel keeps its chroma all the way round instead of desaturating at some hues.</p>
+</section>
+<section id="tile_to_rgba" class="level3">
+<h3 class="anchored" data-anchor-id="tile_to_rgba"><code>tile_to_rgba</code></h3>
+<div class="sourceCode" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>tile_to_rgba(rows, <span class="op">*</span>, norm<span class="op">=</span><span class="va">None</span>, cmap: <span class="st">'str'</span> <span class="op">=</span> <span class="st">'gray'</span>, chroma: <span class="st">'float'</span> <span class="op">=</span> <span class="fl">0.13</span>) <span class="op">-&gt;</span> <span class="st">'NDArray'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Composite a grid of same-shaped images into one RGBA mosaic.</p>
+<p>Replaces <code>list_of_arrays_to_rgba</code>. Each entry is coloured independently and the results are tiled, so a bright panel cannot darken its neighbours – the alternative, one normalisation across the whole grid, makes every panel but the brightest unreadable.</p>
+<p>Args: rows: sequence of rows, each a sequence of same-shaped 2D arrays. norm: callable mapping amplitude to <code>[0, 1]</code>, applied to each panel. If omitted, each panel is scaled by its own finite min and max.</p>
+<pre><code>    This argument is not optional in spirit: :func:`complex_to_rgba`
+    requires ``[0, 1]`` and *clips*, so handing it raw data silently
+    renders a 0..1000 image as 99.9% pure white. An earlier version of
+    this function did exactly that.
+cmap: colormap for real-valued panels.
+chroma: Oklab chroma for the phase hue of complex panels.</code></pre>
+</section>
+</section>
+<section id="scale-bars" class="level2">
+<h2 class="anchored" data-anchor-id="scale-bars">Scale bars</h2>
+<p><code>scatterem.vis.reconstruction_sampling</code></p>
+<section id="reconstruction_sampling" class="level3">
+<h3 class="anchored" data-anchor-id="reconstruction_sampling"><code>reconstruction_sampling</code></h3>
+<div class="sourceCode" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>reconstruction_sampling(dataset: <span class="st">'Any'</span>, image: <span class="st">'Any'</span> <span class="op">=</span> <span class="va">None</span>, <span class="op">*</span>, shape: <span class="st">'Sequence[int] | None'</span> <span class="op">=</span> <span class="va">None</span>, units: <span class="st">'tuple[str, str]'</span> <span class="op">=</span> (<span class="st">'Å'</span>, <span class="st">'Å'</span>)) <span class="op">-&gt;</span> <span class="st">'Sampling'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>Sampling</code> describing one pixel of a reconstructed image.</p>
+<p>The scan covered <code>scan_px * scan_step</code> of specimen; the reconstruction represents that same extent with <code>image_px</code> pixels, so::</p>
+<pre><code>pixel_size = scan_step * scan_px / image_px</code></pre>
+<p>which needs no knowledge of the upsample factor that was requested – it reads the factor off the result. That matters because <code>upsample="nyquist"</code> picks the factor from the data, so the caller may not know what it was.</p>
+<p>Args: dataset: the dataset the reconstruction came from. image: the reconstruction. Its last two dimensions give the output shape. shape: output shape, if you would rather pass it than the image. units: axis unit labels for the returned <code>Sampling</code>.</p>
+<p>Returns: A :class:<code>~scatterem.utils.data.sampling.Sampling</code> for the two real-space axes.</p>
+<p>Raises: ValueError: neither <code>image</code> nor <code>shape</code> was given, or the shape is not two-dimensional.</p>
+</section>
+</section>
+<section id="saving-and-loading" class="level2">
+<h2 class="anchored" data-anchor-id="saving-and-loading">Saving and loading</h2>
+<p><code>scatterem.io.store</code></p>
+<section id="serializable" class="level3">
+<h3 class="anchored" data-anchor-id="serializable"><code>Serializable</code></h3>
+<p>Mixin giving :meth:<code>save</code> and :meth:<code>load</code> to a class with a declared schema.</p>
+<p>Subclasses set :attr:<code>SERIAL_FIELDS</code> to the attribute names to persist, and must be constructible from those names as keyword arguments – or override :meth:<code>_from_fields</code> if construction needs more than that.</p>
+</section>
+<section id="read_schema" class="level3">
+<h3 class="anchored" data-anchor-id="read_schema"><code>read_schema</code></h3>
+<div class="sourceCode" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>read_schema(path: <span class="st">'str | Path'</span>) <span class="op">-&gt;</span> <span class="st">'dict[str, Any]'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The class, version and field list of a file, without constructing anything.</p>
+<p>Useful for telling why a load was refused.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scatterem\.github\.io\/scatterem");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Apache-2.0</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/scatterem/scatterem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li><li><a href="https://github.com/scatterem/scatterem/blob/main/docs/api.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p>Built with <a href="https://quarto.org">Quarto</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
