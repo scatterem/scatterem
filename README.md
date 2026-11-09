@@ -1,5 +1,7 @@
 # scatterem
 
+[![PyPI](https://img.shields.io/pypi/v/scatterem)](https://pypi.org/project/scatterem/)
+
 Reference implementations for three published methods in electron scattering.
 Each one accompanies its paper.
 
@@ -58,7 +60,7 @@ instances.
 ## Install
 
 ```bash
-pip install git+https://github.com/scatterem/scatterem
+pip install scatterem
 ```
 
 A CUDA GPU is strongly recommended. The reconstructions are FFT- and
@@ -71,7 +73,7 @@ pip builds GPAW from source, and the build needs a C++ compiler (see
 [Installation](https://scatterem.github.io/scatterem/docs/install.html)):
 
 ```bash
-CC=g++ pip install "scatterem[eels] @ git+https://github.com/scatterem/scatterem" gpaw-data
+CC=g++ pip install "scatterem[eels]" gpaw-data
 ```
 
 ## Run the FF-STEM paper figures
@@ -83,7 +85,16 @@ ptychography phase, changes to the aberration autofocus, the removal of the
 scan DC from up-sampled images, the detector frame of the astigmatism in
 tcDF and the new bright-field disk measurement, which sets `dk`. The paper figures were made with an earlier version of the code, which
 this repository does not contain.
-[Run the paper's figure scripts](docs/figures.qmd) gives the numbers.
+[Run the paper's figure scripts](https://scatterem.github.io/scatterem/docs/figures.html) gives the numbers.
+
+The scripts are in this repository, not in the PyPI package. Clone the
+repository at the release tag and install the same release from PyPI:
+
+```bash
+git clone --branch v0.4.0 https://github.com/scatterem/scatterem
+cd scatterem
+pip install scatterem==0.4.0
+```
 
 Each script downloads its dataset from Zenodo on the first run and checks it by
 md5. You only set where the data goes:

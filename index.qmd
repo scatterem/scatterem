@@ -101,7 +101,7 @@ from source, and the build needs a C++ compiler (see
 [Installation](docs/install.qmd)):
 
 ```bash
-CC=g++ pip install "scatterem[eels] @ git+https://github.com/scatterem/scatterem" gpaw-data
+CC=g++ pip install "scatterem[eels]" gpaw-data
 ```
 
 Without GPAW, the example runs with analytic hydrogenic states and emits a

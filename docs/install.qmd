@@ -3,7 +3,7 @@ title: "Install"
 ---
 
 ```bash
-pip install git+https://github.com/scatterem/scatterem
+pip install scatterem
 ```
 
 Python 3.10 or newer. Twelve runtime dependencies, all from PyPI.
@@ -21,7 +21,7 @@ existing `torch` alone:
 
 ```bash
 pip install torch --index-url https://download.pytorch.org/whl/cu128
-pip install git+https://github.com/scatterem/scatterem
+pip install scatterem
 ```
 
 `import scatterem` initialises Warp, which compiles a few kernels the first time
@@ -74,7 +74,17 @@ uses a reduced scan (512² output, 1.4 GiB). It needs a GPU runtime
 (*Runtime → Change runtime type → T4 GPU*) and nothing else — the code and the
 data are both public, and the dataset downloads itself, md5-verified.
 
-## From source
+## Development version from GitHub
+
+The PyPI package is the latest release. To install the current state of the
+`main` branch instead:
+
+```bash
+pip install git+https://github.com/scatterem/scatterem
+```
+
+To work on the code, clone the repository and install it in editable mode with
+the test dependencies:
 
 ```bash
 git clone https://github.com/scatterem/scatterem
@@ -92,7 +102,7 @@ built from. The `eels` extra installs `gpaw` and `ase`; `ase` also reads `.cif`
 and extended `.xyz` structure files.
 
 ```bash
-CC=g++ pip install "scatterem[eels] @ git+https://github.com/scatterem/scatterem" gpaw-data
+CC=g++ pip install "scatterem[eels]" gpaw-data
 ```
 
 PyPI has no GPAW wheels, so pip builds GPAW from its source package. GPAW

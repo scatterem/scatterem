@@ -1,0 +1,84 @@
+name: publish
+
+# Upload a release to PyPI when the GitHub release is published.
+#
+# This workflow does not build anything. The maintainers build the wheel and
+# the sdist once, check them, and attach them to the GitHub release together
+# with a SHA256SUMS file. This workflow downloads exactly those files, checks
+# them against SHA256SUMS, and uploads them. So PyPI gets the same bytes as the
+# GitHub release.
+#
+# PyPI accepts the upload through a trusted publisher (OpenID Connect). The
+# repository holds no PyPI token. The PyPI project "scatterem" trusts this
+# repository, this workflow file and the environment "pypi".
+
+on:
+  release:
+    types: [published]
+
+# Read-only by default. Only the pypi job gets an OIDC token (below).
+permissions:
+  contents: read
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/scatterem/${{ steps.check.outputs.version }}/
+    permissions:
+      # The trusted publisher needs an OIDC token.
+      id-token: write
+      contents: read
+    steps:
+      - name: Download the release files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir dist \
+            --pattern 'scatterem-*.whl' \
+            --pattern 'scatterem-*.tar.gz' \
+            --pattern 'SHA256SUMS'
+          ls -l dist
+
+      - name: Check the release files
+        id: check
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          cd dist
+          shopt -s nullglob
+          wheels=(scatterem-*.whl)
+          sdists=(scatterem-*.tar.gz)
+          # Exactly one wheel and one sdist.
+          if [ "${#wheels[@]}" -ne 1 ] || [ "${#sdists[@]}" -ne 1 ]; then
+            echo "::error::expected 1 wheel and 1 sdist, found ${#wheels[@]} and ${#sdists[@]}"
+            exit 1
+          fi
+          if [ ! -f SHA256SUMS ]; then
+            echo "::error::the release has no SHA256SUMS file"
+            exit 1
+          fi
+          # SHA256SUMS must name the wheel and the sdist, and both must match.
+          grep -q "  ${wheels[0]}\$" SHA256SUMS
+          grep -q "  ${sdists[0]}\$" SHA256SUMS
+          sha256sum -c SHA256SUMS
+          # The file names must carry the tag version (tag v0.4.0 -> 0.4.0).
+          version="${TAG#v}"
+          if [ "${wheels[0]}" != "scatterem-${version}-py3-none-any.whl" ] \
+             || [ "${sdists[0]}" != "scatterem-${version}.tar.gz" ]; then
+            echo "::error::file names do not match the tag version ${version}"
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          # The upload takes every file in dist, so SHA256SUMS goes.
+          rm SHA256SUMS
+          ls -l
+
+      # v1.14.3, pinned to its commit.
+      - name: Upload to PyPI
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          packages-dir: dist

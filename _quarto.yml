@@ -11,7 +11,10 @@ website:
   description: "Fused full-field 4D-STEM reconstruction, BiP-PRISM core-loss STEM-EELS simulation, and elastic PRISM"
   site-url: "https://scatterem.github.io/scatterem"
   repo-url: "https://github.com/scatterem/scatterem"
-  repo-actions: [issue, source]
+  # No "source" action: docs/api.qmd is generated in CI and is not in the
+  # repository, so its "View source" link would be a 404. Quarto 1.7 has no
+  # per-page override for repo-actions.
+  repo-actions: [issue]
   navbar:
     logo: logo.png
     logo-alt: "scatterem"

@@ -94,6 +94,9 @@ anim = ["imageio-ffmpeg>=0.5"]
 
 [project.urls]
 Homepage = "https://github.com/scatterem/scatterem"
+Documentation = "https://scatterem.github.io/scatterem"
+Source = "https://github.com/scatterem/scatterem"
+Issues = "https://github.com/scatterem/scatterem/issues"
 Paper = "https://doi.org/10.1002/advs.76620"
 "Paper (BiP-PRISM)" = "https://doi.org/10.1088/2515-7639/aebdd0"
 Data = "https://doi.org/10.5281/zenodo.18008901"
