@@ -1,5 +1,12 @@
 name: docs
 
+# Builds the documentation site with Sphinx. A push to main also deploys it to
+# the gh-pages branch, which serves https://scatterem.github.io/scatterem/.
+# A pull request only builds it.
+#
+# The build does not run the code blocks of the pages: this runner has no GPU
+# and no data. The maintainers run every block on a GPU before a release.
+
 on:
   push:
     branches: [main]
@@ -20,43 +27,38 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # v7.0.1, pinned to its commit.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-python@v5
+      # v7.0.0, pinned to its commit. Sphinx 9 needs Python 3.12 or newer.
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
           cache: pip
 
-      # The API reference is generated from live docstrings, so the package has to
-      # be importable. CPU torch only -- this job renders pages, it does not
-      # reconstruct anything, and the CUDA wheels are several GB.
+      # The API reference is autodoc, so the package has to be importable. CPU
+      # torch only: this job renders pages, it does not reconstruct anything,
+      # and the CUDA wheels are several GB.
       - name: Install
         run: |
           python -m pip install --upgrade pip
           python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-          python -m pip install -e .
+          python -m pip install . -r docs/requirements.txt
 
-      - name: Generate the API reference
-        run: python docs/_generate_api.py
+      # -W makes every warning an error, and -n reports every reference that
+      # does not resolve. docs/conf.py also fails the build when a public name
+      # is missing from the API reference. -d keeps the doctrees out of the
+      # published directory.
+      - name: Build
+        run: python -m sphinx -W --keep-going -n -c docs -d _build/doctrees . _build/html
 
-      # Fails the build if a documented symbol was renamed or removed: the
-      # generator raises rather than emitting a reference to nothing.
-      - name: Check the reference is not empty
-        run: |
-          test -s docs/api.qmd
-          grep -q '^### ' docs/api.qmd
-
-      - uses: quarto-dev/quarto-actions/setup@v2
-        with:
-          version: 1.7.32
-
-      - name: Render
-        run: quarto render
-
-      - uses: actions/upload-artifact@v4
+      # v7.0.1, pinned to its commit. include-hidden-files keeps .nojekyll,
+      # which tells GitHub Pages to serve the _static directory as it is.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: site
-          path: _site
+          path: _build/html
+          include-hidden-files: true
 
   deploy:
     needs: build
@@ -65,15 +67,19 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # v8.0.1, pinned to its commit.
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: site
-          path: _site
+          path: _build/html
+
+      # v4.1.0, pinned to its commit.
       - name: Publish to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: _site
+          publish_dir: _build/html
           # The site is a build artifact, so its history carries no information.
           force_orphan: true

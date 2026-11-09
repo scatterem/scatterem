@@ -1,6 +1,4 @@
----
-title: "Simulate STEM-EELS"
----
+# Simulate STEM-EELS
 
 This page covers the forward problem: given a structure, produce the core-loss
 EELS signal that a STEM records. There is no EELS *reconstruction* here.
@@ -18,13 +16,13 @@ that gives the output you need:
 The cube keeps the whole diffraction pattern at every scan position. It is the
 general output and the expensive one. The map integrates over an EELS collection
 aperture. The same two-matrix path can also keep individual detector beams for
-qEELS and PACBED; see [BiP-PRISM](bip-prism.qmd). If you want an elemental map,
+qEELS and PACBED; see [BiP-PRISM](bip-prism.md). If you want an elemental map,
 do not simulate a cube and sum it.
 
 `PrismEelsSimulator` is a thin driver. It builds the kernel inputs from a
 structure and calls `prism_eels_image` (map, qEELS) or
 `prism_transition_potential` (cube). It adds no physics of its own. The same
-driver also runs the elastic simulation; see [Elastic PRISM](prism.qmd).
+driver also runs the elastic simulation; see [Elastic PRISM](prism.md).
 
 ## A structure
 
@@ -60,8 +58,8 @@ positions in Å and an rms thermal displacement; pass
 The `.cif` and extended `.xyz` readers need the optional `ase` package. If you give lattice vectors as `(3, 3)` rows, `AtomSet` reduces the
 cell to a rectangular box, because the multislice handles only that box.
 
-::: {.callout-note}
-## `msd` is $\langle u^2 \rangle$, one-dimensional
+:::{admonition} `msd` is $\langle u^2 \rangle$, one-dimensional
+:class: note
 
 `AtomSet.msd` holds the *one-dimensional* mean-square thermal
 displacement in Å². It is not the Debye-Waller $B$ and not the three-dimensional
@@ -92,8 +90,8 @@ probe has zero defocus by default; pass `defocus=` (Å) to change it. Pass
 `dtype=torch.complex128` for double precision. For thermal averaging, pass
 `num_frozen_phonons=` with `displacements=True` and a `seed`.
 
-::: {.callout-important}
-## `semiconvergence_angle` is in **milliradians** here
+:::{admonition} `semiconvergence_angle` is in **milliradians** here
+:class: important
 
 `Dataset4DStem.from_array` on the reconstruction side takes radians. The
 simulator takes mrad, and so does `detector_mrad` below. A factor of 1000 gives
@@ -135,7 +133,7 @@ as the oracle on a small cell. At full resolution it does not fit on one GPU.
 
 The other keyword arguments of `eels_map` go to `prism_eels_image`:
 `inelastic_crop`, `prism_mask`, `mag_preserve`, `focal_backprop`, `contract`,
-`scan_chunk` and `reconstruction_workspace`. [BiP-PRISM](bip-prism.qmd) explains
+`scan_chunk` and `reconstruction_workspace`. [BiP-PRISM](bip-prism.md) explains
 what they do.
 
 ## A cube
@@ -218,15 +216,15 @@ The `wavefunctions` option selects the source. Pass it through
 
 GPAW is an optional extra, because it is GPL-licensed and a large install. The
 `eels` extra installs it. pip builds GPAW from source, and the build needs a
-C++ compiler (see [Installation](install.qmd)). The line below pins
+C++ compiler (see [Installation](install.md)). The line below pins
 scatterem 0.4.0, the release that gives the numbers on this page:
 
 ```bash
 CC=g++ pip install "scatterem[eels]==0.4.0" gpaw-data
 ```
 
-::: {.callout-warning}
-## Without GPAW, the numbers change
+:::{admonition} Without GPAW, the numbers change
+:class: warning
 
 If GPAW is not installed, the default falls back to the hydrogenic states, and
 the EELS calls warn:
@@ -249,7 +247,8 @@ analytic states and no warning, pass
 pass `transitions=dict(wavefunctions="gpaw")`.
 :::
 
-### The BiP-PRISM paper and v0.4 {#bip-prism-paper-v04}
+(bip-prism-paper-v04)=
+### The BiP-PRISM paper and v0.4
 
 v0.4 builds the transition potentials from a rewritten first-Born model. The
 forward model (`prism_eels_image` and its partitioned forms) is the same as in
@@ -265,7 +264,7 @@ projected potentials, transmission functions and probe):
   of a closed subshell, and the flux factor $k_0/k_n$. v0.3 had no absolute
   scale. So no single factor converts v0.3 values to v0.4 values: the ratio
   depends on the edge and on the beam energy (see
-  [Migrating from v0.3](migrating.qmd)).
+  [Migrating from v0.3](migrating.md)).
 - **GPAW states.** We compared v0.4 with v0.3 for each GPAW edge of the paper,
   at the beam energies of the paper (100 and 300 kV), 10 eV above threshold,
   after a best scalar fit. The map shapes change by 0.03-0.06 % for O K, Mg K and Al K, and by
@@ -389,7 +388,7 @@ on a sparse set of parent beams instead of every beam. This is the memory lever.
 On a large map it saves an order of magnitude or more, but only when the matrices
 fill the card. On a small problem it saves nothing and costs a little time. It is
 also approximate, and the detector side is the demanding one; see
-[accuracy](bip-prism.qmd#accuracy-and-the-one-caveat-worth-knowing).
+[accuracy](bip-prism.md#accuracy-and-the-one-caveat-worth-knowing).
 
 **`interpolation_factor`** ($f$) subsamples the aperture beams by $f^2$. It is
 valid only if the probe fits inside a $1/f$ fraction of the cell around the atom.
@@ -424,7 +423,8 @@ position still needs its own contraction. With `prism_mask=False`, a 64×64 scan
 takes about four times as long as a 32×32 scan (see the table below). A larger
 detector angle increases $n_{\text{det}}$ and so the $\mathcal{S}_2$ build.
 
-### The cost of a call: v0.3 and v0.4 {#the-cost-of-a-call-v03-and-v04}
+(the-cost-of-a-call-v03-and-v04)=
+### The cost of a call: v0.3 and v0.4
 
 The PRISM-EELS kernels of v0.4 compute the same forward model as v0.3, but a
 float32 call can take longer, for one reason: `import scatterem` no longer sets
@@ -475,8 +475,8 @@ rel = float((prism - exact).norm() / exact.norm())
 A large `rel` here means that something is wrong with the setup, not with the
 method.
 
-::: {.callout-important}
-## `interpolation_factor` changes the absolute scale of the cube
+:::{admonition} `interpolation_factor` changes the absolute scale of the cube
+:class: important
 
 A larger $f$ keeps the pattern but scales the intensity of the cube by roughly
 $f^2$. So a raw relative error against an $f = 1$ reference is dominated by this
@@ -488,14 +488,14 @@ against it.
 Partitioning is a separate approximation. Compare `partition=None` with your
 chosen `n_radial` at a fixed $f$. Treat the pattern correlation and the total
 signal as two different questions. For the *map*, the detector-side partition is
-much more demanding than the probe side. [BiP-PRISM](bip-prism.qmd#accuracy-and-the-one-caveat-worth-knowing)
+much more demanding than the probe side. [BiP-PRISM](bip-prism.md#accuracy-and-the-one-caveat-worth-knowing)
 works through that case.
 
 ## Reading further
 
-- [BiP-PRISM](bip-prism.qmd): what the two scattering matrices are, why both can
+- [BiP-PRISM](bip-prism.md): what the two scattering matrices are, why both can
   be partitioned, and where the approximation breaks down
-- [Elastic PRISM](prism.qmd): the elastic 4D-STEM simulation from the same driver
-- [API reference](api.qmd): every symbol above, generated from the source
+- [Elastic PRISM](prism.md): the elastic 4D-STEM simulation from the same driver
+- [API reference](api.md): every symbol above, generated from the source
 - The paper: P. Pelz, *J. Phys. Mater.* (2026),
   [doi:10.1088/2515-7639/aebdd0](https://doi.org/10.1088/2515-7639/aebdd0)

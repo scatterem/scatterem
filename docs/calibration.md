@@ -1,6 +1,4 @@
----
-title: "Calibration"
----
+# Calibration
 
 Most reconstruction problems are calibration problems. The fusion weights are
 functions of spatial frequency, so if the mapping from detector pixels to
@@ -51,8 +49,8 @@ measurement:
   `"rayfit"` keeps 10 pixels: with 2 it reads a disk with a 90-degree notch
   about 11 % small. Increase the band only for a very soft edge.
 
-::: {.callout-warning}
-## Check the radius
+:::{admonition} Check the radius
+:class: warning
 
 Print `dataset.bright_field_radius_and_center()` and compare the radius with
 the disk that you see in the mean pattern. A radius near the detector

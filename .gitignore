@@ -7,6 +7,9 @@ dist/
 .pytest_cache/
 .ruff_cache/
 
+# the Sphinx build of the documentation site
+_build/
+
 # reconstruction outputs and downloaded data
 *.png
 *.npy

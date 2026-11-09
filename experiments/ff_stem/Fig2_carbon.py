@@ -4,7 +4,7 @@ Runs the pipeline of the amorphous-carbon panel of Figure 2 of "Gap-free
 Information Transfer in 4D-STEM via Fusion of Complementary Scattering
 Channels" (You, Varnavides, Khavnekar, Palatkin, Shao, Wu, Stroppa, Chernikova,
 Zhu, Egoavil, Vespucci, Ye, Schur, Spiecker, Pelz) with the current scatterem
-code. The output differs from the published figure; docs/figures.qmd gives the
+code. The output differs from the published figure; docs/figures.md gives the
 measured differences and their causes.
 
 Specimen: amorphous carbon, 300 kV, 19.68 mrad semiconvergence angle. This is

@@ -16,7 +16,7 @@ the fitted aberrations (autofocus), the scan DC of up-sampled images (Au fused
 image 0.018), the frame of the A1 astigmatism in tcDF (Gd₂O₃ tcDF 0.35) and
 the bright-field disk measurement, which sets `dk` (carbon −0.36 %).
 The scripts also use the drizzle tcDF shift, and the paper used the Fourier
-shift. `docs/figures.qmd` gives the measured differences against v0.3 and
+shift. `docs/figures.md` gives the measured differences against v0.3 and
 their causes.
 
 ## Method overview

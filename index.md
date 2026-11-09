@@ -1,8 +1,7 @@
----
-title: "scatterem"
-subtitle: "Fused full-field 4D-STEM, BiP-PRISM core-loss STEM-EELS, and elastic PRISM"
-toc: false
----
+# scatterem
+
+{.lead}
+Fused full-field 4D-STEM, BiP-PRISM core-loss STEM-EELS, and elastic PRISM
 
 A 4D-STEM dataset holds more information than any single reconstruction recovers.
 Direct ptychography reads the phase gradient encoded in the bright-field disk and
@@ -54,16 +53,16 @@ calibration, so they land on the same grid.
 
 | | |
 |---|---|
-| [Install](docs/install.qmd) | one `pip install`, plus what to know about GPUs |
-| [Quickstart](docs/quickstart.qmd) | your own data, from array to fused image |
-| [The method](docs/method.qmd) | what each channel measures, and why fusing them works |
-| [Calibration](docs/calibration.qmd) | the parameters that decide whether a reconstruction is correct |
-| [Figure scripts](docs/figures.qmd) | the four paper specimens, downloaded automatically |
-| [Simulate STEM-EELS](docs/eels.qmd) | the forward simulation: maps, qEELS, cubes, and what they cost |
-| [BiP-PRISM](docs/bip-prism.qmd) | how partitioning both scattering matrices makes that affordable |
-| [Elastic PRISM](docs/prism.qmd) | elastic 4D-STEM from the plane-wave and partitioned scattering matrix |
-| [Migrating from v0.3](docs/migrating.qmd) | where every v0.3 name went |
-| [API](docs/api.qmd) | reference, generated from the source |
+| [Install](docs/install.md) | one `pip install`, plus what to know about GPUs |
+| [Quickstart](docs/quickstart.md) | your own data, from array to fused image |
+| [The method](docs/method.md) | what each channel measures, and why fusing them works |
+| [Calibration](docs/calibration.md) | the parameters that decide whether a reconstruction is correct |
+| [Figure scripts](docs/figures.md) | the four paper specimens, downloaded automatically |
+| [Simulate STEM-EELS](docs/eels.md) | the forward simulation: maps, qEELS, cubes, and what they cost |
+| [BiP-PRISM](docs/bip-prism.md) | how partitioning both scattering matrices makes that affordable |
+| [Elastic PRISM](docs/prism.md) | elastic 4D-STEM from the plane-wave and partitioned scattering matrix |
+| [Migrating from v0.3](docs/migrating.md) | where every v0.3 name went |
+| [API](docs/api.md) | reference, generated from the source |
 
 ## Simulating core-loss STEM-EELS
 
@@ -98,7 +97,7 @@ cbed = sim.elastic_cbed()          # elastic 4D-STEM by PRISM
 
 The EELS wavefunctions come from GPAW when it is installed. pip builds GPAW
 from source, and the build needs a C++ compiler (see
-[Installation](docs/install.qmd)):
+[Installation](docs/install.md)):
 
 ```bash
 CC=g++ pip install "scatterem[eels]" gpaw-data
@@ -111,11 +110,11 @@ from v0.3 by 18-61 % with the hydrogenic states. With GPAW, they differ by
 0.03-0.6 % for the K, L23 and M45 edges we tested, and by 1.4 % for Fe L1. The exact published numbers of the BiP-PRISM paper came
 from the paper's pre-release code, which uses the v0.3 transition potentials.
 See
-[The BiP-PRISM paper and v0.4](docs/eels.qmd#bip-prism-paper-v04).
+[The BiP-PRISM paper and v0.4](#bip-prism-paper-v04).
 
-See [Simulate STEM-EELS](docs/eels.qmd) for the pipeline,
-[BiP-PRISM](docs/bip-prism.qmd) for the algorithm and
-[Elastic PRISM](docs/prism.qmd) for the elastic simulation.
+See [Simulate STEM-EELS](docs/eels.md) for the pipeline,
+[BiP-PRISM](docs/bip-prism.md) for the algorithm and
+[Elastic PRISM](docs/prism.md) for the elastic simulation.
 
 ## Citing this
 
@@ -151,3 +150,37 @@ Three things live here, and each accompanies its own paper:
 
 The wider `scatterem` codebase covers more. Those parts accompany their own
 publications and are released with them.
+
+```{toctree}
+:hidden:
+:caption: Get started
+
+docs/install
+docs/quickstart
+```
+
+```{toctree}
+:hidden:
+:caption: Background
+
+docs/method
+docs/calibration
+```
+
+```{toctree}
+:hidden:
+:caption: Simulation
+
+docs/eels
+docs/bip-prism
+docs/prism
+```
+
+```{toctree}
+:hidden:
+:caption: Reference
+
+docs/figures
+docs/migrating
+docs/api
+```

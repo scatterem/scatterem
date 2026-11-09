@@ -1,6 +1,4 @@
----
-title: "The method"
----
+# The method
 
 ## Two channels, two halves of the band
 
@@ -71,7 +69,7 @@ image is a handful of single electron counts, and Fourier shifting turns each
 isolated count into a sinc: roughly 20% negative side-lobes, with energy spread
 across the whole frame. Drizzle has no ringing to spread.
 
-::: {.callout-note}
+:::{note}
 The paper's figures were produced with the Fourier path; drizzle came afterwards.
 The figure scripts in `experiments/ff_stem/` use the drizzle default. Both paths
 are available. On the amorphous carbon of `Fig2_carbon.py`, v0.4 gives fused

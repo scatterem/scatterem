@@ -1,6 +1,4 @@
----
-title: "Install"
----
+# Install
 
 ```bash
 pip install scatterem
@@ -27,8 +25,8 @@ pip install scatterem
 `import scatterem` initialises Warp, which compiles a few kernels the first time
 and prints a short banner. That is expected, and it is cached afterwards.
 
-::: {.callout-note}
-## Matmul precision
+:::{admonition} Matmul precision
+:class: note
 
 `import scatterem` does not change torch's float32 matmul precision, so it stays
 at torch's default, `"highest"` (true fp32). The published figures were
@@ -53,8 +51,8 @@ upsampling rather than with detector size. Measured with
 These are the figure scripts of `experiments/ff_stem/` with v0.4 on an NVIDIA
 RTX A6000, over the whole script.
 
-::: {.callout-warning}
-## Raising `n_batches` does not reduce memory much
+:::{admonition} Raising `n_batches` does not reduce memory much
+:class: warning
 
 Measured on the Au reconstruction: `n_batches` of 15, 60 and 150 gave 5.7, 5.4
 and 5.3 GiB.
@@ -73,6 +71,8 @@ configuration (1024² output, 5.5 GiB peak). On a GPU with less than 8 GiB it
 uses a reduced scan (512² output, 1.4 GiB). It needs a GPU runtime
 (*Runtime → Change runtime type → T4 GPU*) and nothing else — the code and the
 data are both public, and the dataset downloads itself, md5-verified.
+
+<span id="from-source"></span>
 
 ## Development version from GitHub
 
@@ -122,7 +122,7 @@ gives a new absolute scale (first-Born, Å²/eV). After a best scalar fit, the m
 shapes differ from v0.3 by 18-61 % with the hydrogenic states. With GPAW, they
 differ by 0.03-0.6 % for the K, L23 and M45 edges we tested, and by 1.4 % for
 Fe L1. See
-[The BiP-PRISM paper and v0.4](eels.qmd#bip-prism-paper-v04).
+[The BiP-PRISM paper and v0.4](#bip-prism-paper-v04).
 
 The code caches atomic wavefunctions and transition potentials on disk. Set
 `SCATTEREM_EELS_CACHE` to put the cache somewhere with room.

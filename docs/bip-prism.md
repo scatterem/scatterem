@@ -1,6 +1,4 @@
----
-title: "BiP-PRISM"
----
+# BiP-PRISM
 
 ## What makes core-loss EELS expensive
 
@@ -83,8 +81,8 @@ Both reconstructions resolve *before* the contraction, on the window, and the
 window is small — so the resident matrices shrink from $B$ and $n_{\text{det}}$
 columns to $B_p$ each, while the arithmetic that consumes them is unchanged.
 
-::: {.callout-note}
-## Resolved detector output
+:::{admonition} Resolved detector output
+:class: note
 
 `prism_transition_potential` retains the full exit diffraction pattern with
 ordinary multislice on the exit leg, so its `partition` option applies to
@@ -143,7 +141,7 @@ reference-plane operation.
 The elastic operator `PrismScanOp` has its own default,
 `focal_backprop="centroid"`. There, "centroid" is the scattering-weighted
 centroid of the specimen, not half the traversed depth. See
-[Elastic PRISM](prism.qmd).
+[Elastic PRISM](prism.md).
 
 ## Memory and runtime
 
@@ -175,7 +173,7 @@ peak memory and 3.7 s at a 384² grid, and 3.60 GB and 24.6 s at 1024²
 The float32 speed depends on the matmul precision. v0.3 set TF32 (`"medium"`)
 at import; v0.4 does not. `scatterem.configure(matmul_precision="medium")`
 restores the v0.3 speed; see
-[the cost of a call](eels.qmd#the-cost-of-a-call-v03-and-v04).
+[the cost of a call](eels.md#the-cost-of-a-call-v03-and-v04).
 
 ## Reading further
 

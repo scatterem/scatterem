@@ -1,6 +1,4 @@
----
-title: "Quickstart"
----
+# Quickstart
 
 ## From an array
 
@@ -29,7 +27,7 @@ reciprocal pixel size `dk` yourself. `from_array` sets `dk` to a `(1.0, 1.0)`
 placeholder, and `run()` warns if the placeholder is still there. Call
 `calibrate_reciprocal_from_bright_field()`, which measures `dk` from the
 bright-field disk, or pass a known `reciprocal_step=` to `from_array`. See
-[Calibration](calibration.qmd): most reconstruction problems start there.
+[Calibration](calibration.md): most reconstruction problems start there.
 
 ## Fit the aberrations
 
@@ -68,8 +66,8 @@ fit = run(
 dataset.meta = fit.applied_to(dataset.meta)
 ```
 
-::: {.callout-important}
-## Give the autofocus a defocus
+:::{admonition} Give the autofocus a defocus
+:class: important
 
 With `correction_method="autofocus"` the fit starts from `meta.aberrations`. If
 C10, C12a and C12b are all zero (a known Cs alone does not count), a
@@ -88,7 +86,7 @@ three-fold astigmatism). Raise it to reach spherical aberration; the higher orde
 need more signal to constrain.
 
 The autofocus holds the scan rotation **fixed**, so `meta.rotation` must already be
-right on the way in. If you do not know it, see [Calibration](calibration.qmd).
+right on the way in. If you do not know it, see [Calibration](calibration.md).
 
 ## Reconstruct
 
@@ -147,7 +145,7 @@ same = Dataset4DStem.load("carbon.h5", device="cuda")
 The file records which fields it contains. If you later add or rename a field on
 the class, loading an old file **fails** and names the difference, rather than
 handing you a half-populated object. See
-[`scatterem.utils.store`](api.qmd#saving-and-loading).
+[`scatterem.utils.store`](api.md#saving-and-loading).
 
 ## The named datasets
 
@@ -159,4 +157,4 @@ from scatterem import You2026Carbon
 dataset = You2026Carbon(root="~/ffstem-data", download=True, device="cuda")
 ```
 
-They arrive already calibrated. See [Figure scripts](figures.qmd).
+They arrive already calibrated. See [Figure scripts](figures.md).

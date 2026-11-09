@@ -106,15 +106,13 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## py_multislice (former basis, replaced in v0.4)
+## py_multislice (names only)
 
 py_multislice by Hamish G. Brown (https://github.com/HamishGBrown/py_multislice)
-ships no licence. scatterem v0.3 and earlier based its physics layer on it:
-the frequency grids and band limits, the scattering factors, the structure
-container and its file readers, the projected-potential builder and the
-transmission function. v0.4 replaces these modules with clean-room rewrites
+ships no licence. The physics base layer of scatterem
 (`scatterem.physics.periodic_sampling`, `atom_amplitudes`, `atom_set`,
-`beam_partition`, `potential_stack` and the modules it uses, `thin_slice`).
+`beam_partition`, `potential_stack` and the modules it uses, `thin_slice`)
+is a clean-room rewrite.
 Two teams did each rewrite. A specification team that knew the former code
 wrote a behavioural contract. A separate blind team wrote the code from that
 contract and the published literature, in a sandbox that held no
@@ -143,18 +141,14 @@ One interface outside the physics base layer keeps py_multislice names:
 name `eV`. `subshell_transitions(Z, n, l, epsilon, ..., order=1)` keeps the
 parameter order and the `order=1` default of py_multislice `get_transitions`,
 and the `mlprime` field of `Transition` has the name of the py_multislice
-parameter. v0.4 renames the band-limit keyword of
-`build_transition_potentials` from `bandwidth_limit` to `bandlimit`; its
-default stays 2/3.
+parameter.
 
 The forward STEM-EELS functions in `scatterem.simulation.eels`
 (`multislice_transition_potential`, `prism_transition_potential`,
 `prism_eels_image`) implement the published algorithm of H. G. Brown, J.
 Ciston and C. Ophus, Phys. Rev. Research 1, 033186 (2019). py_multislice
 implements the same algorithm. A provenance review in v0.4 found no code in
-common. v0.4 changes the function name `transition_potential_multislice` to
-`multislice_transition_potential`; the list above gives the names that stay.
-The optional `site_threshold` of
+common. The optional `site_threshold` of
 `multislice_transition_potential` compares the same two intensities as the
 `threshhold` option of py_multislice. Its module docstring derives the rule.
 
@@ -170,7 +164,7 @@ read and run the EELS tests, some of which carried abTEM-shaped expressions,
 and the orchestrator named abTEM-specific choices of the former code for them
 to avoid. An audit of their work records found no read of the git history,
 of abTEM or of the former code bodies (exposed, not used). Some names and
-defaults stay from earlier scatterem releases and follow abTEM:
+defaults follow abTEM:
 
 - from `SubshellTransitions`: the `epsilon`, `order` (default 1), `xc`
   (default `"PBE"`) and `lprimes` parameters of
@@ -187,21 +181,11 @@ defaults stay from earlier scatterem releases and follow abTEM:
   `validate_units` (`scatterem.data.validation`) and the method name
   `_build_s_matrix` (`scatterem.nn.scan_exit_wave.prism`).
 
-The antialiasing aperture of v0.3 and earlier (`antialias_aperture`,
-`antialias_cutoff_gpts`, the cutoff 0.6666666 and the rim width 0.01)
-followed abTEM. v0.4 replaces it with the clean-room
-`scatterem.physics.periodic_sampling.CircularPassBand`, which keeps none of
-these names or values.
-
-In v0.3 the physical constants and the electron wavelength, the
-wave-aberration function with its polar-to-Cartesian conversion, its Warp
-twin and the aperture masks were rewritten from the textbook relations by an
-author who had seen former code that followed abTEM (a copy of
-`energy2wavelength` and of the `cartesian2polar` block), and were checked for
-parity against it. v0.4 replaces these modules with clean-room rewrites
-(`scatterem.physics.constants`, `scatterem.physics.optics` and
-`scatterem.physics.kernels.lens_wavefront_wp`). Two teams did the rewrite, as
-for the other clean-room modules. The blind team worked in a sandbox that held
+The physical constants and the electron wavelength, the wave-aberration
+function, its Warp twin and the aperture masks (`scatterem.physics.constants`,
+`scatterem.physics.optics` and `scatterem.physics.kernels.lens_wavefront_wp`)
+are clean-room rewrites. Two teams did the rewrite, as for the other
+clean-room modules. The blind team worked in a sandbox that held
 none of the replaced modules and no abTEM, py4DSTEM, py_multislice, prismatic
 or quantem code, with a separate Python environment in which none of these
 packages imports. The acceptance tests compared the new code with recorded
@@ -261,15 +245,13 @@ the name, the parameters (`dp_mask`,
 `vectorized_calculation=True`) and the six-array return order of
 `_calculate_intensities_center_of_mass`.
 
-v0.3 and earlier based the scan-rotation search, its figures and the
-bright-field shift estimators on py4DSTEM. v0.4 replaces them with clean-room
-rewrites (`scatterem.data.calibration.find_scan_rotation`,
+The scan-rotation search, its figures and the bright-field shift estimators
+(`scatterem.data.calibration.find_scan_rotation`,
 `scatterem.vis.rotation_figures`,
-`scatterem.reconstruction.ptychography.direct.measure_bf_parallax`) with a new
-API, and the SSB Warp kernels
+`scatterem.reconstruction.ptychography.direct.measure_bf_parallax`) are
+clean-room rewrites with a new API. So are the SSB Warp kernels
 (`scatterem.nn.functional.warp.ptychography`) and their aperture predicate
-(`scatterem.utils.warp.probe_cone_pass`) with a clean-room rewrite. No
-py4DSTEM name, parameter, default or argument order of these parts is kept.
+(`scatterem.utils.warp.probe_cone_pass`). No py4DSTEM name, parameter, default or argument order of these parts is kept.
 The scan-rotation and bright-field team worked in a sandbox but used the
 development environment, which also held the former scatterem package. The
 SSB kernel team worked in a branch of the scatterem repository, whose history
@@ -279,14 +261,10 @@ removed the former kernels, which names four removed helpers (none of these
 names is in the new code), and compared its outputs with recorded outputs of
 the former kernels (exposed, not used).
 
-v0.3 measured the bright-field disk with a threshold-area fit (its module
-`disk_fit`) and with a RANSAC circle fit. The threshold-area
-fit replaced a port of the py4DSTEM `get_probe_size`, and its author had seen
-that port. The same release had
-the DFT frequency grid and the ring profile of its module `grids`. v0.4
-replaces these modules with clean-room rewrites
-(`scatterem.data.pupil_gauge.measure_pupil` and
-`scatterem.utils.spectral_mesh`). Two teams did the rewrite. A specification
+The bright-field disk measurement
+(`scatterem.data.pupil_gauge.measure_pupil`) and the DFT frequency grid and
+ring profile (`scatterem.utils.spectral_mesh`) are clean-room rewrites. Two
+teams did the rewrite. A specification
 team that knew the former code wrote a behavioural contract. A separate blind
 team wrote the code from that contract and the published literature, in a
 sandbox that held none of the replaced modules and no py4DSTEM, quantem,
@@ -298,9 +276,7 @@ not blind, renamed the names that the provenance audits flagged. For this,
 they compared the names with py4DSTEM, quantem, abTEM, py_multislice and the
 former modules. No name, keyword, default, option string or argument order
 of the former modules is kept, except the PyTorch convention names `dtype`
-and `device`. The `thresh_lower`, `thresh_upper` and `N` parameters of the
-bright-field methods of `Dataset4DStem`, which followed `get_probe_size`, are
-removed.
+and `device`.
 
 ## Lobato and Van Dyck (2014), Table 1 (data)
 

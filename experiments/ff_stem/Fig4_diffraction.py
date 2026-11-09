@@ -4,7 +4,7 @@ Runs the pipeline of the low-dose diffraction panel of Figure 4 of "Gap-free
 Information Transfer in 4D-STEM via Fusion of Complementary Scattering
 Channels" (You, Varnavides, Khavnekar, Palatkin, Shao, Wu, Stroppa, Chernikova,
 Zhu, Egoavil, Vespucci, Ye, Schur, Spiecker, Pelz) with the current scatterem
-code. The output differs from the published figure; docs/figures.qmd gives the
+code. The output differs from the published figure; docs/figures.md gives the
 measured differences and their causes.
 
 Specimen: Au nanoparticle, 200 kV, 30 mrad semiconvergence angle, acquired at

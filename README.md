@@ -1,80 +1,55 @@
-# scatterem
+<p align="center">
+  <img src="https://raw.githubusercontent.com/scatterem/scatterem/main/logo.png" alt="scatterem logo" width="160">
+</p>
 
-[![PyPI](https://img.shields.io/pypi/v/scatterem)](https://pypi.org/project/scatterem/)
+<h1 align="center">scatterem</h1>
 
-Reference implementations for three published methods in electron scattering.
-Each one accompanies its paper.
+<p align="center">
+  <b>4D-STEM reconstruction and differentiable STEM simulations on the GPU, in PyTorch.</b>
+</p>
 
-**Fused full-field STEM (FF-STEM)** is the reconstruction side. It does direct
-(single-side-band) ptychography and tilt-corrected dark-field imaging, and it
-fuses them with SSNR-weighted Wiener weights. The fused image carries the
-low-frequency phase contrast of ptychography and the high-frequency detail of the
-dark field.
+<p align="center">
+  <a href="https://pypi.org/project/scatterem/"><img src="https://img.shields.io/pypi/v/scatterem" alt="PyPI"></a>
+  <a href="https://pypi.org/project/scatterem/"><img src="https://img.shields.io/pypi/pyversions/scatterem" alt="Python versions"></a>
+  <a href="https://scatterem.github.io/scatterem"><img src="https://img.shields.io/badge/docs-scatterem.github.io-blue" alt="Documentation"></a>
+  <a href="https://doi.org/10.5281/zenodo.22162829"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.22162829.svg" alt="Zenodo DOI"></a>
+  <a href="https://github.com/scatterem/scatterem/blob/main/LICENSE"><img src="https://img.shields.io/badge/licence-Apache--2.0-green" alt="Licence"></a>
+</p>
 
-S. You, G. Varnavides, S. Khavnekar, *et al.*, "Gap-Free Information Transfer in
-4D-STEM via Fusion of Complementary Scattering Channels", *Advanced Science*
-13 (2026) e76620. [doi.org/10.1002/advs.76620](https://doi.org/10.1002/advs.76620)
+scatterem holds the reference implementations of three published methods in
+electron scattering. Each method comes with its paper, its data and the scripts
+that make the paper's figures.
 
-**BiP-PRISM** is the simulation side. It does dynamical forward simulation of
-core-loss STEM-EELS by transition-potential multislice, by PRISM, and by the
-bi-partitioned algorithm. That algorithm partitions both the probe-forming and
-the detector-propagating scattering matrix, so full-resolution elemental maps
-fit on a single consumer GPU.
+| Method | What it does | Paper |
+|---|---|---|
+| **FF-STEM** | Fuses direct (single-side-band) ptychography and tilt-corrected dark field with SSNR-weighted Wiener weights. The image keeps the low-frequency phase contrast and the high-frequency detail. | S. You *et al.*, *Adv. Sci.* 13 (2026) e76620, [doi:10.1002/advs.76620](https://doi.org/10.1002/advs.76620) |
+| **BiP-PRISM** | Simulates core-loss STEM-EELS by transition-potential multislice, PRISM and the bi-partitioned PRISM algorithm. Full-resolution elemental maps fit on one consumer GPU. | P. Pelz, *J. Phys. Mater.* (2026), [doi:10.1088/2515-7639/aebdd0](https://doi.org/10.1088/2515-7639/aebdd0) |
+| **Elastic PRISM** | Simulates 4D-STEM with the plane-wave and the beam-partitioned scattering matrix. | as used in the BiP-PRISM paper |
 
-P. Pelz, "The bi-partitioned PRISM (BiP-PRISM) algorithm for fast and scalable
-core-loss STEM-EELS simulations", *Journal of Physics: Materials* (2026).
-[doi.org/10.1088/2515-7639/aebdd0](https://doi.org/10.1088/2515-7639/aebdd0)
+```bash
+pip install scatterem                                # FF-STEM and elastic PRISM
+CC=g++ pip install "scatterem[eels]" gpaw-data       # adds GPAW wavefunctions for EELS
+```
 
-**Elastic PRISM** is the plane-wave scattering-matrix simulation of 4D-STEM
-(Ophus 2017) and its beam-partitioned form (Pelz *et al.* 2021), as the
-BiP-PRISM paper uses them.
-
-Documentation: [scatterem.github.io/scatterem](https://scatterem.github.io/scatterem)
-FF-STEM data: [doi.org/10.5281/zenodo.18008901](https://doi.org/10.5281/zenodo.18008901) (CC-BY-4.0)
-Citation metadata: `CITATION.cff`
-
-Version 0.4 moves every module to a new package layout and removes
-`StemEelsSimulator`. If you used v0.3, read
-[Migrating from v0.3](https://scatterem.github.io/scatterem/docs/migrating.html).
-Zenodo keeps the earlier versions (v0.3:
-[doi:10.5281/zenodo.22663087](https://doi.org/10.5281/zenodo.22663087)).
-Licence history: in v0.3 and earlier, the EELS physics followed abTEM
-(GPL-3.0), the multislice base physics followed py_multislice (which has no
-licence), and the centre-of-mass fit chain (`fit_2D`, `fit_origin`, the
-centre-of-mass measurement), the scan-rotation search, the bright-field shift
-estimators and the SSB Warp kernels followed py4DSTEM (GPL-3.0). Those
-archives carry an Apache-2.0 label, but these parts of them are not
-Apache-2.0 code. v0.4 replaces all of them with clean-room rewrites. v0.3 and
-earlier also held code from torchvision (BSD-3-Clause) and quantem (MIT)
-without their notices. v0.4 carries both notices.
-
-## Try it in the browser
-
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb)
-
-The notebook installs the package, fetches one dataset from Zenodo and runs the
-full FF-STEM reconstruction on a free Colab T4. You do not need a local setup. The
-notebook sizes the scan to the GPU it gets, so it also works on smaller
-instances.
+- **Documentation:** [scatterem.github.io/scatterem](https://scatterem.github.io/scatterem)
+- **Try it in the browser:** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb) (one FF-STEM reconstruction on a free T4)
+- **FF-STEM data:** [doi:10.5281/zenodo.18008901](https://doi.org/10.5281/zenodo.18008901) (CC-BY-4.0)
+- **Upgrading from v0.3:** every module moved. Read [Migrating from v0.3](https://scatterem.github.io/scatterem/docs/migrating.html).
 
 ## Install
 
-```bash
-pip install scatterem
-```
+The install commands are at the top of this page. A CUDA GPU is strongly
+recommended. The reconstructions are FFT- and kernel-bound, and the NVIDIA Warp
+kernels need a GPU for anything beyond a small test. If the default `torch`
+wheel does not match your driver, install a matching build first.
 
-A CUDA GPU is strongly recommended. The reconstructions are FFT- and
-kernel-bound, and the NVIDIA Warp kernels need a GPU for anything beyond a small
-test. If the default `torch` wheel does not match your driver, install a matching
-build first.
+The `eels` extra adds GPAW, the all-electron backend for quantitative
+STEM-EELS. pip builds GPAW from source, and the build needs a C++ compiler (see
+[Installation](https://scatterem.github.io/scatterem/docs/install.html)).
 
-For quantitative STEM-EELS, also install the optional all-electron backend.
-pip builds GPAW from source, and the build needs a C++ compiler (see
-[Installation](https://scatterem.github.io/scatterem/docs/install.html)):
-
-```bash
-CC=g++ pip install "scatterem[eels]" gpaw-data
-```
+The Colab notebook installs the package, fetches one dataset from Zenodo and
+runs the full FF-STEM reconstruction on a free Colab T4. It sizes the scan to
+the GPU it gets, so it also works on smaller instances.
 
 ## Run the FF-STEM paper figures
 
@@ -228,7 +203,8 @@ pre-release code, which uses the v0.3 transition potentials. See the
 ## Authors
 
 The authors of this software are Shengbo You, Nikita Palatkin, Sihan Shao and
-Philipp Pelz, as listed in `CITATION.cff`.
+Philipp Pelz, as listed in
+[`CITATION.cff`](https://github.com/scatterem/scatterem/blob/main/CITATION.cff).
 
 The FF-STEM method is the work of the paper's authors: Shengbo You, Georgios
 Varnavides, Sagar Khavnekar, Nikita Palatkin, Sihan Shao, Mingjian Wu, Daniel
@@ -241,9 +217,11 @@ papers. Please cite the paper for the part you use.
 
 ## Licence
 
-Apache-2.0. See `LICENSE`. Third-party notices and data sources are in
-`THIRD-PARTY-NOTICES.md`: the MIT notice of quantem, the BSD-3-Clause notice
-of torchvision, the names kept from abTEM and py4DSTEM (with the Krivanek
-aberration labels, which v0.4 shares with abTEM and the former modules), the
-former py_multislice basis that v0.4 replaced, and
-the scattering-factor table of Lobato and Van Dyck (2014). Please cite that article when you use the table.
+Apache-2.0. See
+[`LICENSE`](https://github.com/scatterem/scatterem/blob/main/LICENSE).
+Third-party notices and data sources are in
+[`THIRD-PARTY-NOTICES.md`](https://github.com/scatterem/scatterem/blob/main/THIRD-PARTY-NOTICES.md):
+the MIT notice of quantem, the BSD-3-Clause notice of torchvision, the names
+kept from py_multislice, abTEM and py4DSTEM (with the Krivanek aberration
+labels, which v0.4 shares with abTEM), and the scattering-factor table of
+Lobato and Van Dyck (2014). Please cite that article when you use the table.

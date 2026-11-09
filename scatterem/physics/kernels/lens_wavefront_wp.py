@@ -55,7 +55,7 @@ def lens_wavefront_f32(
     """Return the lens wavefront ``W`` [rad] at one frequency point, in float32.
 
     Accuracy. For inputs that are exact in float32, the result ``W32`` and the
-    float64 value ``W64`` of the same inputs satisfy
+    float64 value ``W64`` of the same inputs satisfy::
 
         |W32 - W64| <= 32 eps (2 pi / lambda) sum_j |c_j P_j| / (n_j + 1)
                        + 4 eps |W64|,   eps = 2^-23,

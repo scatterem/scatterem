@@ -1,11 +1,9 @@
----
-title: "Elastic PRISM"
----
+# Elastic PRISM
 
 This page covers elastic 4D-STEM simulation: a convergent-beam diffraction
 pattern (CBED) at every scan position of a periodic cell. The code computes it
 with the PRISM scattering matrix (Ophus 2017) or with its beam-partitioned form
-(Pelz *et al.* 2021). The core-loss simulation on [Simulate STEM-EELS](eels.qmd)
+(Pelz *et al.* 2021). The core-loss simulation on [Simulate STEM-EELS](eels.md)
 uses the same matrices.
 
 ## The idea in one paragraph
@@ -138,7 +136,7 @@ Partitioned PRISM interpolates the parent columns at one reference plane.
 surface, 1 the entrance surface), or as `"centroid"`. For `PrismScanOp`,
 `"centroid"` (the default) is the scattering-weighted centroid of the specimen.
 For the core-loss path the convention is different; see
-[BiP-PRISM](bip-prism.qmd#focal-referencing). Without `n_radial`, every beam is a
+[BiP-PRISM](bip-prism.md#focal-referencing). Without `n_radial`, every beam is a
 parent, and `focal_backprop` has no effect.
 
 ## Checking your setup
@@ -171,5 +169,5 @@ diameters.
   [doi:10.1017/S1431927621012083](https://doi.org/10.1017/S1431927621012083)
 - The software paper for this code: P. Pelz, *J. Phys. Mater.* (2026),
   [doi:10.1088/2515-7639/aebdd0](https://doi.org/10.1088/2515-7639/aebdd0)
-- [BiP-PRISM](bip-prism.qmd): the same matrices for core-loss EELS
-- [API reference](api.qmd)
+- [BiP-PRISM](bip-prism.md): the same matrices for core-loss EELS
+- [API reference](api.md)

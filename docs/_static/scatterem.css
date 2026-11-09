@@ -1,0 +1,607 @@
+/*
+ * scatterem look for pydata-sphinx-theme.
+ *
+ * The palette is measured from the logo (logo.png), not invented next to it:
+ * the median of each saturated hue band of the logo gives seven colours, in
+ * Oklch form. Light is the base palette; dark overrides it.
+ */
+
+/* --spin and --sheen must be registered, or a browser cannot animate them. */
+@property --spin {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* ---------------------------------------------------------------------------
+ * Palette. Light is the base; dark overrides it. Both sit on <html>, which is
+ * where pydata sets data-theme, so specificity alone decides.
+ * ------------------------------------------------------------------------- */
+
+html {
+  --c-red:        oklch(0.635 0.209  34.7);
+  --c-orange:     oklch(0.735 0.176  55.9);
+  --c-yellow:     oklch(0.903 0.176  98.2);
+  --c-chartreuse: oklch(0.759 0.188 126.8);
+  --c-blue:       oklch(0.644 0.164 246.3);
+  --c-violet:     oklch(0.472 0.212 302.0);
+  --c-magenta:    oklch(0.593 0.214 334.1);
+
+  --ink:      oklch(0.22 0.020 302);
+  --ink-soft: oklch(0.47 0.020 302);
+  --paper:    oklch(0.993 0.004 302);
+  --paper-2:  oklch(0.972 0.008 302);
+  --edge:     oklch(0.895 0.010 302);
+
+  --logo-ring: var(--edge);
+  --chip-bg: color-mix(in oklab, var(--c-magenta) 14%, var(--paper-2));
+  --chip-fg: color-mix(in oklab, var(--c-magenta) 60%, var(--ink));
+
+  --sweep: linear-gradient(
+    90deg,
+    var(--c-red), var(--c-orange), var(--c-yellow), var(--c-chartreuse),
+    var(--c-blue), var(--c-violet), var(--c-magenta)
+  );
+
+  --rhythm: clamp(1rem, 0.6rem + 1.4vw, 1.75rem);
+
+  scrollbar-color: color-mix(in oklab, var(--c-violet) 45%, var(--edge)) transparent;
+  accent-color: var(--c-violet);
+}
+
+html[data-theme="dark"] {
+  --c-red:        oklch(0.700 0.200  34.7);
+  --c-orange:     oklch(0.780 0.170  55.9);
+  --c-yellow:     oklch(0.900 0.170  98.2);
+  --c-chartreuse: oklch(0.800 0.180 126.8);
+  --c-blue:       oklch(0.720 0.150 246.3);
+  --c-violet:     oklch(0.680 0.190 302.0);
+  --c-magenta:    oklch(0.700 0.190 334.1);
+
+  --ink:      oklch(0.94 0.014 302);
+  --ink-soft: oklch(0.72 0.018 302);
+  --paper:    oklch(0.17 0.022 302);
+  --paper-2:  oklch(0.22 0.026 302);
+  --edge:     oklch(0.32 0.024 302);
+
+  --logo-ring: color-mix(in oklab, var(--edge) 70%, transparent);
+}
+
+/* No sRGB fallback: this file also needs color-mix(), which every browser
+ * without oklch() lacks too, so a fallback here would only half work. */
+
+/* ---------------------------------------------------------------------------
+ * Map the palette onto the pydata theme's variables. The selectors repeat the
+ * theme's own (html[data-theme=...]) so that this file wins by load order.
+ * ------------------------------------------------------------------------- */
+
+html[data-theme="light"],
+html[data-theme="dark"] {
+  --pst-font-family-base: "Inter var", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --pst-font-family-heading: var(--pst-font-family-base);
+  --pst-font-family-monospace: "JetBrains Mono", "SF Mono", ui-monospace, "Cascadia Code", monospace;
+  --pst-font-weight-heading: 640;
+
+  --pst-color-primary: var(--c-violet);
+  --pst-color-secondary: var(--c-blue);
+  --pst-color-accent: var(--c-magenta);
+  --pst-color-success: var(--c-chartreuse);
+  --pst-color-warning: var(--c-orange);
+  --pst-color-danger: var(--c-red);
+  --pst-color-info: var(--c-blue);
+
+  --pst-color-background: var(--paper);
+  --pst-color-on-background: var(--paper);
+  --pst-color-surface: var(--paper-2);
+  --pst-color-on-surface: var(--ink); /* pydata uses it as a text colour */
+  --pst-color-border: var(--edge);
+  --pst-color-text-base: var(--ink);
+  --pst-color-text-muted: var(--ink-soft);
+  --pst-color-heading: var(--ink);
+
+  --pst-color-link: color-mix(in oklab, var(--c-violet) 82%, var(--ink));
+  --pst-color-link-hover: var(--c-magenta);
+  --pst-color-link-higher-contrast: color-mix(in oklab, var(--c-violet) 70%, var(--ink));
+  --pst-color-inline-code: var(--chip-fg);
+  --pst-color-inline-code-links: var(--chip-fg);
+  --pst-color-target: color-mix(in oklab, var(--c-yellow) 25%, transparent);
+  --pst-sidebar-header-font-size: 0.78rem;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  /* A trace of the sweep behind everything, at the corners. */
+  background-image:
+    radial-gradient(60rem 40rem at 8% -10%, color-mix(in oklab, var(--c-violet) 9%, transparent), transparent 70%),
+    radial-gradient(50rem 36rem at 100% 4%, color-mix(in oklab, var(--c-blue) 8%, transparent), transparent 70%);
+  background-attachment: fixed;
+}
+
+/* The pydata layers paint their own background; let the body show through. */
+.bd-container,
+.bd-main,
+.bd-content,
+.bd-article-container,
+.bd-sidebar-primary,
+.bd-sidebar-secondary,
+.bd-footer,
+.bd-footer-content,
+.bd-footer-article {
+  background: transparent;
+}
+
+/* Cross-document view transitions: pages cross-fade where supported. */
+@view-transition {
+  navigation: auto;
+}
+
+/* Reading progress, driven by the scroll position (no script). */
+body::before {
+  content: "";
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 2000;
+  block-size: 2px;
+  background: var(--sweep);
+  transform-origin: 0 50%;
+  scale: 0 1;
+  animation: read linear both;
+  animation-timeline: scroll(root block);
+}
+
+@keyframes read {
+  to { scale: 1 1; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Navbar
+ * ------------------------------------------------------------------------- */
+
+.bd-header {
+  background: color-mix(in oklab, var(--paper) 72%, transparent) !important;
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border-block-end: 1px solid var(--edge);
+  box-shadow: none;
+}
+
+/* The logo is black-backed by design; give it a tile radius and a hairline. */
+.navbar-brand img.logo__image {
+  block-size: 1.9rem;
+  inline-size: auto;
+  border-radius: 0.3em;
+  box-shadow: 0 0 0 1px var(--logo-ring), 0 1px 3px -1px oklch(0 0 0 / 0.3);
+  transition: scale 0.2s cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 0.2s ease;
+}
+
+.navbar-brand:hover img.logo__image {
+  scale: 1.06;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--c-violet) 45%, var(--edge)),
+    0 3px 12px -3px color-mix(in oklab, var(--c-violet) 55%, transparent);
+}
+
+/* Gradient wordmark. background-clip:text needs a transparent fill. */
+.navbar-brand p.title.logo__title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: var(--sweep);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: drift 18s linear infinite alternate;
+}
+
+@keyframes drift {
+  to { background-position: 100% 0; }
+}
+
+.bd-header ul.navbar-nav > li.nav-item > .nav-link {
+  position: relative;
+  color: var(--ink-soft);
+  font-weight: 520;
+  transition: color 0.18s ease;
+}
+
+/* Underline that grows from the centre. pydata draws its own with
+ * box-shadow; switch that off and use the sweep instead. */
+.bd-header ul.navbar-nav > li.nav-item > .nav-link::before,
+.bd-header ul.navbar-nav > li.nav-item > .nav-link::after {
+  content: none;
+}
+
+.bd-header ul.navbar-nav > li.nav-item > .nav-link {
+  box-shadow: none !important;
+  text-decoration: none;
+}
+
+.bd-header ul.navbar-nav > li.nav-item > .nav-link::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0.55rem;
+  inset-block-end: 0.15rem;
+  block-size: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  scale: 0 1;
+  transition: scale 0.22s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.bd-header ul.navbar-nav > li.nav-item > .nav-link:hover,
+.bd-header ul.navbar-nav > li.nav-item > .nav-link:focus-visible {
+  color: var(--ink);
+}
+
+.bd-header ul.navbar-nav > li.nav-item > .nav-link:hover::after,
+.bd-header ul.navbar-nav > li.nav-item > .nav-link:focus-visible::after {
+  scale: 1 1;
+}
+
+.bd-header ul.navbar-nav > li.nav-item.current > .nav-link {
+  color: var(--ink);
+  font-weight: 620;
+}
+
+.bd-header ul.navbar-nav > li.nav-item.current > .nav-link::after {
+  scale: 1 1;
+  background: var(--sweep);
+}
+
+/* Hover colours walk the logo's sweep from left to right. */
+.bd-header ul.navbar-nav > li.nav-item:nth-child(5n + 1) > .nav-link:hover { color: var(--c-chartreuse); }
+.bd-header ul.navbar-nav > li.nav-item:nth-child(5n + 2) > .nav-link:hover { color: var(--c-blue); }
+.bd-header ul.navbar-nav > li.nav-item:nth-child(5n + 3) > .nav-link:hover { color: var(--c-violet); }
+.bd-header ul.navbar-nav > li.nav-item:nth-child(5n + 4) > .nav-link:hover { color: var(--c-magenta); }
+.bd-header ul.navbar-nav > li.nav-item:nth-child(5n + 5) > .nav-link:hover { color: var(--c-orange); }
+
+/* ---------------------------------------------------------------------------
+ * Left sidebar
+ * ------------------------------------------------------------------------- */
+
+.bd-sidebar-primary {
+  border-inline-end: none;
+}
+
+.bd-sidebar-primary .bd-links__title,
+.bd-sidebar-primary p.caption {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: color-mix(in oklab, var(--ink-soft) 80%, var(--c-violet));
+}
+
+.bd-sidebar-primary .bd-links a.reference {
+  border-radius: 0.4rem;
+  color: var(--ink-soft);
+  transition: color 0.16s ease, background-color 0.16s ease;
+}
+
+.bd-sidebar-primary .bd-links a.reference:hover {
+  background: color-mix(in oklab, var(--c-violet) 8%, transparent);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+/* The active page: a bar in the logo's sweep, not pydata's flat one. */
+.bd-sidebar-primary .bd-links li > a.reference.current {
+  position: relative;
+  color: var(--ink);
+  font-weight: 640;
+  box-shadow: none;
+}
+
+.bd-sidebar-primary .bd-links li > a.reference.current::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.15rem;
+  inset-inline-start: -0.1rem;
+  inline-size: 3px;
+  border-radius: 3px;
+  background: var(--sweep);
+}
+
+/* ---------------------------------------------------------------------------
+ * Type
+ * ------------------------------------------------------------------------- */
+
+.bd-article h1 {
+  font-size: clamp(2.1rem, 1.2rem + 3.4vw, 3.2rem);
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  /* Ink into violet into blue: the cool end of the logo's range. */
+  background: linear-gradient(
+    100deg,
+    var(--ink) 8%,
+    color-mix(in oklab, var(--c-violet) 85%, var(--ink)) 48%,
+    color-mix(in oklab, var(--c-blue) 88%, var(--ink))
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bd-article p,
+.bd-article li {
+  text-wrap: pretty;
+}
+
+/* A rule under h2 that fades out instead of stopping. */
+.bd-article h2 {
+  margin-block-start: calc(var(--rhythm) * 1.6);
+  padding-block-end: 0.3rem;
+  border-block-end: 1px solid transparent;
+  border-image: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--c-violet) 55%, transparent),
+      transparent 65%
+    ) 1;
+}
+
+.bd-article a.reference,
+.bd-article a.external {
+  text-decoration-color: color-mix(in oklab, var(--c-violet) 40%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color 0.16s ease, color 0.16s ease;
+}
+
+.bd-article a.reference:hover,
+.bd-article a.external:hover {
+  text-decoration-color: currentColor;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--c-blue) 30%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-violet);
+  outline-offset: 3px;
+  border-radius: 0.25rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Code. The left accent walks the logo's sweep, so neighbouring blocks differ.
+ * ------------------------------------------------------------------------- */
+
+.bd-article div.highlight {
+  position: relative;
+  border: 1px solid var(--edge);
+  border-radius: 0.75rem;
+  background: var(--paper-2);
+  overflow: clip;
+}
+
+.bd-article div.highlight pre {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.bd-article div.highlight::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 3px;
+  background: var(--c-violet);
+}
+
+.bd-article div[class^="highlight-"]:nth-of-type(6n + 1) div.highlight::before { background: var(--c-red); }
+.bd-article div[class^="highlight-"]:nth-of-type(6n + 2) div.highlight::before { background: var(--c-yellow); }
+.bd-article div[class^="highlight-"]:nth-of-type(6n + 3) div.highlight::before { background: var(--c-chartreuse); }
+.bd-article div[class^="highlight-"]:nth-of-type(6n + 4) div.highlight::before { background: var(--c-blue); }
+.bd-article div[class^="highlight-"]:nth-of-type(6n + 5) div.highlight::before { background: var(--c-violet); }
+.bd-article div[class^="highlight-"]:nth-of-type(6n + 6) div.highlight::before { background: var(--c-magenta); }
+
+/* Inline code as a chip. Code inside links and signatures keeps its context. */
+.bd-article code.literal:not(.xref) {
+  background: var(--chip-bg);
+  color: var(--chip-fg);
+  border: none;
+  padding: 0.12em 0.36em;
+  border-radius: 0.3rem;
+  font-size: 0.9em;
+}
+
+button.copybtn {
+  color: var(--ink-soft);
+}
+
+button.copybtn:hover {
+  color: var(--c-violet);
+}
+
+/* API signatures: a quiet card, so the generated pages match the rest. */
+.bd-article dl.py > dt.sig {
+  background: var(--paper-2);
+  border: 1px solid var(--edge);
+  border-inline-start: 3px solid var(--c-violet);
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.7rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Admonitions: one logo colour on the edge and a hairline, not a slab.
+ * ------------------------------------------------------------------------- */
+
+.bd-article .admonition,
+.bd-article div.admonition {
+  border: 1px solid var(--edge);
+  border-inline-start: 3px solid var(--c-blue);
+  border-radius: 0.75rem;
+  background: color-mix(in oklab, var(--paper-2) 70%, transparent);
+  box-shadow: none;
+}
+
+/* pydata paints each kind's title with div.admonition.<kind>; the extra
+ * attribute selector outranks that for every kind at once. */
+.bd-article div.admonition[class] > p.admonition-title,
+.bd-article .admonition[class] > .admonition-title {
+  background: transparent;
+}
+
+.bd-article .admonition > .admonition-title::after {
+  color: var(--c-blue);
+}
+
+.bd-article .admonition.tip,
+.bd-article .admonition.hint      { border-inline-start-color: var(--c-chartreuse); }
+.bd-article .admonition.warning,
+.bd-article .admonition.attention { border-inline-start-color: var(--c-orange); }
+.bd-article .admonition.important,
+.bd-article .admonition.danger,
+.bd-article .admonition.error     { border-inline-start-color: var(--c-red); }
+.bd-article .admonition.caution   { border-inline-start-color: var(--c-magenta); }
+
+.bd-article .admonition.tip > .admonition-title::after,
+.bd-article .admonition.hint > .admonition-title::after      { color: var(--c-chartreuse); }
+.bd-article .admonition.warning > .admonition-title::after,
+.bd-article .admonition.attention > .admonition-title::after { color: var(--c-orange); }
+.bd-article .admonition.important > .admonition-title::after,
+.bd-article .admonition.danger > .admonition-title::after,
+.bd-article .admonition.error > .admonition-title::after     { color: var(--c-red); }
+.bd-article .admonition.caution > .admonition-title::after   { color: var(--c-magenta); }
+
+/* ---------------------------------------------------------------------------
+ * Tables
+ * ------------------------------------------------------------------------- */
+
+.bd-article table.table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.bd-article table.table thead th {
+  border-block-end: 2px solid transparent;
+  border-image: linear-gradient(90deg, var(--c-violet), var(--c-blue)) 1;
+  font-weight: 640;
+  background: transparent;
+}
+
+.bd-article table.table tbody tr:nth-child(odd) {
+  background: color-mix(in oklab, var(--c-violet) 3.5%, transparent);
+}
+
+.bd-article img {
+  border-radius: 0.6rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Right-hand page TOC and footer
+ * ------------------------------------------------------------------------- */
+
+.bd-sidebar-secondary {
+  border-inline-start: none;
+}
+
+.bd-toc-nav .nav-link {
+  border-inline-start: 2px solid var(--edge);
+  color: var(--ink-soft);
+}
+
+.bd-toc-nav .nav-link.active {
+  border-inline-start-color: var(--c-violet);
+  color: var(--ink);
+  background: transparent;
+  box-shadow: none;
+}
+
+.bd-footer {
+  border-block-start: 1px solid var(--edge);
+  color: var(--ink-soft);
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--c-violet) 6%, transparent),
+    transparent 40%
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Motion is decoration. Anyone who asks for less of it gets none.
+ * ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+  }
+
+  body::before { scale: 1 1; }
+
+  @view-transition { navigation: none; }
+}
+
+/* ---------------------------------------------------------------------------
+ * The layer-stack diagram on the architecture page. Each band takes its
+ * colour from --c, set inline per layer, so the stack walks the logo's sweep
+ * from red at the leaf to magenta at the facade.
+ * ------------------------------------------------------------------------- */
+
+.sem-layers {
+  display: grid;
+  gap: 0.35rem;
+  margin-block: var(--rhythm) 0;
+  padding: 0;
+  list-style: none; /* the sem-n badge shows the layer number; role="list" on the <ol>
+                       keeps list semantics in Safari/VoiceOver */
+}
+
+.sem-layer {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr auto;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--edge);
+  border-inline-start: 4px solid var(--c);
+  border-radius: 0.6rem;
+  background: color-mix(in oklab, var(--c) 9%, var(--paper-2));
+}
+
+.sem-layer .sem-n {
+  font-family: var(--pst-font-family-monospace);
+  font-weight: 700;
+  color: var(--c);
+  text-align: center;
+}
+
+.sem-layer .sem-pk code {
+  background: transparent;
+  color: var(--ink);
+  padding: 0;
+  font-size: 0.92em;
+}
+
+.sem-layer .sem-what {
+  color: var(--ink-soft);
+  font-size: 0.85em;
+  text-align: end;
+}
+
+.sem-arrow {
+  margin: 0.2rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.85em;
+  text-align: center;
+}
+
+@media (max-width: 40rem) {
+  .sem-layer { grid-template-columns: 2rem 1fr; }
+  .sem-layer .sem-what { grid-column: 2; text-align: start; }
+}
+
+/* Print: background graphics are off by default, so text drawn only through
+ * background-clip would print as blank space. */
+@media print {
+  .bd-article h1,
+  .navbar-brand p.title.logo__title {
+    color: var(--ink);
+    background: none;
+  }
+}

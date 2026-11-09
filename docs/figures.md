@@ -1,6 +1,4 @@
----
-title: "Run the paper's figure scripts"
----
+# Run the paper's figure scripts
 
 The scripts are in this repository, not in the PyPI package. Clone the
 repository at the release tag and install the same release from PyPI:
@@ -23,13 +21,14 @@ python experiments/ff_stem/Fig2_carbon.py
 Each writes `.png` and `.npy` for all three channels into
 `experiments/ff_stem/outputs/`.
 
-::: {.callout-important}
-## These scripts do not give the published figures exactly
+:::{admonition} These scripts do not give the published figures exactly
+:class: important
+
 The scripts run the paper's pipeline with the parameters of the paper, on the
 v0.4 code. Several fixes since the paper change the output, and in
 `Fig4_diffraction.py` they change the sign of the direct-ptychography image.
 See
-[How v0.4 differs from v0.3](#how-v0.4-differs-from-v0.3) for the measured
+[How v0.4 differs from v0.3](#how-v04-differs-from-v03) for the measured
 differences and [The published figures](#the-published-figures)
 for the code that made the figures.
 :::
@@ -49,8 +48,8 @@ with v0.4 on an NVIDIA RTX A6000.
 Carbon is the one to run first: smallest download, about a second of
 reconstruction, and it exercises the whole pipeline.
 
-::: {.callout-note}
-## Fitting a smaller GPU
+:::{admonition} Fitting a smaller GPU
+:class: note
 
 The Au dataset (`You2026AuLowDose`) takes `scan_edge_crop`, which trims the scan
 and so shrinks the output. The paper uses 128 (256² scan → 1024² output,
@@ -74,7 +73,7 @@ The same five steps, with per-specimen parameters:
 5. Save each with a physical scale bar.
 
 Reading one script is enough to see how to apply the pipeline to your own data;
-[Quickstart](quickstart.qmd) is the same thing without the paper's parameters.
+[Quickstart](quickstart.md) is the same thing without the paper's parameters.
 
 ## Verifying your run
 
@@ -98,6 +97,8 @@ failing:
 ```
 [Fig2-carbon] reference carbon72_potential.npy not found; skipping comparison plot.
 ```
+
+<span id="how-v0.4-differs-from-v0.3"></span>
 
 ## How v0.4 differs from v0.3
 
@@ -196,7 +197,7 @@ comparison does not match. The v0.4 differences in the table above add to these.
 The paper applied the sub-pixel dark-field shifts with the Fourier path
 (`tcdf_shift_method="fourier"`). The scripts use the drizzle default, as v0.3
 did. On `Fig2_carbon.py`, the two paths give fused images that correlate to
-0.993 (relative L2 difference 0.066). See [Method](method.qmd).
+0.993 (relative L2 difference 0.066). See [Method](method.md).
 
 Scale-bar lengths are chosen on a 1-2-5 ladder, so a bar may be a different round
 number than in the paper — 10 Å where the paper shows 5 Å on the same field, for

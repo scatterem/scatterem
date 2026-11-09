@@ -1,6 +1,4 @@
----
-title: "Migrating from v0.3"
----
+# Migrating from v0.3
 
 Version 0.4 moves every module of the package to a new layered layout. It is a
 clean break: the old import paths do not work, and there are no compatibility
@@ -9,15 +7,6 @@ aliases. This page lists where each v0.3 name went.
 Zenodo keeps the earlier versions: v0.3 at
 [doi:10.5281/zenodo.22663087](https://doi.org/10.5281/zenodo.22663087) and v0.2 at
 [doi:10.5281/zenodo.22162871](https://doi.org/10.5281/zenodo.22162871).
-Licence history: in v0.3 and earlier, the EELS physics followed abTEM
-(GPL-3.0), the multislice base physics followed py_multislice (which has no
-licence), and the centre-of-mass fit chain (`fit_2D`, `fit_origin`, the
-centre-of-mass measurement), the scan-rotation search, the bright-field shift
-estimators and the SSB Warp kernels followed py4DSTEM (GPL-3.0). Those
-archives carry an Apache-2.0 label, but these parts of them are not
-Apache-2.0 code. v0.4 replaces all of them with clean-room rewrites. v0.3 and
-earlier also held code from torchvision (BSD-3-Clause) and quantem (MIT)
-without their notices. v0.4 carries both notices.
 
 The layers, from the bottom up:
 
@@ -116,9 +105,9 @@ per output.
 | v0.3 | v0.4 |
 |---|---|
 | `StemEelsSimulator(structure, edge=e, epsilon=x, prism=True, ...)` then `.simulate()` | `PrismEelsSimulator(structure, ...)` then `.eels_cube(e, epsilon=x)`; `structure` is an `AtomSet` |
-| `StemEelsSimulator(..., prism=False).simulate()` (conventional multislice) | `multislice_transition_potential(...)` with the inputs from the driver; see [Checking your setup](eels.qmd#checking-your-setup) |
+| `StemEelsSimulator(..., prism=False).simulate()` (conventional multislice) | `multislice_transition_potential(...)` with the inputs from the driver; see [Checking your setup](eels.md#checking-your-setup) |
 | `prism_eels_image(...)` built by hand | `PrismEelsSimulator.eels_map(e, detector_mrad=..., ...)` or `.qeels(...)` |
-| `simulate_window((lo, hi), n_energies=n)` | a loop over `epsilon` and `torch.trapezoid`; see [Simulate STEM-EELS](eels.qmd#an-energy-window-and-several-edges) |
+| `simulate_window((lo, hi), n_energies=n)` | a loop over `epsilon` and `torch.trapezoid`; see [Simulate STEM-EELS](eels.md#an-energy-window-and-several-edges) |
 | `simulate_edges([e1, e2])` | one driver call per edge |
 | `backend="auto"`, `xc=`, `order=`, `potential_scale=` (constructor) | `transitions=dict(wavefunctions="auto", xc=..., order=..., potential_scale=...)` (per call) |
 | `result.cube` | `result.data` |
@@ -164,7 +153,7 @@ Three differences change numbers:
   0.03-0.6 % for the K, L23 and M45 edges we tested and by 1.4 % for Fe L1
   (300 kV). With hydrogenic states, they change by 18-61 %. The forward model does
   not change: given the same transition potentials, the kernels give the v0.3
-  maps. See [The BiP-PRISM paper and v0.4](eels.qmd#bip-prism-paper-v04).
+  maps. See [The BiP-PRISM paper and v0.4](#bip-prism-paper-v04).
 
 The EELS code also follows these rules in v0.4:
 
@@ -199,10 +188,10 @@ Two defaults stay as in v0.3:
 
 ## The physics base layer
 
-v0.4 replaces the physics base layer with new code that has a new API. v0.3
-and earlier based this layer on py_multislice: the frequency grids, the band
-limits, the scattering factors, the structure container, the potential builder
-and the transmission function. Two teams wrote the new modules. A
+v0.4 replaces the physics base layer with new code that has a new API. The
+layer holds the frequency grids, the band limits, the scattering factors, the
+structure container, the potential builder and the transmission function. Two
+teams wrote the new modules. A
 specification team that knew the former code wrote a behavioural contract,
 and a separate team wrote the code from that contract and the published
 literature. `THIRD-PARTY-NOTICES.md` describes the process and its limits. No
@@ -221,8 +210,10 @@ exists; the last column says what to do. A "Former name" can be a name of
 the development code between v0.3 and v0.4 that no public release had, for
 example `physics.grid.*`, `physics.scattering.*`, `_potential_common.*`,
 `AVOGADRO_CONSTANT`, `circular_aperture` and `interaction_parameter`. The
-table [Every v0.3 public name](#every-v0.3-public-name) lists the names of
+table [Every v0.3 public name](#every-v03-public-name) lists the names of
 the v0.3 release.
+
+<span id="frequency-grids-and-band-limits-scatterem.physics.periodic_sampling"></span>
 
 ### Frequency grids and band limits (`scatterem.physics.periodic_sampling`)
 
@@ -240,6 +231,8 @@ the v0.3 release.
 | `physics.grid.ANTIALIAS_CUTOFF`, `ANTIALIAS_TAPER` | removed | give the cut fraction each time; 2/3 is the conventional value |
 | — | `mask_cache_stats()`, `clear_mask_cache()` | new: the masks are kept in a bounded cache |
 
+<span id="scattering-amplitudes-scatterem.physics.atom_amplitudes"></span>
+
 ### Scattering amplitudes (`scatterem.physics.atom_amplitudes`)
 
 | Former name | v0.4 name | Note |
@@ -254,6 +247,8 @@ the v0.3 release.
 | `physics.scattering._ANGSTROM_TO_VOLT_ANGSTROM` | `POTENTIAL_PER_AMPLITUDE` | |
 | `physics.scattering._A`, `_B` | `scatterem.physics._lobato2014_table.COEFFICIENTS` | row `Z - 1` holds `(a_i, b_i)` |
 | `physics.scattering._check_element(z)` | `validated_atomic_number(atomic_number)` | |
+
+<span id="the-structure-container-scatterem.physics.atom_set"></span>
 
 ### The structure container (`scatterem.physics.atom_set`)
 
@@ -278,6 +273,8 @@ the v0.3 release.
 | `physics._structure_files.read_xyz`, `read_p1`, `read_xtl`, `read_cif`, `read_extxyz`, `FORMATS`, `READERS` | `scatterem.physics._atom_set_io.read_structure_arrays`, `FILE_STYLES`, `SUFFIX_STYLE` | private |
 | `physics._cell.reduce_cell`, `supercell_atoms`, `orthorhombic_cell` | `scatterem.physics._orthobox.plan_orthobox(lattice, tilt_sine)` and `OrthoPlan.apply(fractional)`; `plan_axis_aligned` | private; the supercell has the smallest `abs(det P)` |
 
+<span id="crystal-phases-scatterem.crystal.phase"></span>
+
 ### Crystal phases (`scatterem.crystal.phase`)
 
 `Phase` keeps a crystal in its own cell, which can be oblique. It uses the
@@ -295,6 +292,8 @@ and `atoms` attributes are gone.
 | `Phase.u_aniso` | `Phase.adp` | Cartesian in the frame of the cell rows |
 | `Phase.from_cif(path, *, u2_default=0.01, name="")` | `Phase.from_cif(path, *, msd_default=0.01, name="")` | |
 | — | `Phase.from_atom_set(structure, *, name=None)`, `.row_total`, `len()` | new. The same crystal in a rectangular box is `AtomSet(phase.cell, phase.fractional, phase.element_z, site_fraction=phase.site_fraction, msd=phase.msd, adp=phase.adp)` |
+
+<span id="projected-potentials-and-transmission-scatterem.physics.potential_stack-and-its-modules"></span>
 
 ### Projected potentials and transmission (`scatterem.physics.potential_stack` and its modules)
 
@@ -509,10 +508,10 @@ layer. The numbers change:
   figures were computed at `"medium"`. On the four figure scripts the change is
   of the order of the run-to-run difference (at most 4e-7 relative L2 on carbon,
   Co₃O₄ and Au, 2e-4 on Gd₂O₃), and setting `"medium"` does not give
-  the published figures back. See [Figure scripts](figures.qmd). The complex64
+  the published figures back. See [Figure scripts](figures.md). The complex64
   PRISM-EELS calls run up to 1.5x slower than in v0.3 at `"highest"`. Call
   `scatterem.configure(matmul_precision="medium")` to get the v0.3 speed; see
-  [the cost of a call](eels.qmd#the-cost-of-a-call-v03-and-v04).
+  [the cost of a call](eels.md#the-cost-of-a-call-v03-and-v04).
 - The aberration autofocus uses the exact derivative of its objective and
   ignores the scan DC of each bright-field pixel. Fitted aberrations change; on
   the Gd₂O₃ figure data C10 moves from 31.5 Å to 19.6 Å.
@@ -555,6 +554,8 @@ layer. The numbers change:
   (was 3.7), `h5py>=3.12.1`, `scikit-image>=0.25` and `gdown>=4.7.3` (was
   4.7.0). These are the first releases with wheels for CPython
   3.10 to 3.13. Python 3.10 or newer is still required, as in v0.3.
+
+<span id="every-v0.3-public-name"></span>
 
 ## Every v0.3 public name
 
