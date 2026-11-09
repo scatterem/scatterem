@@ -1,0 +1,94 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite the paper for the part you used. The
+  preferred citation below is the 4D-STEM reconstruction paper; work using the
+  core-loss STEM-EELS simulation or elastic PRISM should cite the BiP-PRISM
+  paper instead, listed under references.
+title: "scatterem"
+version: 0.4.0
+abstract: >-
+  Direct (single-side-band) ptychography, tilt-corrected dark-field imaging, and
+  their SSNR-weighted Wiener fusion for 4D-STEM data; and forward simulation of
+  core-loss STEM-EELS by transition-potential multislice and by PRISM, including
+  the bi-partitioned BiP-PRISM algorithm that partitions both the probe-forming
+  and the detector scattering matrix; and elastic PRISM simulation of 4D-STEM
+  with plane-wave and beam-partitioned scattering matrices.
+type: software
+license: Apache-2.0
+repository-code: "https://github.com/scatterem/scatterem"
+
+# Authors of this software. The paper's full author list is under
+# preferred-citation below.
+authors:
+  - family-names: You
+    given-names: Shengbo
+    orcid: "https://orcid.org/0009-0008-0739-9903"
+  - family-names: Palatkin
+    given-names: Nikita
+  - family-names: Shao
+    given-names: Sihan
+  - family-names: Pelz
+    given-names: Philipp
+    email: philipp.pelz@fau.de
+    orcid: "https://orcid.org/0000-0002-8009-4515"
+
+preferred-citation:
+  type: article
+  title: "Gap-Free Information Transfer in 4D-STEM via Fusion of Complementary Scattering Channels"
+  journal: Advanced Science
+  year: 2026
+  doi: 10.1002/advs.76620
+  # Volume, issue and article number from Crossref (2026-11-06). Advanced
+  # Science publishes with an e-locator rather than pages.
+  volume: 13
+  issue: 56
+  number: e76620
+  authors:
+    - family-names: You
+      given-names: Shengbo
+    - family-names: Varnavides
+      given-names: Georgios
+    - family-names: Khavnekar
+      given-names: Sagar
+    - family-names: Palatkin
+      given-names: Nikita
+    - family-names: Shao
+      given-names: Sihan
+    - family-names: Wu
+      given-names: Mingjian
+    - family-names: Stroppa
+      given-names: Daniel
+    - family-names: Chernikova
+      given-names: Darya
+    - family-names: Zhu
+      given-names: Baixu
+    - family-names: Egoavil
+      given-names: Ricardo
+    - family-names: Vespucci
+      given-names: Stefano
+    - family-names: Krishnan
+      given-names: Dileep
+    - family-names: Ye
+      given-names: Xingchen
+    - family-names: Schur
+      given-names: Florian K. M.
+    - family-names: Spiecker
+      given-names: Erdmann
+    - family-names: Pelz
+      given-names: Philipp
+
+# The core-loss STEM-EELS simulation paper. Cite this one for work using
+# PrismEelsSimulator, prism_eels_image or the elastic PRISM operators rather
+# than the reconstruction pipeline. Metadata from Crossref (2026-11-05); the
+# journal has not yet assigned a volume or article number.
+references:
+  - type: article
+    title: "The bi-partitioned PRISM (BiP-PRISM) algorithm for fast and scalable core-loss STEM-EELS simulations"
+    journal: "Journal of Physics: Materials"
+    year: 2026
+    doi: 10.1088/2515-7639/aebdd0
+    authors:
+      - family-names: Pelz
+        given-names: Philipp
+        email: philipp.pelz@fau.de
+        orcid: "https://orcid.org/0000-0002-8009-4515"

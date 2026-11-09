@@ -1,0 +1,175 @@
+---
+title: "Elastic PRISM"
+---
+
+This page covers elastic 4D-STEM simulation: a convergent-beam diffraction
+pattern (CBED) at every scan position of a periodic cell. The code computes it
+with the PRISM scattering matrix (Ophus 2017) or with its beam-partitioned form
+(Pelz *et al.* 2021). The core-loss simulation on [Simulate STEM-EELS](eels.qmd)
+uses the same matrices.
+
+## The idea in one paragraph
+
+A converged probe is a sum of plane waves over the aperture, and multislice is
+linear. So the code propagates each aperture beam once through the specimen, and
+stores the exit waves as the columns of the scattering matrix $\mathcal{S}$. The
+exit wave at *any* scan position is then a linear combination of these columns,
+with the phase ramps of the probe as coefficients. With the interpolation factor
+$f$, the code keeps only every $f$-th beam in each direction and crops each exit
+wave to a window of `pixels // f` around the probe. Partitioned PRISM goes one
+step further. It propagates a sparse set of parent beams on hexagonal rings, and
+it reconstructs every other beam by natural-neighbour interpolation of the
+parents.
+
+## With the driver
+
+`PrismEelsSimulator.elastic_cbed` runs the elastic simulation from a structure.
+
+```python
+import numpy as np
+import torch
+from scatterem.physics.atom_set import AtomSet
+from scatterem.simulation.eels import PrismEelsSimulator
+
+a = 3.905
+sto = AtomSet(
+    np.array([a, a, a]),        # box sides (y, x, depth), Angstrom
+    np.array([                  # fractional coordinates (y, x, depth)
+        [0.0, 0.0, 0.0],        # Sr
+        [0.5, 0.5, 0.5],        # Ti
+        [0.5, 0.5, 0.0],        # O
+        [0.5, 0.0, 0.5],
+        [0.0, 0.5, 0.5],
+    ]),
+    np.array([38, 22, 8, 8, 8]),  # atomic numbers
+).replicated((4, 4, 8))
+
+sim = PrismEelsSimulator(
+    sto,
+    eV=100e3,
+    semiconvergence_angle=25.0,  # mrad
+    pixels=(128, 128),
+    scan=(16, 16),
+    num_slices=16,
+    interpolation_factor=2,
+    device="cuda",
+)
+
+cbed = sim.elastic_cbed()                 # PRISM on every aperture beam
+cbed.data                                 # (16, 16, 64, 64), corner origin
+cbed.detector_sampling                    # (dky, dkx) in 1/A: f / cell size
+
+partitioned = sim.elastic_cbed(n_radial=4)  # partitioned PRISM, 4 parent rings
+```
+
+The diffraction patterns live on the PRISM window of `pixels // f` pixels, so
+their reciprocal pixel is $f$ times the pixel of the full grid. They are
+corner-origin; apply `torch.fft.fftshift` before you plot them. The probe
+carries unit total intensity, so each pattern sums to about 1.
+
+`n_angular` sets the number of parent beams on the first ring (default 6).
+`focal_backprop` sets the plane where the partitioned interpolation happens;
+see below.
+
+## With the operators
+
+The driver is a thin wrapper. These lines are what `elastic_cbed` runs, so you
+can change any part of them:
+
+```python
+from scatterem.nn.modules.propagator import Propagator
+from scatterem.nn.scan_exit_wave import PrismScanOp, build_prism_smeta
+from scatterem.physics.optics import smooth_disc
+
+f = sim.interpolation_factor
+window = (sim.pixels[0] // f, sim.pixels[1] // f)
+
+s_meta = build_prism_smeta(
+    pixels=window,
+    f=f,
+    dx=np.asarray(sim.sampling, dtype=np.float32),
+    wavelength=sim.wavelength,
+    semiconvergence_angle=sim.semiconvergence_angle * 1e-3,  # rad
+    fov_shape=None,              # periodic specimen
+    device=sim.device,
+    n_radial=4,                  # None gives pure PRISM
+)
+op = PrismScanOp(s_meta, f=f, focal_backprop="centroid")
+propagator = Propagator(sim.slice_thickness, sim.wavelength, sim.sampling, sim.pixels, sim.device)
+
+# The probe is centred in its window. Each scan position is the window's
+# top-left corner, split into whole pixels and a sub-pixel rest.
+# The aperture is a disc of radius alpha / lambda with a rim of 1 pixel, the
+# rim of the driver's probe and beam set.
+dk = (1 / (window[0] * sim.sampling[0]), 1 / (window[1] * sim.sampling[1]))
+probe_q = smooth_disc(
+    window,
+    sim.semiconvergence_angle * 1e-3 / (sim.wavelength * dk[0]),
+    rim_px=1.0,
+    px_ratio=dk[1] / dk[0],
+    dtype=torch.float64,
+    device=sim.device,
+).to(torch.complex64)                    # zero defocus
+probe_q = probe_q / probe_q.abs().pow(2).sum().sqrt()
+probe = torch.fft.fftshift(torch.fft.ifft2(probe_q, norm="ortho"))
+corner = sim.scan_pixels() - torch.tensor(
+    [window[0] // 2, window[1] // 2], dtype=torch.float64, device=sim.device
+)
+positions = torch.round(corner)
+dr = (corner - positions).float()
+probes = probe[None, None].expand(1, corner.shape[0], *window).contiguous()
+
+with torch.no_grad():
+    T = sim.transmissions().to(torch.complex64)
+    exit_waves = op(T, probes, positions.int(), dr, propagator)[0]
+patterns = torch.fft.fft2(exit_waves, norm="ortho").abs().pow(2)   # (256, 64, 64)
+```
+
+`build_prism_smeta` builds the beam set: the $f$-lattice of aperture beams and,
+with `n_radial`, the parent beams and their natural-neighbour weights.
+`PrismScanOp` builds the scattering matrix from the transmission functions and
+synthesises the exit wave at each scan position. It takes the semiconvergence
+angle in radians, unlike the driver.
+
+## Focal referencing
+
+Partitioned PRISM interpolates the parent columns at one reference plane.
+`focal_backprop` sets that plane, as a fraction of the thickness (0 is the exit
+surface, 1 the entrance surface), or as `"centroid"`. For `PrismScanOp`,
+`"centroid"` (the default) is the scattering-weighted centroid of the specimen.
+For the core-loss path the convention is different; see
+[BiP-PRISM](bip-prism.qmd#focal-referencing). Without `n_radial`, every beam is a
+parent, and `focal_backprop` has no effect.
+
+## Checking your setup
+
+Two checks catch most setup errors:
+
+1. Compare partitioned PRISM with pure PRISM at the same grid, slices and $f$.
+   The error must fall as `n_radial` increases.
+2. Hold $f$ fixed when you compare anything. The PRISM window and the detector
+   sampling both change with $f$.
+
+```python
+pure = sim.elastic_cbed().data
+for n_radial in (2, 4, 8):
+    part = sim.elastic_cbed(n_radial=n_radial).data
+    rel = float((part - pure).norm() / pure.norm())
+    print(n_radial, rel)
+```
+
+The window must hold the probe. If the probe tails reach the window edge, the
+cropped exit waves lose intensity and the patterns are wrong at every $f$.
+Choose $f$ so that `pixels // f` times the pixel size is several probe
+diameters.
+
+## Reading further
+
+- PRISM: Ophus, *Adv. Struct. Chem. Imaging* **3**, 13 (2017),
+  [doi:10.1186/s40679-017-0046-1](https://doi.org/10.1186/s40679-017-0046-1)
+- Beam partitioning: Pelz *et al.*, *Microsc. Microanal.* **27**, 835 (2021),
+  [doi:10.1017/S1431927621012083](https://doi.org/10.1017/S1431927621012083)
+- The software paper for this code: P. Pelz, *J. Phys. Mater.* (2026),
+  [doi:10.1088/2515-7639/aebdd0](https://doi.org/10.1088/2515-7639/aebdd0)
+- [BiP-PRISM](bip-prism.qmd): the same matrices for core-loss EELS
+- [API reference](api.qmd)

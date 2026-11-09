@@ -1,0 +1,155 @@
+---
+title: "Calibration"
+---
+
+Most reconstruction problems are calibration problems. The fusion weights are
+functions of spatial frequency, so if the mapping from detector pixels to
+reciprocal space is wrong, the weights are wrong, and the result is a plausible
+image that is quietly incorrect. This page is the short list of things to get
+right.
+
+## The reciprocal pixel size, `dk`
+
+`dk` is **measured**, not assumed. The bright-field disk has a known angular
+radius — the convergence semi-angle you supplied — so fitting its radius in pixels
+gives the conversion directly:
+
+$$ dk = \frac{\alpha}{r_{\mathrm{BF}}\,\lambda} $$
+
+with $r_\mathrm{BF}$ the measured radius in pixels and $\lambda$ the
+relativistic electron wavelength. `Dataset4DStem.from_array` does not
+calibrate: it sets `dk` to the placeholder 1.0 until you call
+`calibrate_reciprocal_from_bright_field`. The named datasets of the paper call
+it when you construct them, so they arrive calibrated.
+
+The measurement is `scatterem.data.pupil_gauge.measure_pupil` on the mean
+diffraction pattern of the whole detector. It finds the levels inside and
+outside the disk, and the radius is the radius of the circle on which the
+intensity is halfway between them. A constant offset or a gain of the
+detector does not change it. Before the measurement, a pixel that differs
+much from the median of its 3 x 3 neighbours gets that median, which removes
+single bright defective pixels. It refuses rather than guesses when
+the pattern has no clear disk: a radius above 45 % of the shorter detector
+side (`radius_cap=0.45`), or an inside-to-outside level ratio below 1.5
+(`contrast_floor=1.5`), raises `ValueError`.
+
+```python
+dk = dataset.calibrate_reciprocal_from_bright_field()
+print(dataset.sampling)   # (dy, dx, dky, dkx)
+```
+
+Two options of `calibrate_reciprocal_from_bright_field` change the
+measurement:
+
+- `estimator="integral"` (the default) needs a complete disk.
+  `estimator="rayfit"` also measures a disk with a missing sector or with a
+  part outside the detector.
+- `edge_reach` is the half-width of the band around the disk edge, in
+  pixels. The default (None) is 2 for `"integral"` and 10 for `"rayfit"`.
+  A wide band reads the radius too small when the disk top falls towards
+  the edge (Gd2O3 in the paper: 4 % with 10 pixels, 0.5 % with 2).
+  `"rayfit"` keeps 10 pixels: with 2 it reads a disk with a 90-degree notch
+  about 11 % small. Increase the band only for a very soft edge.
+
+::: {.callout-warning}
+## Check the radius
+
+Print `dataset.bright_field_radius_and_center()` and compare the radius with
+the disk that you see in the mean pattern. A radius near the detector
+half-width, or of a few pixels, means that the measurement found the wrong
+thing.
+:::
+
+## The scan rotation
+
+The angle between the scan axes and the detector axes has to be right, and nothing
+downstream can infer it: the autofocus holds rotation **fixed** while it fits
+aberrations. A wrong rotation shows up as a reconstruction that is sharp along one
+direction and smeared along the other, or as a fused image with directional
+artefacts that no amount of aberration fitting removes.
+
+If you know it from the microscope, set it:
+
+```python
+dataset.meta.rotation = 84.0   # degrees; 84.0 is an example, use your microscope's value
+```
+
+A wrong value here makes the aberration fit below warn that its residual is
+high. Do not ignore that warning: check the rotation first.
+
+If you do not, the centre-of-mass field of the bright-field disk determines it: the
+correct rotation is the one that makes that field a gradient — curl-free — because
+it is the gradient of the projected potential.
+
+## Detector orientation
+
+Worth checking early, because it is easy to miss and it produces a specific,
+recognisable failure. If the detector's axes are flipped relative to the scan, the
+parallax shifts come out with the wrong handedness, defocus fits toward zero, and
+the aberration fit reports a suspiciously small `C10` regardless of the real
+defocus. A defocus that will not move off zero is worth suspecting a flip rather
+than a fitting problem.
+
+## The aberration starting guess
+
+The autofocus is a local optimisation. It needs a starting defocus. With
+`correction_method="autofocus"` the start is `meta.aberrations`. If its
+low-order slots C10, C12a and C12b are all zero (a known Cs alone does not
+count), a bright-field-shift fit gives the start. If that fit fails and
+`meta.defocus_guess` is 0, the fit raises `ValueError` rather than descend from
+nothing. The default `"combined"` fit takes its low orders from the
+bright-field shifts and does not read `meta.aberrations`. For the autofocus,
+set a start value first:
+
+```python
+dataset.meta.aberrations.array[0] = -50.0   # C10, Angstrom; defocus == -C10
+from scatterem.reconstruction import run
+from scatterem.reconstruction.ptychography.direct import AberrationFitConfig
+
+fit = run(
+    dataset,
+    AberrationFitConfig(
+        correction_method="autofocus",
+        correct_order=2,
+        bright_field_mask_threshold=dataset.bright_field_mask_threshold,
+    ),
+)
+dataset.meta = fit.applied_to(dataset.meta)
+```
+
+The sign matters more than the magnitude — an estimate within a factor of two is
+plenty, but the wrong sign can settle into a mirror-image solution with inverted
+contrast. Through-focus contrast inversion in direct ptychography is physical, not
+a bug, so a reconstruction that looks inverted may simply be on the other side of
+focus.
+
+## Scan step and upsampling
+
+`scan_step` is the pitch of the scan, in Ångström. The reconstruction is upsampled
+relative to it, by default to the factor that brings the output pitch to what the
+data can support (`upsample="nyquist"`).
+
+That upsampling is why a scale bar needs the reconstruction's sampling, not the
+dataset's:
+
+```python
+from scatterem.data.sampling import reconstruction_sampling
+
+sampling = reconstruction_sampling(dataset, fused)
+```
+
+Getting this wrong overstates the bar by the upsample factor — four-fold on the
+paper's Fig. 4, which is the difference between a correct figure and a wrong one.
+
+## Sanity checks worth running
+
+- **`dk` is not the placeholder.** If `dataset.sampling[2]` is exactly 1.0, the
+  bright-field fit fell back and everything downstream is in detector pixels, not
+  inverse Ångström.
+- **The reconstruction is finite.** A NaN anywhere usually means a division by a
+  zero SSNR, which in turn means an empty channel.
+- **The bright-field radius is plausible.** Print it. A radius near the detector
+  half-width, or a couple of pixels, both mean the fit found the wrong thing.
+- **Both channels look sensible on their own** before you read the fused result.
+  Fusion cannot rescue a channel that failed; it will just weight it down and leave
+  a band with nothing in it.

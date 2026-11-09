@@ -1,0 +1,5 @@
+# scatterem light-background style = scatterem.vis.style.style_params("light").
+# Import scatterem.vis first: that registers "batlow" with matplotlib.
+image.cmap: batlow
+image.interpolation: none
+axes.prop_cycle: cycler('color', ['011959', 'bd8f34', '30685c', '6d7c3b', '114160', 'e69858', '91862d', '4d734d'])

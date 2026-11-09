@@ -1,0 +1,131 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "scatterem"
+version = "0.4.0"
+description = "Fused full-field 4D-STEM reconstruction, BiP-PRISM core-loss STEM-EELS simulation, and elastic PRISM"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE", "THIRD-PARTY-NOTICES.md"]
+authors = [
+    { name = "Shengbo You" },
+    { name = "Nikita Palatkin" },
+    { name = "Sihan Shao" },
+    { name = "Philipp Pelz", email = "philipp.pelz@fau.de" },
+]
+keywords = [
+    "electron microscopy",
+    "4D-STEM",
+    "ptychography",
+    "dark field",
+    "phase retrieval",
+    "EELS",
+    "multislice",
+    "PRISM",
+    "simulation",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+# Every entry is imported by the shipped code. The list is checked mechanically
+# against the tree by the release gate, in both directions: an import
+# with no declaration fails, and so does a declaration nothing imports. That
+# check exists because `ase` was once imported at module scope and never
+# declared, which broke `import scatterem` in any clean environment.
+#
+# The floors are the first releases with wheels for CPython 3.10 to 3.13 on
+# Linux x86_64, so a lowest-version install builds nothing from source. numpy
+# 2.0 is also the first with np.trapezoid (the GPAW radial integrals), and scipy
+# 1.15 the first with scipy.special.sph_harm_y.
+dependencies = [
+    "numpy>=2.1.0",
+    "scipy>=1.15.0",
+    "matplotlib>=3.10",
+    "torch>=2.5.0",
+    "warp-lang>=1.7.0",
+    "h5py>=3.12.1",
+    # registers the bslz4 (32008) filter the Zenodo HDF5 data is compressed with
+    "hdf5plugin>=4.0",
+    "scikit-image>=0.25.0",
+    "tqdm>=4.66.0",
+    # downloads from Google Drive URLs (data/public/utils.py); 4.7.3 is the
+    # first release whose download() takes user_agent=. The Zenodo datasets do
+    # not use it.
+    "gdown>=4.7.3",
+    # the Scientific Colour Maps of the colour policy (scatterem/vis/colors.py)
+    "cmcrameri>=1.10",
+    # encodes the animations of scatterem.vis.show_animated (GIF; MP4 with ffmpeg);
+    # 2.33 is the lowest imageio that scikit-image 0.25 installs with
+    "imageio>=2.33",
+]
+
+[project.optional-dependencies]
+# mpmath: the 50-digit oracle of tests/test_kinematics.py (torch installs it
+# through sympy, so this adds no package in practice).
+dev = ["pytest>=7.4.0", "mpmath>=1.3.0"]
+# Optional all-electron atomic backend for the PRISM-EELS transition potentials
+# (simulation/eels/physics/radial.py imports gpaw lazily) and the ASE structure
+# and CIF readers (crystal/_ase_io.py, crystal/phase.py). Without them the
+# transition potentials use the analytic fallback, and read_atom_set reads the
+# Kirkland, POSCAR and muSTEM formats but not CIF or extended XYZ.
+eels = ["gpaw", "ase"]
+# Optional Triton kernels. Every Triton module is imported lazily behind a
+# backend-registry row, and a missing triton makes that row decline, so torch
+# runs. The CUDA torch wheels on Linux already install triton.
+triton = ["triton"]
+# Inline display of scatterem.vis.show figures and animations. The code imports
+# these only inside a running Jupyter or marimo session.
+notebook = ["ipython>=8.14.0", "marimo"]
+# MP4 output of scatterem.vis.save_animated and show_animated. Without it,
+# both write a GIF and warn.
+anim = ["imageio-ffmpeg>=0.5"]
+
+[project.urls]
+Homepage = "https://github.com/scatterem/scatterem"
+Paper = "https://doi.org/10.1002/advs.76620"
+"Paper (BiP-PRISM)" = "https://doi.org/10.1088/2515-7639/aebdd0"
+Data = "https://doi.org/10.5281/zenodo.18008901"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scatterem"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+# Ruff is the only linter and the only formatter, matching the development
+# workspace. The [tool.black] and [tool.isort] tables were removed with those
+# tools; they declared a second and third answer to line length and import
+# order that nothing ran.
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+# `I` is deliberately absent. An export patch writes a replacement import where
+# the old one stood, so the shipped blocks are often unsorted, and sorting them
+# in the exporter makes the tree worse rather than better. Selecting a rule the
+# tree is known to fail is how a lint config becomes decoration.
+select = ["E4", "E7", "E9", "F"]
+# No blanket ignore list. It used to silence F401/F403/F405/F811/E501/E731 --
+# measured over an actual export, the tree triggers NONE of those rules, so the
+# list bought nothing and hid the one failure mode that matters here: F-rules
+# are how this tree reports that pruning or an import patch left a name
+# undefined. `fft_frequencies_2d` in reconstruction/ptychography/direct/ctf.py
+# shipped undefined (F821) behind exactly this kind of quiet config.
+#
+# E501 stays unselected rather than ignored: it is not in this `select` list at
+# all, because the formatter owns line length.
+
+[tool.ruff.format]
+exclude = ["*.ipynb"]

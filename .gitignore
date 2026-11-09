@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# reconstruction outputs and downloaded data
+*.png
+*.npy
+*.h5
+!experiments/**/*.png
+# the figure scripts write their outputs here
+experiments/ff_stem/outputs/
+
+# The site's mark. Without these two exceptions the blanket *.png above silently
+# drops them, and the navbar logo and favicon 404 on the published site -- which is
+# exactly what happened once.
+!logo.png
+!favicon.png

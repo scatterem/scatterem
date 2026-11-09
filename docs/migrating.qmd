@@ -1,0 +1,781 @@
+---
+title: "Migrating from v0.3"
+---
+
+Version 0.4 moves every module of the package to a new layered layout. It is a
+clean break: the old import paths do not work, and there are no compatibility
+aliases. This page lists where each v0.3 name went.
+
+Zenodo keeps the earlier versions: v0.3 at
+[doi:10.5281/zenodo.22663087](https://doi.org/10.5281/zenodo.22663087) and v0.2 at
+[doi:10.5281/zenodo.22162871](https://doi.org/10.5281/zenodo.22162871).
+Licence history: in v0.3 and earlier, the EELS physics followed abTEM
+(GPL-3.0), the multislice base physics followed py_multislice (which has no
+licence), and the centre-of-mass fit chain (`fit_2D`, `fit_origin`, the
+centre-of-mass measurement), the scan-rotation search, the bright-field shift
+estimators and the SSB Warp kernels followed py4DSTEM (GPL-3.0). Those
+archives carry an Apache-2.0 label, but these parts of them are not
+Apache-2.0 code. v0.4 replaces all of them with clean-room rewrites. v0.3 and
+earlier also held code from torchvision (BSD-3-Clause) and quantem (MIT)
+without their notices. v0.4 carries both notices.
+
+The layers, from the bottom up:
+
+| Package | Holds |
+|---|---|
+| `scatterem.utils`, `scatterem.crystal`, `scatterem.rotation` | general helpers, crystallography, rotations |
+| `scatterem.physics` | constants, optics, structures, potentials, transmission functions, propagation |
+| `scatterem.data` | the 4D-STEM containers, metadata, calibration, the paper datasets |
+| `scatterem.nn` | differentiable operators: the ptychography kernels, the PRISM and multislice scan operators |
+| `scatterem.simulation` | forward simulation: PRISM-EELS and its driver |
+| `scatterem.reconstruction` | the FF-STEM reconstructions and `run` |
+| `scatterem.vis` | plotting |
+
+## The five changes most code needs
+
+1. Rename `Dataset4dstem` to `Dataset4DStem`. The same applies to
+   `DatasetVirtualBrightField4dstem` and `PublicDataset4dstem`.
+2. Replace the dataset methods with `run(dataset, config)`. See
+   [The reconstruction methods](#the-reconstruction-methods).
+3. Import the paper datasets from `scatterem.data.public`, not
+   `scatterem.datasets`. `from scatterem import You2026Carbon` still works.
+4. Use the new multislice substrate in `scatterem.physics`: `AtomSet` from
+   `scatterem.physics.atom_set`, `potential_stack` from
+   `scatterem.physics.potential_stack`, `thin_slice_transmission` from
+   `scatterem.physics.thin_slice`, `debroglie_at` (the electron wavelength)
+   from `scatterem.physics.constants`, `lens_wavefront` (the aberration
+   function) from `scatterem.physics.optics`. The names, arguments and
+   defaults are new;
+   see [The physics base layer](#the-physics-base-layer).
+   `scatterem.simulation` re-exports nothing.
+5. Replace `StemEelsSimulator` with `PrismEelsSimulator`. See
+   [The STEM-EELS driver](#the-stem-eels-driver).
+
+## Moved modules
+
+| v0.3 module | v0.4 module |
+|---|---|
+| `scatterem.utils.data`, `.datasets`, `.data_classes` | `scatterem.data`, `scatterem.data.datasets`, `scatterem.data.acquisition` |
+| `scatterem.utils.data.{aberrations, sampling, validation, origin_check}` | `scatterem.data.{aberrations, sampling, validation, origin_check}` |
+| `scatterem.utils.data.disk_fit` | `scatterem.data.pupil_gauge` (new API; see [Bright-field disk and Fourier grids](#bright-field-disk-and-fourier-grids)) |
+| `scatterem.utils.grids` | `scatterem.utils.spectral_mesh` (new API; see [Bright-field disk and Fourier grids](#bright-field-disk-and-fourier-grids)) |
+| `scatterem.utils.calibration` | `scatterem.data.calibration` |
+| `scatterem.datasets` | `scatterem.data.public` |
+| `scatterem.io.store` | `scatterem.utils.store` |
+| `scatterem.utils.physics` | `scatterem.physics.constants` |
+| `scatterem.utils.aberration_basis` | `scatterem.physics.optics` |
+| `scatterem.vis.reconstruction_sampling` | `scatterem.data.sampling` |
+| `scatterem.reconstruction.direct_ptychography` | `scatterem.reconstruction.ptychography.direct` |
+| `scatterem.reconstruction.tilt_corrected_dark_field` | `scatterem.reconstruction.darkfield` |
+| `scatterem.reconstruction.drizzle` | `scatterem.reconstruction.darkfield.drizzle` |
+| `scatterem.reconstruction.fused_full_field` | `scatterem.reconstruction.fusion.ffstem` |
+| `scatterem.simulation.structure` | `scatterem.physics.atom_set` (new API) |
+| `scatterem.simulation.potentials` | `scatterem.physics.potential_stack` and `scatterem.physics.beam_partition` (new API) |
+| `scatterem.simulation.transmission` | `scatterem.physics.thin_slice` (new API) |
+| `scatterem.simulation.scattering_factors` | `scatterem.physics.atom_amplitudes` (new API) |
+| `scatterem.simulation.eels.{multislice_eels, prism_eels, prism_eels_image}` | `scatterem.simulation.eels.forward.*`; the public names are re-exported from `scatterem.simulation.eels` |
+| `scatterem.simulation.eels.{radial, transition_potentials}` | `scatterem.simulation.eels.physics.*`; the public names are re-exported from `scatterem.simulation.eels` |
+| `scatterem.simulation.eels.simulator` | removed; see `scatterem.simulation.eels.PrismEelsSimulator` |
+
+## The reconstruction methods
+
+The `Dataset4dstem` methods that ran a reconstruction are gone. Each one is now a
+configuration object that you pass to `scatterem.reconstruction.run`. `run`
+returns a result and does not change the dataset.
+
+| v0.3 | v0.4 |
+|---|---|
+| `dataset.determine_aberrations_(correct_order=2)` | `dataset.meta = run(dataset, AberrationFitConfig(correct_order=2, bright_field_mask_threshold=t)).applied_to(dataset.meta)` |
+| `dataset.direct_ptychography(upsample=2.0)` | `run(dataset, DirectPtychographyConfig(upsample=2.0, bright_field_mask_threshold=t)).phase` |
+| `dataset.tilt_corrected_dark_field(upsample=2.0)` | `run(dataset, TiltCorrectedDarkFieldConfig(upsample=2.0, bright_field_mask_threshold=t)).image` |
+| `dataset.fused_full_field(upsample=2.0)` | `run(dataset, FusedFullFieldConfig(upsample=2.0, n_dark_field_segments=32)).fused` |
+| `correction_method="autofocus"` with C10, C12a and C12b of `meta.aberrations` zero (other slots, such as Cs, may be set), `meta.defocus_guess` 0 and a failed bright-field-shift fit: the autofocus searched around zero, with no error | the same call raises `ValueError`; set a start, for example `dataset.meta.aberrations.array[0] = -50.0` |
+
+Here `t = dataset.bright_field_mask_threshold`. `AberrationFitConfig` and
+`DirectPtychographyConfig` are in `scatterem.reconstruction.ptychography.direct`,
+`TiltCorrectedDarkFieldConfig` in `scatterem.reconstruction.darkfield`, and
+`FusedFullFieldConfig` in `scatterem.reconstruction.fusion.ffstem`. The
+default bright-field mask threshold is 0.5 in `AberrationFitConfig` and
+`DirectPtychographyConfig`, and 0.3 in `TiltCorrectedDarkFieldConfig`. In
+`FusedFullFieldConfig` the default is `None`, which uses the threshold of the
+dataset. The paper path uses the threshold of the dataset, so pass it
+explicitly to the other three. `result.as_tuple()` gives
+the tuple that the function form returns.
+
+The functions `direct_ptychography`, `tilt_corrected_dark_field` and
+`fused_full_field` are still importable from `scatterem` and
+`scatterem.reconstruction`.
+
+## The STEM-EELS driver
+
+`StemEelsSimulator` and `StemEelsResult` are removed. `PrismEelsSimulator` and
+`PrismResult` in `scatterem.simulation.eels` replace them. The new driver takes
+the edge and the energy per call, not in the constructor, and it has one method
+per output.
+
+| v0.3 | v0.4 |
+|---|---|
+| `StemEelsSimulator(structure, edge=e, epsilon=x, prism=True, ...)` then `.simulate()` | `PrismEelsSimulator(structure, ...)` then `.eels_cube(e, epsilon=x)`; `structure` is an `AtomSet` |
+| `StemEelsSimulator(..., prism=False).simulate()` (conventional multislice) | `multislice_transition_potential(...)` with the inputs from the driver; see [Checking your setup](eels.qmd#checking-your-setup) |
+| `prism_eels_image(...)` built by hand | `PrismEelsSimulator.eels_map(e, detector_mrad=..., ...)` or `.qeels(...)` |
+| `simulate_window((lo, hi), n_energies=n)` | a loop over `epsilon` and `torch.trapezoid`; see [Simulate STEM-EELS](eels.qmd#an-energy-window-and-several-edges) |
+| `simulate_edges([e1, e2])` | one driver call per edge |
+| `backend="auto"`, `xc=`, `order=`, `potential_scale=` (constructor) | `transitions=dict(wavefunctions="auto", xc=..., order=..., potential_scale=...)` (per call) |
+| `result.cube` | `result.data` |
+| `transition_potential_multislice(...)` | `multislice_transition_potential(...)`: renamed to match `prism_transition_potential`; the arguments and the results are the same |
+| `result.sampling` | `result.detector_sampling` |
+| `result.energy_losses`, `result.edge`, `result.epsilon` | unchanged |
+| — | `PrismEelsSimulator.elastic_cbed()`: elastic 4D-STEM by PRISM, new |
+
+Three differences change numbers:
+
+- The driver builds the specimen with the new physics base layer:
+  `potential_stack` with its defaults (Hann rolloff 1/3, band-limited point
+  values, `edge_snap=True`) and `thin_slice_transmission` with the band limit
+  2/3 of v0.3. Elastic and EELS results change: in the BiP-PRISM
+  map-scaling study the new transmissions alone change the map shapes by
+  7-8 %. With
+  `displacements=True`, a given `seed` gives other thermal draws than in v0.3.
+  See [The physics base layer](#the-physics-base-layer).
+- The driver probe uses `scatterem.physics.optics.smooth_disc` with a
+  logistic rim of 1 pixel (`rim_px=1.0`), the rim of the PRISM beam set. The
+  v0.3 driver used a hard disk. Values near the aperture edge
+  change. In partitioned BiP-PRISM maps the probe alone changes the map shape
+  by up to 6 %, in exact PRISM maps by less than 1 %.
+- The transition potentials are new. `build_transition_potentials` and the
+  radial states are rewritten from the first-Born physics, so every EELS
+  intensity changes:
+  - The transition potentials have an absolute first-Born scale (Å²/eV). With
+    GPAW states at 200 kV, the amplitude of the dipole channels is about 7.3e-4
+    (K edges) and 4.3e-4 (L23 edges) of the v0.3 value. The ratio depends on
+    the beam energy through the $1/v^2$ factor and the flux factor: at 300 kV
+    it is 6.4e-4 to 6.6e-4 (K), 3.7e-4 to 3.9e-4 (L23) and 2.9e-4 to 3.0e-4
+    (La M45), and at 100 kV 9.2e-4 (O K) and 5.2e-4 to 5.5e-4 (L23). So no
+    single factor converts v0.3 values to v0.4 values.
+  - Channels with $l' = l$ use a continuum that is orthogonalised to the bound
+    orbital. This removes a spurious monopole term.
+  - `free_continuum_wavefunction` is normalised per Rydberg: it carries the
+    factor $(\pi k)^{-1/2}$.
+  - The GPAW atom uses a denser radial grid, so the GPAW states and core
+    energies change slightly. The core energies of the 11 edges we tested
+    move by 0.0002-0.18 eV (largest: Fe L1 +0.18 eV, Al K +0.15 eV).
+
+  With GPAW states, after a best scalar fit, the map shapes change by
+  0.03-0.6 % for the K, L23 and M45 edges we tested and by 1.4 % for Fe L1
+  (300 kV). With hydrogenic states, they change by 18-61 %. The forward model does
+  not change: given the same transition potentials, the kernels give the v0.3
+  maps. See [The BiP-PRISM paper and v0.4](eels.qmd#bip-prism-paper-v04).
+
+The EELS code also follows these rules in v0.4:
+
+- Each ionized site has the weight of its atom in the elastic potential:
+  `site_fraction` when the structure has a partial occupancy, else 1. A site
+  with fraction 0 does not ionize. `PrismEelsSimulator` makes one kernel call
+  for each different nonzero fraction.
+- With `displacements=True`, one thermal draw moves the elastic atoms and the
+  ionized atoms of a configuration by the same offsets.
+- `prism_eels_image`, `prism_transition_potential`,
+  `prism_transition_potential_hybrid` and `multislice_transition_potential`
+  put each site in the slice that
+  `BeamPartition.uniform(nz).bin_index` gives (the slice rule of
+  `potential_stack`), not in `floor(z % 1 * nz)`. A site just before a slice
+  edge can go to the next slice.
+- `build_transition_potentials(..., method="auto", device="cpu")` builds on the
+  CPU. With `device=None`, the build goes to CUDA when CUDA is present.
+
+Two defaults stay as in v0.3:
+
+- The wavefunctions default is `wavefunctions="auto"` (v0.3: `backend="auto"`).
+  It uses GPAW when it is installed. Without GPAW, it falls back to hydrogenic
+  states, as v0.3 did, and now also emits a `HydrogenicFallbackWarning`.
+  Install `scatterem[eels]` for quantitative results. The choice of states
+  stays the same, but the numbers change with the new transition potentials
+  (see above).
+- `prism_eels_image` keeps the v0.3 defaults (`mag_preserve=True`,
+  `focal_backprop=None`, detector de-chirp on). Its `contract` default is now
+  `"auto"`, which picks the cheaper of `"columns"` and `"probe"` for each atom.
+  Both orders compute the same result to rounding (relative tolerance 1e-11 in
+  float64). Pass `contract="columns"` to force the v0.3 order.
+
+## The physics base layer
+
+v0.4 replaces the physics base layer with new code that has a new API. v0.3
+and earlier based this layer on py_multislice: the frequency grids, the band
+limits, the scattering factors, the structure container, the potential builder
+and the transmission function. Two teams wrote the new modules. A
+specification team that knew the former code wrote a behavioural contract,
+and a separate team wrote the code from that contract and the published
+literature. `THIRD-PARTY-NOTICES.md` describes the process and its limits. No
+name, argument name, unit string, default or argument order of the former code
+is kept, except the NumPy and PyTorch convention names `shape`, `dtype` and
+`device` and the generic names `msd`, `depth` and `jitter`. The numbers
+change. The projected potentials differ from v0.3 by 0.8-9 % (relative L2),
+and by up to 15 % on very coarse grids; the new ones are closer to the exact
+Fourier sum (1e-4 to 6e-4 against 2-11 % for v0.3). In the BiP-PRISM
+map-scaling study the new transmissions change the EELS map shapes by 7-8 %.
+Item 8 of "Numbers that move" in the v0.4.0 release notes gives all the
+measurements.
+
+The tables list every change. "Removed" means that no direct replacement
+exists; the last column says what to do. A "Former name" can be a name of
+the development code between v0.3 and v0.4 that no public release had, for
+example `physics.grid.*`, `physics.scattering.*`, `_potential_common.*`,
+`AVOGADRO_CONSTANT`, `circular_aperture` and `interaction_parameter`. The
+table [Every v0.3 public name](#every-v0.3-public-name) lists the names of
+the v0.3 release.
+
+### Frequency grids and band limits (`scatterem.physics.periodic_sampling`)
+
+| Former name | v0.4 name | Note |
+|---|---|---|
+| `physics.grid.fft_frequencies(shape, extent, meshed=True)` | `dft_sample_frequencies(PeriodicGrid(points, lengths))` | returns one broadcastable float64 array per axis; call `numpy.broadcast_arrays` for full grids |
+| `physics.grid.mesh_axes(axes)` | removed | use `numpy.broadcast_arrays` |
+| `physics.grid.fft_frequency_grid` | `scatterem.physics._frequency_grid.fft_frequency_grid` | no public re-export; the torch twin of `dft_sample_frequencies` |
+| `physics.grid.band_limit_mask(shape, limit, soft, rfft, dtype, device, taper=None)` | `ellipse_mask(shape, nyquist_fraction, *, half_last_axis, fade_depth=0.0, device=None, dtype=None)` | `shape` is always the full grid shape; the smooth edge is a Hann edge of depth `fade_depth` inside the cut, not an erf edge |
+| `physics.grid.band_limit(array, limit=2/3, qspace_in=True, qspace_out=True, soft=None, rfft=False, taper=None)` | `lowpass_ellipse(field, nyquist_fraction, *, fade_depth=0.0)` | real space in and out; no default fraction; for a spectrum, multiply by `ellipse_mask` |
+| `physics.grid.antialias_aperture(shape, sampling, cutoff=0.6666666, dtype, device)` | `CircularPassBand(PeriodicGrid.from_pixel_sizes(shape, sampling), cut_fraction, rim_samples=2.0).mask(device=None, dtype=None)` | the rim width is `rim_samples` frequency steps of the coarser axis, not a fixed width in 1/Å |
+| `physics.grid.antialias_limit`, `antialias_taper_fraction` | removed | read `CircularPassBand.cut_radius`, `.rim_width` and `.flat_radius` [1/Å] |
+| `physics.grid.antialias_cutoff_gpts(shape, sampling, cutoff)` | `CircularPassBand.min_crop_shape()` | the box is `2 J + 1` samples per axis; it does not keep the parity of the grid |
+| `physics.grid.bandlimit_waves(waves, aperture)` | `apply_pass_band(field, mask)` | |
+| `physics.grid.ANTIALIAS_CUTOFF`, `ANTIALIAS_TAPER` | removed | give the cut fraction each time; 2/3 is the conventional value |
+| — | `mask_cache_stats()`, `clear_mask_cache()` | new: the masks are kept in a bounded cache |
+
+### Scattering amplitudes (`scatterem.physics.atom_amplitudes`)
+
+| Former name | v0.4 name | Note |
+|---|---|---|
+| `physics.scattering.interaction_constant(energy, units="rad/VA")` | `scatterem.physics.constants.phase_per_potential_at(kinetic_ev)` | rad/(V Å) |
+| `physics.scattering.interaction_constant(energy, units="rad/A")` | `gamma_wavelength(kinetic_ev)` | `gamma * lambda` [Å] |
+| `physics.scattering.electron_scattering_factor(z, gsq, units="VA")` | `POTENTIAL_PER_AMPLITUDE * born_amplitude(frequency, atomic_number)` | the argument is the frequency `g`, not `g**2`; the argument order changes; `born_amplitude` returns Å; the sum runs in float64 |
+| `physics.scattering.electron_scattering_factor(z, gsq, units="A")` | `born_amplitude(frequency, atomic_number)` | as above |
+| `physics.scattering.electron_scattering_factor_numpy(z, gsq, units)` | `born_amplitude_array(frequency, atomic_number)` | as above, numpy |
+| `physics.scattering._electron_scattering_factors_numpy(zs, gsq, units)` | `born_amplitudes(frequency, atomic_numbers)` | as above, several elements |
+| `physics.scattering.scattering_factors_on_grid(shape, extent, elements)` | `potential_spectra(grid, atomic_numbers)` | float64, not float32 [V Å³] |
+| `physics.scattering._ANGSTROM_TO_VOLT_ANGSTROM` | `POTENTIAL_PER_AMPLITUDE` | |
+| `physics.scattering._A`, `_B` | `scatterem.physics._lobato2014_table.COEFFICIENTS` | row `Z - 1` holds `(a_i, b_i)` |
+| `physics.scattering._check_element(z)` | `validated_atomic_number(atomic_number)` | |
+
+### The structure container (`scatterem.physics.atom_set`)
+
+| Former name | v0.4 name | Note |
+|---|---|---|
+| `Structure(unitcell, atoms, dwf, occ=None, Title="", EPS=1e-2, u_aniso=None)` | `AtomSet(box_spec, fractional, element_z, *, site_fraction=None, msd=None, adp=None, remark="", tilt_sine=5e-3)` | the `(N, 6)` table is gone: give the positions, atomic numbers, occupancies and `<u^2>` as separate arrays; `AtomSet` is immutable; `tilt_sine` has the role of `EPS`, with the default 5e-3 (was 1e-2): a cell edge tilts by at most 0.3° from its box axis, so bonds change by at most 0.5 %. Pass `tilt_sine=1e-2` for the v0.3 supercell of a triclinic cell |
+| `Structure.unitcell` | `AtomSet.sides` | (3,) side lengths [Å] |
+| `Structure.atoms[:, 0:3]` | `AtomSet.fractional` | |
+| `Structure.atoms[:, 3]` | `AtomSet.element_z` | int64 |
+| `Structure.atoms[:, 4]` | `AtomSet.site_fraction` | |
+| `Structure.atoms[:, 5]` | `AtomSet.msd` | `<u^2>` [Å²] |
+| `Structure.u_aniso` | `AtomSet.adp` | |
+| `Structure.Title` | `AtomSet.remark` | |
+| `Structure.fractional_occupancy` | `has_partial_occupancy(atom_set.site_fraction)` | tolerance `FULL_OCCUPANCY_TOLERANCE = 1e-4` (was 1e-3) |
+| — | `AtomSet.xyz_angstrom`, `.box_volume`, `.row_total`, `len()`, `.with_fractional()` | new |
+| `Structure.fromfile(fnam, temperature_factor_units="ums", atomic_coordinates="fractional", EPS, T, format)` | `read_atom_set(source_file, *, file_style=None, displacement_kind=None, position_kind=None, tilt_sine=5e-3)` | `file_style` in `("kirkland", "poscar", "mustem", "cif", "extxyz")`; `displacement_kind` in `("mean_square", "rms_length", "b_factor")`; no `T=` option |
+| `.xyz` files: raw numbers kept by default | `.xyz` files: Cartesian Å by default | `position_kind="relative"` keeps the numbers as written |
+| `.p1` atom lines `x y z label occ u` | the same layout reads; `x y z occ u label` also reads | one site label before or after the numbers is skipped; the label no longer sets the species, the element line and the counts do |
+| `Structure.rotate(theta, axis, origin=(0.5, 0.5, 0.5), wrap=True, margin=0.0, rebox=True)` | `AtomSet.with_rotation(*, axis_vec, turn_radians, fixed_point=None, as_crystal=False, padding=0.0, tilt_sine=5e-3)` | returns a new object; the rotation is active and right-handed: v0.3 turned the atoms by `-theta`, so pass `turn_radians=-theta` for the v0.3 result. With `wrap=False`, v0.3 fitted the box to the turned atoms; `with_rotation` keeps the turned input box with its vacuum. The EELS tilt operators still use the v0.3 tight box |
+| `Structure.tile(x=1, y=1, z=1)` (in place) | `AtomSet.replicated((n0, n1, n2))` | returns a new object; the order of the copies changes |
+| `physics.structure.DEFAULT_MEAN_SQUARE_DISPLACEMENT` | `scatterem.crystal.phase.DEFAULT_U2` | 0.01 Å² |
+| `physics._structure_files.read_xyz`, `read_p1`, `read_xtl`, `read_cif`, `read_extxyz`, `FORMATS`, `READERS` | `scatterem.physics._atom_set_io.read_structure_arrays`, `FILE_STYLES`, `SUFFIX_STYLE` | private |
+| `physics._cell.reduce_cell`, `supercell_atoms`, `orthorhombic_cell` | `scatterem.physics._orthobox.plan_orthobox(lattice, tilt_sine)` and `OrthoPlan.apply(fractional)`; `plan_axis_aligned` | private; the supercell has the smallest `abs(det P)` |
+
+### Crystal phases (`scatterem.crystal.phase`)
+
+`Phase` keeps a crystal in its own cell, which can be oblique. It uses the
+per-site names and checks of `AtomSet`. The `(N, 6)` table and the `unitcell`
+and `atoms` attributes are gone.
+
+| Former name | v0.4 name | Note |
+|---|---|---|
+| `Phase(unitcell, atoms, name="", point_group=None, u_aniso=None)` | `Phase(cell, fractional, element_z, *, site_fraction=None, msd=None, adp=None, name="", point_group=None)` | give the sites as separate arrays; `Phase` is immutable; `msd=None` gives `DEFAULT_U2` |
+| `Phase.unitcell` | `Phase.cell` | (3, 3), the edge vectors as rows [Å] |
+| `Phase.atoms[:, 0:3]` | `Phase.fractional` | fractions of the cell edges |
+| `Phase.atoms[:, 3]` | `Phase.element_z` | int64 |
+| `Phase.atoms[:, 4]` | `Phase.site_fraction` | |
+| `Phase.atoms[:, 5]` | `Phase.msd` | `<u^2>` [Å²] |
+| `Phase.u_aniso` | `Phase.adp` | Cartesian in the frame of the cell rows |
+| `Phase.from_cif(path, *, u2_default=0.01, name="")` | `Phase.from_cif(path, *, msd_default=0.01, name="")` | |
+| — | `Phase.from_atom_set(structure, *, name=None)`, `.row_total`, `len()` | new. The same crystal in a rectangular box is `AtomSet(phase.cell, phase.fractional, phase.element_z, site_fraction=phase.site_fraction, msd=phase.msd, adp=phase.adp)` |
+
+### Projected potentials and transmission (`scatterem.physics.potential_stack` and its modules)
+
+| Former name | v0.4 name | Note |
+|---|---|---|
+| `make_potential(structure, pixels, subslices=None, tiling=(1, 1), ...)` | `potential_stack(partition, atom_set, points, *, replicas=None, ...)` | see the argument table below |
+| `uniform_subslices(n)` | `BeamPartition.uniform(count)` | exact fractional edges |
+| a list of slice ends `subslices` | `BeamPartition([0, *subslices])` or `BeamPartition.from_thicknesses(thicknesses, depth)` | |
+| `subslice_bin_edges(subslices, edge_tol)` | `BeamPartition.edge_values(dtype, device)` | |
+| `subslice_index_wrapped(z, subslices, edge_tol)` | `BeamPartition.bin_index(beam_fraction, *, edge_snap=True)` | |
+| `subslice_index_clipped(z, subslices, edge_tol)` | `BeamPartition.bin_index_clamped(beam_fraction, *, edge_snap=True)` | |
+| `element_order(structure)` | `species_order(atom_set)` | `scatterem.physics.beam_partition` |
+| `share_splat()` | `spectrum_sweep(max_entries=4)` | `scatterem.physics.spectrum_sweep`; reuses the layout spectra between builds; `SweepLedger` counts the reuse |
+| `_potential_deposition.replica_displacements(...)` | `jitter_offsets(atom_set, replicas, jitter, *, overrides=None, device=None)` | `scatterem.physics.thermal_jitter` |
+| `_potential_deposition.representative_sites(table)` | `colocated_rows(source, sides=None, *, tolerance=0.01)` | `scatterem.physics.thermal_jitter` |
+| `_potential_deposition.DepthModel`, `depth_model(...)` | `axial_shares(partition, beam_fraction, msd, depth, *, beam_spread="binned", edge_snap=True)` and `AxialShares` | `scatterem.physics.axial_shares` |
+| `_potential_deposition.deposit(...)` | removed | private cubic B-spline deposit inside `potential_stack` |
+| `_potential_common.validate_potential_inputs(...)` | `check_stack_request(...)` and `StackRequest` | `scatterem.physics.potential_stack` |
+| `_potential_common.potential_device(device)` | `resolve_stack_device(...)` | |
+| `_potential_common.POTENTIAL_BUILDERS = ("fft", "realspace")` | `ROUTE_NAMES = ("spectral", "spatial")` | `scatterem.physics.route_settings` |
+| `_potential_common.resolve_potential_builder(request, decomposed=False)` | `choose_route(*, multi_device, preference="either")` | `"auto"` is now `"either"` |
+| `_potential_common.check_potential_builder(builder)` | `check_route(value)` | |
+| `_potential_common.resolve_bandwidth_limit(builder, value)`, `BANDWIDTH_AUTO`, `FFT_BANDWIDTH_DEFAULT = 0.2` | `route_rolloff(*, route, preference="either")`, `DEFAULT_ROLLOFF = 1/3` | the erf edge is now a Hann rolloff |
+| `_potential_common.validate_taper_width(value, name)` | `check_rolloff(rolloff_depth)` | `scatterem.physics.potential_rolloff` |
+| `_potential_common.validate_cutoff_tol(...)` | `check_cutoff(cutoff_level, *, field_label)` | |
+| `RealspaceSpec(cutoff_tol=1e-3, projection="infinite", cutoff_tol_3d=None)` | `SpatialRouteSettings(axial_mode="projected", volume_cutoff=None, projected_cutoff=5e-4)` | `"finite"` is now `"sectioned"`; the default cutoff is 5e-4 V Å (was 1e-3): the radii grow by about 6 % and the truncation error halves. Pass `projected_cutoff=1e-3` for the v0.3 cut. |
+| `_potential_common.SiteOverrides`, `resolve_site_overrides(...)` | `RowReplacements(beam_fraction=None, plane_fraction=None, msd=None, site_fraction=None)` | `scatterem.physics.row_replacements` |
+| `_potential_common.uses_occupancy(...)` | `has_partial_occupancy(site_fraction)` and `ignore_site_fraction` | |
+| `make_transmission_functions(potential, energy, *, bandwidth_limit=2/3, fftout=False, V_abs=None, dz=None)` | `thin_slice_transmission(beam_ev, projected, *, attenuation=None, bandlimit=None)` | `scatterem.physics.thin_slice`; no default band limit: give the fraction each time; no spectrum output (apply `torch.fft.fft2`); `attenuation` is the projected absorptive potential [V Å], not `V_abs` with `dz` |
+| `projected_potential_to_object(potential, energy)` | `phase_from_projection(beam_ev, projected)` | |
+
+Arguments of `make_potential` and their `potential_stack` replacement:
+
+| `make_potential` | `potential_stack` | Note |
+|---|---|---|
+| `structure` | `atom_set` | second argument |
+| `pixels` | `points` | third argument; integers only |
+| `subslices=None` | `partition` | first argument, required |
+| `tiling=(1, 1)` | `replicas=None` | `None` is one copy |
+| `displacements=True`, `seed=None` | `jitter=None` or `jitter=ThermalJitter(draw_seed=seed)` | the default is now the static potential |
+| `thermal_depth=False` | `ThermalJitter(transverse_only=True)` | `transverse_only=False` also moves the atoms along the beam |
+| `fractional_occupancy=True` | `ignore_site_fraction=False` | inverted meaning |
+| `sinc_deconvolution=True` | removed | the deposit is always corrected |
+| `bandwidthlimit=0.2` | `rolloff=DEFAULT_ROLLOFF` (1/3) | a Hann rolloff; `None` turns it off |
+| `fe=None` | `form_spectra=None` | |
+| `weights=None`, `weight_power=1` | `atom_scale=None`, `scale_squared=False` | `scale_squared=True` for power 2 |
+| `subslice_edge_tol=False` | `edge_snap=True` | the default changes: with `edge_snap=True`, a layer less than 1e-9 of the cell (float64; 512 ulp in float32) before an inner edge goes to the slice after it; a layer exactly on a float edge is always in the slice after it, as in v0.3 |
+| `positions`, `depths`, `occupancy`, `u2` | `overrides=RowReplacements(plane_fraction=positions, beam_fraction=depths, site_fraction=occupancy, msd=u2)` | pass the four fields by keyword; the positional order is `beam_fraction, plane_fraction, msd, site_fraction` |
+| `depth_split="nearest"` | `beam_spread="binned"` | `"tent"` and `"smeared"` are the other models |
+| `dtype=torch.float32` | `dtype=None` | `None` is the torch default dtype; a complex dtype selects its real partner |
+| `device=None` | `device=None` | |
+
+The pixel value is now the band-limited point value of the projected
+potential, not the pixel average. The atoms are put on the grid with a cubic
+B-spline and two interlaced grids, not with bilinear weights.
+
+### Constants, lens wavefront and masks
+
+`scatterem.physics.constants`, `scatterem.physics.optics` and the Warp
+device functions in `scatterem.physics.kernels.lens_wavefront_wp` are also
+new code with a new API, written by the same two-team process. A constant
+name now tells where its value comes from: `EXACT_` is a defining constant
+of the SI, `CODATA18_` a CODATA 2018 value, `DERIVED_` a value that the
+module computes from the others.
+
+| Former name | v0.4 name | Note |
+|---|---|---|
+| `PLANCK_CONSTANT` | `EXACT_PLANCK` | |
+| `ELEMENTARY_CHARGE` | `EXACT_E_CHARGE` | |
+| `SPEED_OF_LIGHT` | `EXACT_LIGHT_SPEED` | |
+| `AVOGADRO_CONSTANT` | `EXACT_AVOGADRO` | |
+| `BOLTZMANN_CONSTANT` | `EXACT_BOLTZMANN` | |
+| `ELECTRON_REST_MASS` | `CODATA18_ELECTRON_MASS` | |
+| `ATOMIC_MASS_CONSTANT` | `CODATA18_DALTON` | |
+| `FINE_STRUCTURE_CONSTANT` | `CODATA18_FINE_STRUCTURE` | |
+| `VACUUM_PERMEABILITY` | `CODATA18_VACUUM_MU` | |
+| `CLASSICAL_ELECTRON_RADIUS` | `CODATA18_ELECTRON_RADIUS` | |
+| `REDUCED_PLANCK_CONSTANT` | `DERIVED_PLANCK_BAR` | |
+| `REST_ENERGY_EV` | `DERIVED_ELECTRON_REST_EV` | |
+| `electron_wavelength(accelerating_voltage)` | `debroglie_at(kinetic_ev)` | |
+| `relativistic_mass_factor(energy)` | `gamma_at(kinetic_ev)` | |
+| `relativistic_electron_mass(energy)` | `moving_mass_at(kinetic_ev)` | |
+| — | `DERIVED_AB_COUPLING` | new: the coupling `e / hbar` [rad / (T Å²)], a constant |
+| — | `bend_per_tesla_at(kinetic_ev)` | new: `e / p` [1 / (T Å)]; refuses invalid energies, as the other functions do |
+| `interaction_parameter(energy)` | `phase_per_potential_at(kinetic_ev)` | `scatterem.physics.atom_amplitudes` no longer re-exports it |
+| `COEFFICIENT_NAMES` (`"C10"`, `"C12a"`, ...) | `LENS_LAYOUT` (`"C10"`, `"C12a"`, ...) | the same 12 labels in the same order; `scatterem.data.aberrations.CARTESIAN_NAMES` is the same tuple; `LENS_TERMS` gives `(n, m, part)` of each slot |
+| `cartesian_chi(qy, qx, wavelength, coefficients)` | `lens_wavefront(lens, fy, fx, *, lambda_a)` | the lens vector comes first; `lambda_a` is a host number, not a tensor |
+| `cartesian_chi_gradient(qy, qx, wavelength, coefficients)` | `lens_wavefront_slope(lens, fy, fx, *, lambda_a)` | the result is `(..., 2)` with `[..., 0] = dW/dk_y`, not `(2, ...)`; use `.unbind(-1)` |
+| `polar_to_cartesian(dict)` | `lens_from_amplitude(tensor)` | a `(..., 12)` tensor in `AMPLITUDE_LAYOUT` (magnitude slots `"C12"`, `"C21"`, ..., angle slots `"phi12"`, `"phi21"`, ...); `pack_lens(mapping, layout=AMPLITUDE_LAYOUT)` builds it from labels |
+| `cartesian_to_polar(dict)` | `lens_to_amplitude(tensor)` | `unpack_lens(..., layout=AMPLITUDE_LAYOUT)` gives a dict; the angle is in `[0, 2 pi / m)`, not `(-pi / m, pi / m]` |
+| `APERTURE_EDGE_PX` (1.0) | `RIM_WIDTH_PX` (2.0) | the default rim is 2 pixels |
+| `circular_aperture(r, shape, aa_width=1.0, device=None, aspect=1.0)` | `smooth_disc(shape, radius_px, *, rim_px=RIM_WIDTH_PX, px_ratio=None, dtype=None, device=None)` | pass `rim_px=1.0` for the v0.3 rim |
+| `annular_aperture(r_inner, r_outer, shape, device=None)` | `smooth_annulus(shape, inner_px, outer_px, *, rim_px=RIM_WIDTH_PX, px_ratio=None, dtype=None, device=None)` | pass `rim_px=1.0` for the v0.3 rim |
+| — | `illumination_disc(shape, step_inv_a, opening_rad, *, lambda_a, dtype=None, device=None)` | new: the disc of a convergent beam; the rim is always `RIM_WIDTH_PX`; for a 1-pixel rim use `smooth_disc(shape, opening_rad / (lambda_a * dk_y), rim_px=1.0, px_ratio=dk_x / dk_y)` |
+| `kernels.aberrations.aberration_function_cartesian(qy, qx, wavelength, aberrations)` | `kernels.lens_wavefront_wp.lens_wavefront_f32(lens, fy, fx, lambda_a)` | new argument order |
+| `kernels.aberrations.aberration_function_cartesian_defocus_only(...)` | `kernels.lens_wavefront_wp.lens_wavefront_focus_f32(lens, fy, fx, lambda_a)` | the same bits as `lens_wavefront_f32` when slots 1 to 11 are zero |
+| — | `kernels.lens_wavefront_wp.lens_to_warp(lens, *, device=None)` | new: a lens vector as a float32 Warp array |
+
+Behaviour that changes:
+
+- The masks are in DFT order on every axis. On an axis of odd length the v0.3
+  masks were not (`fftshift(arange(-n // 2, n // 2))`), so values on odd axes
+  change. On even axes the masks are the same to float32 rounding. The masks
+  use the torch default dtype and device; v0.3 gave float32 on the CPU.
+- The functions of `scatterem.physics.constants` refuse zero (except
+  `gamma_at` and `moving_mass_at`), negative, NaN and infinite energies with
+  `ValueError`, and a `bool` with `TypeError`. v0.3 returned a number, NaN or
+  raised `ZeroDivisionError`.
+- `lens_wavefront` has a finite gradient at `k = 0`; v0.3 gave NaN there.
+  A lens tensor must be on the device of the frequency grid; the result has
+  the dtype of the grid.
+- Numbers: the constants are the same values. The wavelength and the
+  interaction parameter agree with v0.3 to 4.5e-16 (relative), the wavefront
+  and its slope to 7.5e-16 (float64) and 3.7e-7 (float32), and the Warp
+  wavefront to 1.3e-7 (float32).
+- The PRISM and PRISM-EELS probes and beam sets keep the 1-pixel rim of
+  v0.3, so the beam sets are the same.
+- The probe apertures of the simulation and of the PRISM models are computed
+  in float64 and then cast. On 60 random windows they differ from v0.3 by at
+  most about 3e-6, with the same beam support. The v0.3 float32 aperture
+  rounded the radius and the distance to float32 before the edge function,
+  so the v0.4 values are the more accurate ones. Exception: on an axis of odd
+  length, where the disc reaches the highest frequency, v0.3 had the wrong
+  frequency order (see the first item of this list).
+- The direct-ptychography log gives the astigmatism and coma angles in
+  `[0, 2 pi / m)`, not in `(-pi / m, pi / m]`. The fit does not change.
+- v0.4 has one set of aberration labels: the Krivanek names (`"C10"`,
+  `"C12a"`, ...). `LENS_LAYOUT` and
+  `scatterem.data.aberrations.CARTESIAN_NAMES` are the same tuple. The
+  `Aberrations` container, `pack_lens`, `unpack_lens` and the
+  direct-ptychography configuration use these labels.
+- v0.4 has one polar form. `scatterem.data.aberrations.POLAR_NAMES` and
+  `AMPLITUDE_LAYOUT` are the same tuple: the seven magnitudes (`"C10"`,
+  `"C12"`, ..., `"C34"`), then the five angles (`"phi12"`, ...,
+  `"phi34"`). `Aberrations.to_polar`, `to_polar_array`, `from_polar` and
+  `from_polar_array` use `lens_to_amplitude` and `lens_from_amplitude`.
+  `to_polar` and `to_polar_array` now give each angle in `[0, 2 pi / m)`,
+  not in `(-pi / m, pi / m]`. The magnitudes and the lens do not change.
+
+### Scan rotation and bright-field shifts
+
+| Former name | v0.4 name | Note |
+|---|---|---|
+| `data.calibration._solve_for_center_of_mass_relative_rotation(com_x, com_y, rotation_angles_deg=None, maximize_divergence=False, force_com_rotation=None, force_com_transpose=None, disambiguate_180=False, verbose=True, device=None, *, return_sweep=False)` | `data.calibration.find_scan_rotation(centroid_a0, centroid_a1, *, run_device=None, quiet=False, angle_grid_deg=None, fixed_angle_deg=None, fixed_axes_exchanged=None, resolve_180=True, curve_kind="curl", scan_spacing=(1.0, 1.0), keep_search=False, evaluator="by_capability")` | returns `ScanRotation`; the angle is `scan_turn_deg` in degrees; the default grid is -90° to 90° in steps of 0.1°; the 180° test runs by default |
+| `data.calibration._disambiguate_rotation_180(com_x, com_y, verbose=True)` | `data.calibration._rotation_sign.resolve_half_turn(grad_a0, grad_a1, scan_spacing=(1.0, 1.0))` | private |
+| `data.calibration._rotation._curl_field`, `_div_field` | `data.calibration._rotation_ops.curl_2d`, `divergence_2d` | private |
+| `data.calibration._rotation._sweep_objective` | `data.calibration._rotation_solver.rotation_objective` | returns `ObjectiveCurves` |
+| `data.calibration.RotationSweep` | `data.calibration.RotationSearch` | |
+| `data.calibration._rotation_sweep_triton.rotation_sweep`, `rotation_sweep_supported` | `data.calibration._rotation_fused.rotation_curves_triton`, `triton_rotation_supported` | private; backend row `rotation_sweep` is now `rotation_search` |
+| `vis.calibration.plot_rotation_sweep(sweep, figsize=(8, 2))` | `vis.rotation_figures.angle_search_figure(search, *, figure_inches=(5.0, 3.2))` | |
+| `vis.calibration._plot_com(...)` | `vis.rotation_figures.plot_scan_maps(scan_images, *, scan_spacing, distance_unit, ...)` | |
+| `reconstruction.ptychography.direct.bright_field_shifts(G_ref, vBF, ..., bin, n_batches=16, registration_upsample_factor=10, verbosity=1, fwhm_lowpass_bf=None, peak_selection="argmax")` | `reconstruction.ptychography.direct.measure_bf_parallax(image_spectra, detector_coords_px, *, shift_estimator="mean_template", binning=1, peak_grid_divisor=20, lowpass_sigma_px=None, start_template=None, n_refinements=2, peak_tolerance=0.02, remove_image_mean=True, status_line=False, quiet=False)` | the spectra come as a stack or a `SpectrumSource`; the low-pass width is a standard deviation, not a FWHM |
+| `reconstruction.ptychography.direct.bright_field_shifts_pairwise(..., connectivity=8)` | `measure_bf_parallax(..., shift_estimator="neighbour_mesh")` | |
+| `aberrations_and_rotation_from_bright_field_shifts(..., n_batches=25, ...)` | `aberrations_and_rotation_from_bright_field_shifts(...)` | `n_batches` is removed |
+
+### Bright-field disk and Fourier grids
+
+v0.4 replaces the bright-field disk fit (`scatterem.data.disk_fit`) and the
+frequency grid and ring profile (`scatterem.utils.grids`) with new code that
+has a new API: `scatterem.data.pupil_gauge` and
+`scatterem.utils.spectral_mesh`. Two teams wrote it, as for the physics base
+layer. The numbers change:
+
+- The disk radius is now the radius of the circle at the level halfway
+  between the inside and the outside intensity. v0.3 took the median radius
+  of a threshold sweep that was a fraction of the maximum, so a dark offset
+  moved it. On synthetic disks the radius error goes from 1.2 % to 0.14 %
+  (radius 8 px), from 2.7 % to 0.01 % with a 20 % dark offset, and from 14 %
+  to 0.9 % (rms) at 10 counts per pixel. `dk = alpha / (lambda R)` changes
+  with it.
+- `measure_pupil` and the `Dataset4DStem` methods
+  `bright_field_radius_and_center`, `bright_field_radius_and_center_` and
+  `calibrate_reciprocal_from_bright_field` take `edge_reach=None` by
+  default: an edge band of 2 pixels for `"integral"` and 10 pixels for
+  `"rayfit"`. With 2 pixels, `"rayfit"` reads a disk with a 90-degree notch
+  about 11 % small, so it keeps the wide band. On a disk whose top
+  falls towards the edge, a wide band reads the radius too small: on the
+  Gd2O3 data of the FF-STEM paper, 4.1 % inside the half-level crossing of
+  the azimuthal profile with 10 pixels and 0.5 % with 2 pixels. On the four
+  FF-STEM datasets, `dk` from `calibrate_reciprocal_from_bright_field` then
+  differs from v0.3 by -0.36 % (carbon), +0.01 % (Co3O4), -0.003 % (Gd2O3)
+  and -0.03 % (Au).
+- The ring profile uses the coarsest axis step as the shell spacing and keeps
+  only complete shells, so it has fewer values than in v0.3 (64 x 64: 31, not
+  33; 64 x 40: 19, not 33). The error against an analytic Gaussian profile
+  drops by a factor of 1.3 to 6.
+- `dual_mesh` rounds each frequency once from its exact value. v0.3 values
+  can differ by 1 ulp.
+
+| Former name | v0.4 name | Note |
+|---|---|---|
+| `utils.grids.fft_frequencies_2d(shape, sampling=(1.0, 1.0), half_pixel_shift=False, device="cpu", dtype=None)` | `utils.spectral_mesh.dual_mesh(n_yx, pitch, *, staggered, dtype=None, device=None)` | `pitch` and `staggered` have no default; give `staggered=False` for the standard grid; zero, negative or non-finite pitches and counts raise |
+| `utils.grids.frequency_magnitude_2d(shape, sampling, device, dtype)` | removed | `torch.hypot(*dual_mesh(...))` |
+| `utils.grids.grid_shape_and_sampling(q)` | removed | keep the shape and the pitch with the grid |
+| `utils.grids.radial_average(image, sampling)` | `utils.spectral_mesh.shell_means(spectrum_samples, pitch)` | returns `ShellMeans(shell_wavenumber, shell_average)`; a complex input raises `TypeError` (pass `.real` or `abs()`); code that indexes by the v0.3 length or spacing must change |
+| `utils.data.disk_fit.fit_bright_field_disk(dp, *, threshold_range=(0.25, 0.75), n_thresholds=100, max_radius_fraction=0.4, min_contrast=3.0)` | `data.pupil_gauge.measure_pupil(pupil_frame, estimator="integral", *, radius_cap=0.45, contrast_floor=1.5, edge_reach=None, arc_floor=None)` | returns `PupilEstimate(rim_radius, rim_center)`; tuple unpacking `radius, center = ...` still works |
+| `method="area"` (development code only) | `estimator="integral"` | needs a complete disk; a disk cut by the detector border raises `ValueError` |
+| `method="circle"` (development code only) | `estimator="rayfit"` | for a notched disk or a disk partly outside the detector; it uses no random numbers |
+| `max_radius_fraction=0.4` | `radius_cap=0.45` | the default accepts slightly larger disks |
+| `min_contrast=3.0` | `contrast_floor=1.5` | the smallest inside/outside level ratio; set it to refuse weak disks as before |
+| `min_edge_points` (a number of points; development code only) | `arc_floor` (a fraction of the full circle, `"rayfit"` only) | default 0.4 |
+| `threshold_range`, `n_thresholds`, `edge_method`, `ransac_iterations`, `ransac_threshold` | removed | `edge_reach` sets the width of the edge band; increase it for very soft edges |
+| — | `edge_reach=None` (`measure_pupil` and the `Dataset4DStem` disk methods) | new default: a band of 2 pixels for `estimator="integral"` and 10 pixels for `estimator="rayfit"`; pass a number to set the band for both |
+| `Dataset4dstem.bright_field_radius_and_center(thresh_lower=0.1, thresh_upper=0.6, N=100, method="area", edge_method="canny", min_edge_points=100, ransac_iterations=1000, ransac_threshold=2.0)` | `Dataset4DStem.bright_field_radius_and_center(estimator="integral", *, edge_reach=None, arc_floor=None)` | returns a `PupilEstimate`; the same change for `bright_field_radius_and_center_`; the default `edge_reach=None` is the default of `measure_pupil` (see the next row) |
+| `Dataset4dstem.crop_brightfield_(thresh_lower=0.01, thresh_upper=0.99, normalize=True, clip_neg_values=True)` | `Dataset4DStem.crop_brightfield_(estimator="integral", normalize=True, clip_neg_values=True)` | |
+| `Dataset4dstem.calibrate_reciprocal_from_bright_field(semiconvergence_angle=None, thresh_lower=0.1, thresh_upper=0.99, method="area")` | `Dataset4DStem.calibrate_reciprocal_from_bright_field(semiconvergence_angle=None, estimator="integral", *, edge_reach=None)` | the radius comes from the whole detector, not from the bright-field crop |
+
+## Other behaviour changes
+
+- `import scatterem` no longer sets `torch.set_float32_matmul_precision("medium")`.
+  The precision stays at the torch default, `"highest"`. The published FF-STEM
+  figures were computed at `"medium"`. On the four figure scripts the change is
+  of the order of the run-to-run difference (at most 4e-7 relative L2 on carbon,
+  Co₃O₄ and Au, 2e-4 on Gd₂O₃), and setting `"medium"` does not give
+  the published figures back. See [Figure scripts](figures.qmd). The complex64
+  PRISM-EELS calls run up to 1.5x slower than in v0.3 at `"highest"`. Call
+  `scatterem.configure(matmul_precision="medium")` to get the v0.3 speed; see
+  [the cost of a call](eels.qmd#the-cost-of-a-call-v03-and-v04).
+- The aberration autofocus uses the exact derivative of its objective and
+  ignores the scan DC of each bright-field pixel. Fitted aberrations change; on
+  the Gd₂O₃ figure data C10 moves from 31.5 Å to 19.6 Å.
+- `import scatterem` still initialises Warp: it imports
+  `scatterem.reconstruction`, which calls `warp.init()`. `scatterem.nn` does
+  the same. The lower layers (`scatterem.physics`, `scatterem.data`) start Warp
+  only at their first Warp call.
+- The tilt-corrected dark field and the fusion shift each detector segment by
+  its full parallax. v0.3 divided the shift by $2\pi$ a second time. Results
+  change when C10 or A1 is not zero.
+- Direct ptychography defaults to `phase_sign="preserve"` (positive phase for
+  positive potential). v0.3 flipped each image to positive skewness, which is
+  `phase_sign="positive"`. `FusedFullFieldConfig` has the same `phase_sign`
+  field for its ptychography channel.
+- The bright-field mask threshold is a fraction of a robust reference level, so
+  a few hot pixels no longer set it. Without hot pixels the mask is the same.
+- `reconstruction_sampling` no longer takes `units=`.
+- `interaction_constant` is now `scatterem.physics.constants.phase_per_potential_at(kinetic_ev)`.
+- v0.4 keeps no compatibility aliases. These alias names are removed:
+  `PrismScanOp.f` (use `fy` and `fx`), `SMeta.q_dft` (use `qf`),
+  `RadialWavefunction` (use `scatterem.simulation.eels.AtomicRadialWavefunction`,
+  the same class) and the module
+  `scatterem.utils.energy` (use `scatterem.physics.constants.debroglie_at`;
+  an angular pixel in mrad is `1e3 * debroglie_at(energy) * dq`).
+- `Dataset4dstemOutOfCore` is removed. Use
+  `Dataset4DStem.from_array(..., out_of_core=True)`.
+- Five helper modules are internal in v0.4 and not part of the public API:
+  `scatterem.data.storage`, `scatterem.utils.env`,
+  `scatterem.utils.lazy_plotting`, `scatterem.utils.warp` and
+  `scatterem.nn.functional.warp.prism_project._basis` (was
+  `prism_project.basis`). The package uses them, so they ship, but the API
+  reference does not list them and their names can change without notice.
+  The `scatterem.utils.warp` names in the table below are internal for the
+  same reason.
+- New required dependencies: `cmcrameri>=1.10` and `imageio>=2.33`. New
+  optional extras: `triton`, `notebook` and `anim` (`imageio-ffmpeg`, for MP4
+  output of the animations). The `dev` extra adds `mpmath`. The `eels` extra
+  (`gpaw`, `ase`) is unchanged.
+- Higher dependency floors: `numpy>=2.1`, `scipy>=1.15`, `matplotlib>=3.10`
+  (was 3.7), `h5py>=3.12.1`, `scikit-image>=0.25` and `gdown>=4.7.3` (was
+  4.7.0). These are the first releases with wheels for CPython
+  3.10 to 3.13. Python 3.10 or newer is still required, as in v0.3.
+
+## Every v0.3 public name
+
+The table lists every public name of the v0.3 package, with the place where you
+can import it in v0.4. "Internal" means that the name still exists but is no
+longer part of the public interface. The last rows list the names that v0.3
+exported from its private (underscore) modules. A check imports each v0.4 path
+in this table against the released tree.
+
+| v0.3 name | v0.4 location | Note |
+|---|---|---|
+| `scatterem.Dataset4dstem` | `scatterem.Dataset4DStem` | renamed |
+| `scatterem.You2026AuLowDose` | `scatterem.You2026AuLowDose` | unchanged |
+| `scatterem.You2026Carbon` | `scatterem.You2026Carbon` | unchanged |
+| `scatterem.You2026Co3O4` | `scatterem.You2026Co3O4` | unchanged |
+| `scatterem.You2026Gd2O3` | `scatterem.You2026Gd2O3` | unchanged |
+| `scatterem.direct_ptychography` | `scatterem.direct_ptychography` | unchanged |
+| `scatterem.fused_full_field` | `scatterem.fused_full_field` | unchanged |
+| `scatterem.tilt_corrected_dark_field` | `scatterem.tilt_corrected_dark_field` | unchanged |
+| `scatterem.datasets.You2026AuLowDose` | `scatterem.data.public.You2026AuLowDose` |  |
+| `scatterem.datasets.You2026Carbon` | `scatterem.data.public.You2026Carbon` |  |
+| `scatterem.datasets.You2026Co3O4` | `scatterem.data.public.You2026Co3O4` |  |
+| `scatterem.datasets.You2026Gd2O3` | `scatterem.data.public.You2026Gd2O3` |  |
+| `scatterem.datasets.public.base.load_npy` | `scatterem.data.public.base.load_npy` |  |
+| `scatterem.datasets.public.base.load_npy_to_device` | `scatterem.data.public.base.load_npy_to_device` |  |
+| `scatterem.datasets.public.base.PublicDataset4dstem` | `scatterem.data.public.base.PublicDataset4DStem` | renamed |
+| `scatterem.datasets.public.you2026.You2026Gd2O3` | `scatterem.data.public.You2026Gd2O3` |  |
+| `scatterem.datasets.public.you2026.You2026Carbon` | `scatterem.data.public.You2026Carbon` |  |
+| `scatterem.datasets.public.you2026.You2026Co3O4` | `scatterem.data.public.You2026Co3O4` |  |
+| `scatterem.datasets.public.you2026.prepare_au_lowdose` | `scatterem.data.public.you2026.prepare_au_lowdose` |  |
+| `scatterem.datasets.public.you2026.You2026AuLowDose` | `scatterem.data.public.You2026AuLowDose` |  |
+| `scatterem.datasets.utils.USER_AGENT` | `scatterem.data.public.utils.USER_AGENT` |  |
+| `scatterem.datasets.utils.calculate_md5` | `scatterem.data.public.utils.calculate_md5` |  |
+| `scatterem.datasets.utils.check_md5` | `scatterem.data.public.utils.check_md5` |  |
+| `scatterem.datasets.utils.check_integrity` | `scatterem.data.public.utils.check_integrity` |  |
+| `scatterem.datasets.utils.download_file_from_google_drive` | `scatterem.data.public.utils.download_file_from_google_drive` |  |
+| `scatterem.datasets.utils.download_url` | `scatterem.data.public.utils.download_url` |  |
+| `scatterem.datasets.utils.extract_archive` | `scatterem.data.public.utils.extract_archive` |  |
+| `scatterem.datasets.utils.download_and_extract_archive` | `scatterem.data.public.utils.download_and_extract_archive` |  |
+| `scatterem.datasets.utils.zenodo_file_url` | `scatterem.data.public.utils.zenodo_file_url` |  |
+| `scatterem.io.store.SCHEMA_VERSION` | `scatterem.utils.store.SCHEMA_VERSION` |  |
+| `scatterem.io.store.SerializationError` | `scatterem.utils.store.SerializationError` |  |
+| `scatterem.io.store.Serializable` | `scatterem.utils.store.Serializable` |  |
+| `scatterem.io.store.read_schema` | `scatterem.utils.store.read_schema` |  |
+| `scatterem.nn.functional.ptychography.build_aberration_bf_factor` | `scatterem.nn.functional.ptychography.build_aberration_bf_factor` | unchanged |
+| `scatterem.nn.functional.ptychography.build_aberration_bf_factor_planes` | `scatterem.nn.functional.ptychography.build_aberration_bf_factor_planes` | unchanged |
+| `scatterem.nn.functional.ptychography.correct_aberrations_inplace` | `scatterem.nn.functional.ptychography.correct_aberrations_inplace` | unchanged |
+| `scatterem.nn.functional.ptychography.correct_aberrations_kouter` | `scatterem.nn.functional.ptychography.correct_aberrations_kouter` | unchanged |
+| `scatterem.nn.functional.ptychography.correct_aberrations_kouter_planes` | — | removed |
+| `scatterem.nn.functional.ptychography.phase_contrast_transfer_function` | `scatterem.nn.functional.ptychography.phase_contrast_transfer_function` | unchanged |
+| `scatterem.nn.functional.ptychography.correct_aberrations` | `scatterem.nn.functional.ptychography.correct_aberrations` | unchanged |
+| `scatterem.nn.functional.ptychography.correct_aberrations_ksum` | `scatterem.nn.functional.ptychography.correct_aberrations_ksum` | unchanged |
+| `scatterem.nn.functional.ptychography.correct_aberrations_ksum_planes` | `scatterem.nn.functional.ptychography.correct_aberrations_ksum_planes` | unchanged |
+| `scatterem.nn.functional.ptychography.CorrectAberrations` | — | removed; use `correct_aberrations` |
+| `scatterem.nn.functional.warp.ptychography.minus_i` | — | removed (Warp helper) |
+| `scatterem.nn.functional.warp.ptychography.ip_real_conj` | — | removed (Warp helper) |
+| `scatterem.nn.functional.warp.ptychography.dchi_cartesian_aberrations` | `scatterem.nn.functional.warp.ptychography.dchi_cartesian_aberrations` | internal (Warp function); same path, name and parameters `(qy, qx, wavelength, j)` |
+| `scatterem.reconstruction.direct_ptychography` | `scatterem.reconstruction.direct_ptychography` | unchanged |
+| `scatterem.reconstruction.fused_full_field` | `scatterem.reconstruction.fused_full_field` | unchanged |
+| `scatterem.reconstruction.tilt_corrected_dark_field` | `scatterem.reconstruction.tilt_corrected_dark_field` | unchanged |
+| `scatterem.reconstruction.direct_ptychography.plot_bright_field_shifts` | — | internal |
+| `scatterem.reconstruction.direct_ptychography.estimate_scan_rotation_from_com` | — | internal |
+| `scatterem.reconstruction.direct_ptychography.fit_low_order_aberrations_and_rotation_closed_form` | — | internal |
+| `scatterem.reconstruction.direct_ptychography.fit_aberrations_and_rotation_to_bright_field_shifts` | `scatterem.reconstruction.ptychography.direct.fit_aberrations_and_rotation_to_bright_field_shifts` |  |
+| `scatterem.reconstruction.direct_ptychography.aberrations_and_rotation_from_bright_field_shifts` | `scatterem.reconstruction.ptychography.direct.aberrations_and_rotation_from_bright_field_shifts` |  |
+| `scatterem.reconstruction.direct_ptychography.bright_field_shifts` | `scatterem.reconstruction.ptychography.direct.measure_bf_parallax` | new API; see [Scan rotation and bright-field shifts](#scan-rotation-and-bright-field-shifts) |
+| `scatterem.reconstruction.direct_ptychography.bright_field_shifts_pairwise` | `scatterem.reconstruction.ptychography.direct.measure_bf_parallax` | `shift_estimator="neighbour_mesh"`; see [Scan rotation and bright-field shifts](#scan-rotation-and-bright-field-shifts) |
+| `scatterem.reconstruction.direct_ptychography.phase_contrast_transfer_function` | `scatterem.nn.functional.ptychography.phase_contrast_transfer_function` |  |
+| `scatterem.reconstruction.direct_ptychography.determine_aberrations` | `scatterem.reconstruction.ptychography.direct.determine_aberrations` |  |
+| `scatterem.reconstruction.direct_ptychography.enable_chunk_sum_first` | — | internal |
+| `scatterem.reconstruction.direct_ptychography.direct_ptychography` | `scatterem.reconstruction.ptychography.direct.direct_ptychography` |  |
+| `scatterem.reconstruction.direct_ptychography.direct_ptychography_empirical_ssnr` | `scatterem.reconstruction.ptychography.direct.direct_ptychography_empirical_ssnr` |  |
+| `scatterem.reconstruction.direct_ptychography.direct_ptychography_ssnr` | `scatterem.reconstruction.ptychography.direct.direct_ptychography_ssnr` |  |
+| `scatterem.reconstruction.drizzle.drizzle_resample` | `scatterem.reconstruction.darkfield.drizzle.drizzle_resample` |  |
+| `scatterem.reconstruction.fused_full_field.fused_full_field` | `scatterem.reconstruction.fusion.ffstem.fused_full_field` |  |
+| `scatterem.reconstruction.tilt_corrected_dark_field.gaussian_blur1d` | `scatterem.reconstruction.darkfield.core.gaussian_blur1d` |  |
+| `scatterem.reconstruction.tilt_corrected_dark_field.compute_ssnr_from_halfset_images` | `scatterem.reconstruction.darkfield.core.compute_ssnr_from_halfset_images` |  |
+| `scatterem.reconstruction.tilt_corrected_dark_field.tilt_corrected_dark_field` | `scatterem.reconstruction.darkfield.tilt_corrected_dark_field` |  |
+| `scatterem.reconstruction.tilt_corrected_dark_field.tilt_corrected_dark_field_depth_section` | `scatterem.reconstruction.darkfield.tilt_corrected_dark_field_depth_section` |  |
+| `scatterem.simulation.Structure` | `scatterem.physics.atom_set.AtomSet` | new API; see [The physics base layer](#the-physics-base-layer) |
+| `scatterem.simulation.calculate_scattering_factors` | `scatterem.physics.atom_amplitudes.potential_spectra` | new API; arguments `(grid, atomic_numbers)` |
+| `scatterem.simulation.electron_scattering_factor` | `scatterem.physics.atom_amplitudes.born_amplitude` | new API; arguments `(frequency, atomic_number)`, result in Å |
+| `scatterem.simulation.interaction_constant` | `scatterem.physics.constants.phase_per_potential_at` | new API; argument `kinetic_ev` |
+| `scatterem.simulation.make_potential` | `scatterem.physics.potential_stack.potential_stack` | new API; see [The physics base layer](#the-physics-base-layer) |
+| `scatterem.simulation.make_transmission_functions` | `scatterem.physics.thin_slice.thin_slice_transmission` | new API; see [The physics base layer](#the-physics-base-layer) |
+| `scatterem.simulation.projected_potential_to_object` | `scatterem.physics.thin_slice.phase_from_projection` | new API; arguments `(beam_ev, projected)` |
+| `scatterem.simulation.StemEelsSimulator` | `scatterem.simulation.eels.PrismEelsSimulator` | new driver, new API; see below |
+| `scatterem.simulation.StemEelsResult` | `scatterem.simulation.eels.PrismResult` | new result type; see below |
+| `scatterem.simulation.TransitionPotentials` | `scatterem.simulation.eels.TransitionPotentials` |  |
+| `scatterem.simulation.build_transition_potentials` | `scatterem.simulation.eels.build_transition_potentials` | `bandwidth_limit=` is now `bandlimit=` (default 2/3); numbers change (new transition potentials; see [The STEM-EELS driver](#the-stem-eels-driver)) |
+| `scatterem.simulation.subshell_transitions` | `scatterem.simulation.eels.subshell_transitions` | `backend=` is now `wavefunctions=`; the default stays `"auto"`; numbers change (new transition potentials; see [The STEM-EELS driver](#the-stem-eels-driver)) |
+| `scatterem.simulation.transition_potential_multislice` | `scatterem.simulation.eels.multislice_transition_potential` | renamed |
+| `scatterem.simulation.prism_transition_potential` | `scatterem.simulation.eels.prism_transition_potential` |  |
+| `scatterem.simulation.bound_wavefunction` | `scatterem.simulation.eels.bound_wavefunction` | `backend=` is now `wavefunctions=`; the default stays `"auto"`; numbers change (new radial states; see [The STEM-EELS driver](#the-stem-eels-driver)) |
+| `scatterem.simulation.continuum_wavefunction` | `scatterem.simulation.eels.continuum_wavefunction` | `backend=` is now `wavefunctions=`; the default stays `"auto"`; numbers change (new radial states; see [The STEM-EELS driver](#the-stem-eels-driver)) |
+| `scatterem.simulation.gpaw_available` | `scatterem.simulation.eels.gpaw_available` |  |
+| `scatterem.simulation.eels.multislice_eels.propagator_kernel` | `scatterem.physics.propagation.propagator_kernel` |  |
+| `scatterem.simulation.eels.multislice_eels.transition_potential_multislice` | `scatterem.simulation.eels.multislice_transition_potential` | renamed |
+| `scatterem.simulation.eels.prism_eels.ScatteringMatrix` | `scatterem.simulation.eels.ScatteringMatrix` |  |
+| `scatterem.simulation.eels.prism_eels.PartitionedScatteringMatrix` | `scatterem.simulation.eels.PartitionedScatteringMatrix` |  |
+| `scatterem.simulation.eels.prism_eels.prism_transition_potential` | `scatterem.simulation.eels.prism_transition_potential` |  |
+| `scatterem.simulation.eels.prism_eels.prism_transition_potential_hybrid` | `scatterem.simulation.eels.prism_transition_potential_hybrid` |  |
+| `scatterem.simulation.eels.prism_eels_image.DetectorExitSMatrix` | `scatterem.simulation.eels.DetectorExitSMatrix` |  |
+| `scatterem.simulation.eels.prism_eels_image.prism_eels_image` | `scatterem.simulation.eels.prism_eels_image` | `contract=` accepts `"auto"` and defaults to it (v0.3 default `"columns"`) |
+| `scatterem.simulation.eels.radial.AtomicRadialWavefunction` | `scatterem.simulation.eels.AtomicRadialWavefunction` |  |
+| `scatterem.simulation.eels.radial.RadialWavefunction` | `scatterem.simulation.eels.AtomicRadialWavefunction` | the alias is removed; use the class it named |
+| `scatterem.simulation.eels.radial.gpaw_available` | `scatterem.simulation.eels.gpaw_available` |  |
+| `scatterem.simulation.eels.radial.bound_wavefunction` | `scatterem.simulation.eels.bound_wavefunction` | `backend=` is now `wavefunctions=`; the default stays `"auto"`; numbers change (new radial states; see [The STEM-EELS driver](#the-stem-eels-driver)) |
+| `scatterem.simulation.eels.radial.continuum_wavefunction` | `scatterem.simulation.eels.continuum_wavefunction` | `backend=` is now `wavefunctions=`; the default stays `"auto"`; numbers change (new radial states; see [The STEM-EELS driver](#the-stem-eels-driver)) |
+| `scatterem.simulation.eels.radial.hydrogenic_bound_wavefunction` | `scatterem.simulation.eels.physics.radial.hydrogenic_bound_wavefunction` | same closed form; the default radial grid starts at 0 and has more points for Z/n > 10, so arrays can differ in length; on the same grid the values differ by less than 5e-5 of the peak |
+| `scatterem.simulation.eels.radial.free_continuum_wavefunction` | `scatterem.simulation.eels.physics.radial.free_continuum_wavefunction` | numbers change: normalised per Rydberg, factor $(\pi k)^{-1/2}$ |
+| `scatterem.simulation.eels.radial.cache_dir` | `scatterem.simulation.eels.cache_dir` |  |
+| `scatterem.simulation.eels.ramp_fused.ramp_phase_fused_supported` | — | internal |
+| `scatterem.simulation.eels.ramp_fused.ramp_phase_fused` | — | internal |
+| `scatterem.simulation.eels.simulator.StemEelsSimulator` | `scatterem.simulation.eels.PrismEelsSimulator` | new driver, new API; see below |
+| `scatterem.simulation.eels.simulator.StemEelsResult` | `scatterem.simulation.eels.PrismResult` | new result type; see below |
+| `scatterem.simulation.eels.transition_potentials.Transition` | `scatterem.simulation.eels.Transition` |  |
+| `scatterem.simulation.eels.transition_potentials.subshell_transitions` | `scatterem.simulation.eels.subshell_transitions` | `backend=` is now `wavefunctions=`; the default stays `"auto"`; numbers change (new transition potentials; see [The STEM-EELS driver](#the-stem-eels-driver)) |
+| `scatterem.simulation.eels.transition_potentials.TransitionPotentials` | `scatterem.simulation.eels.TransitionPotentials` |  |
+| `scatterem.simulation.eels.transition_potentials.build_transition_potentials` | `scatterem.simulation.eels.build_transition_potentials` | `bandwidth_limit=` is now `bandlimit=` (default 2/3); numbers change (new transition potentials; see [The STEM-EELS driver](#the-stem-eels-driver)) |
+| `scatterem.simulation.eels.trapezoid_fused.trapezoid_weighted_supported` | — | removed (the transition potentials no longer use it) |
+| `scatterem.simulation.eels.trapezoid_fused.trapezoid_weighted_fused` | — | removed (the transition potentials no longer use it) |
+| `scatterem.simulation.potentials.make_potential` | `scatterem.physics.potential_stack.potential_stack` | new API; see [The physics base layer](#the-physics-base-layer) |
+| `scatterem.simulation.potentials.share_splat` | `scatterem.physics.spectrum_sweep.spectrum_sweep` | new API; a context manager that reuses the layout spectra |
+| `scatterem.simulation.scattering_factors.interaction_constant` | `scatterem.physics.constants.phase_per_potential_at` | new API; argument `kinetic_ev` |
+| `scatterem.simulation.scattering_factors.electron_scattering_factor` | `scatterem.physics.atom_amplitudes.born_amplitude` | new API; arguments `(frequency, atomic_number)`, result in Å |
+| `scatterem.simulation.scattering_factors.calculate_scattering_factors` | `scatterem.physics.atom_amplitudes.potential_spectra` | new API; arguments `(grid, atomic_numbers)` |
+| `scatterem.simulation.scattering_factors.clear_scattering_factor_caches` | — | removed |
+| `scatterem.simulation.scattering_factors.e_scattering_factors` | — | removed; the Lobato-Van Dyck (2014) coefficients are internal (`physics._lobato2014_table`); use `born_amplitude` or `potential_spectra` |
+| `scatterem.simulation.structure.Structure` | `scatterem.physics.atom_set.AtomSet` | new API; see [The physics base layer](#the-physics-base-layer) |
+| `scatterem.simulation.structure.atomic_symbol` | `scatterem.crystal.elements.symbol` | renamed |
+| `scatterem.simulation.structure.find_equivalent_sites` | — | removed |
+| `scatterem.simulation.transmission.make_transmission_functions` | `scatterem.physics.thin_slice.thin_slice_transmission` | new API; see [The physics base layer](#the-physics-base-layer) |
+| `scatterem.simulation.transmission.projected_potential_to_object` | `scatterem.physics.thin_slice.phase_from_projection` | new API; arguments `(beam_ev, projected)` |
+| `scatterem.utils.aberration_basis.cartesian_chi` | `scatterem.physics.optics.lens_wavefront` | new API; see [Constants, lens wavefront and masks](#constants-lens-wavefront-and-masks) |
+| `scatterem.utils.aberration_basis.polar_to_cartesian` | `scatterem.physics.optics.lens_from_amplitude` | new API; a tensor in `AMPLITUDE_LAYOUT`, not a dict |
+| `scatterem.utils.aberration_basis.cartesian_to_polar` | `scatterem.physics.optics.lens_to_amplitude` | new API; the angle is in `[0, 2 pi / m)` |
+| `scatterem.utils.aberration_basis.cartesian_chi_gradient` | `scatterem.physics.optics.lens_wavefront_slope` | new API; the derivative axis is last, `(..., 2)` |
+| `scatterem.utils.calibration.plane` | `scatterem.data.calibration.plane` |  |
+| `scatterem.utils.calibration.parabola` | `scatterem.data.calibration.parabola` |  |
+| `scatterem.utils.calibration.bezier_two` | `scatterem.data.calibration.bezier_two` |  |
+| `scatterem.utils.calibration.fit_2D` | `scatterem.data.calibration.fit_2D` |  |
+| `scatterem.utils.calibration.fit_origin` | `scatterem.data.calibration.fit_origin` |  |
+| `scatterem.utils.data.Dataset4dstem` | `scatterem.data.datasets.Dataset4DStem` | renamed |
+| `scatterem.utils.data.DatasetVirtualBrightField4dstem` | `scatterem.data.datasets.DatasetVirtualBrightField4DStem` | renamed |
+| `scatterem.utils.data.Metadata4dstem` | `scatterem.data.acquisition.AcquisitionMetadata` | renamed |
+| `scatterem.utils.data.Sampling` | `scatterem.vis.Sampling` |  |
+| `scatterem.utils.data.aberrations.Aberrations` | `scatterem.data.Aberrations` |  |
+| `scatterem.utils.data.data_classes.MetadataNew` | — | removed (base class of `Metadata4dstem`) |
+| `scatterem.utils.data.data_classes.Metadata4dstem` | `scatterem.data.acquisition.AcquisitionMetadata` | renamed |
+| `scatterem.utils.data.datasets.Dataset` | `scatterem.data.datasets.Dataset` |  |
+| `scatterem.utils.data.datasets.DatasetVirtualBrightField4dstem` | `scatterem.data.datasets.DatasetVirtualBrightField4DStem` | renamed |
+| `scatterem.utils.data.datasets.Dataset4dstem` | `scatterem.data.datasets.Dataset4DStem` | renamed |
+| `scatterem.utils.data.disk_fit.fit_bright_field_disk` | `scatterem.data.pupil_gauge.measure_pupil` | new API; see [Bright-field disk and Fourier grids](#bright-field-disk-and-fourier-grids) |
+| `scatterem.utils.data.origin_check.circular_centroid` | `scatterem.data.origin_check.circular_centroid` |  |
+| `scatterem.utils.data.origin_check.corner_origin_margin` | `scatterem.data.origin_check.corner_origin_margin` |  |
+| `scatterem.utils.data.origin_check.is_corner_origin` | `scatterem.data.origin_check.is_corner_origin` |  |
+| `scatterem.utils.data.out_of_core.RESIDENCIES` | — | internal |
+| `scatterem.utils.data.out_of_core.Dataset4dstemOutOfCore` | — | removed; use `Dataset4DStem.from_array(..., out_of_core=True)` |
+| `scatterem.utils.data.out_of_core.DatasetVirtualBrightFieldStreaming` | — | internal |
+| `scatterem.utils.data.sampling.Sampling` | `scatterem.vis.Sampling` |  |
+| `scatterem.utils.data.validation.ensure_valid_array` | `scatterem.data.validation.ensure_valid_array` |  |
+| `scatterem.utils.data.validation.validate_ndinfo` | `scatterem.data.validation.validate_ndinfo` |  |
+| `scatterem.utils.data.validation.validate_units` | `scatterem.data.validation.validate_units` |  |
+| `scatterem.utils.grids.fft_frequencies_2d` | `scatterem.utils.spectral_mesh.dual_mesh` | new API; see [Bright-field disk and Fourier grids](#bright-field-disk-and-fourier-grids) |
+| `scatterem.utils.grids.frequency_magnitude_2d` | — | removed; use `torch.hypot(*dual_mesh(...))` |
+| `scatterem.utils.grids.grid_shape_and_sampling` | — | removed; keep the shape and the pitch with the grid |
+| `scatterem.utils.grids.radial_average` | `scatterem.utils.spectral_mesh.shell_means` | new API; see [Bright-field disk and Fourier grids](#bright-field-disk-and-fourier-grids) |
+| `scatterem.utils.physics.PLANCK_CONSTANT` | `scatterem.physics.constants.EXACT_PLANCK` | renamed |
+| `scatterem.utils.physics.ELEMENTARY_CHARGE` | `scatterem.physics.constants.EXACT_E_CHARGE` | renamed |
+| `scatterem.utils.physics.ELECTRON_REST_MASS` | `scatterem.physics.constants.CODATA18_ELECTRON_MASS` | renamed |
+| `scatterem.utils.physics.SPEED_OF_LIGHT` | `scatterem.physics.constants.EXACT_LIGHT_SPEED` | renamed |
+| `scatterem.utils.physics.electron_wavelength` | `scatterem.physics.constants.debroglie_at` | renamed; refuses zero, negative and non-finite energies |
+| `scatterem.utils.subpixel.REFINE_RADIUS_PX` | `scatterem.utils.subpixel.REFINE_RADIUS_PX` | unchanged |
+| `scatterem.utils.subpixel.subpixel_shifts` | `scatterem.utils.subpixel.subpixel_shifts` | unchanged |
+| `scatterem.utils.subpixel.relative_shifts` | `scatterem.utils.subpixel.relative_shifts` | unchanged |
+| `scatterem.utils.subpixel.make_neighbor_pairs` | `scatterem.utils.subpixel.make_neighbor_pairs` | unchanged |
+| `scatterem.utils.subpixel.pairwise_relative_shifts` | `scatterem.utils.subpixel.pairwise_relative_shifts` | unchanged |
+| `scatterem.utils.subpixel.synchronize_shifts` | `scatterem.utils.subpixel.synchronize_shifts` | unchanged |
+| `scatterem.utils.transfer.aberrations_to_image_shifts` | `scatterem.utils.transfer.aberrations_to_image_shifts` | unchanged |
+| `scatterem.utils.transfer.pair_overlap_area_torch` | `scatterem.utils.transfer.pair_overlap_area_torch` | unchanged |
+| `scatterem.utils.transfer.triple_overlap_area_torch` | `scatterem.utils.transfer.triple_overlap_area_torch` | unchanged |
+| `scatterem.utils.transfer.double_and_triple_overlap_areas_torch` | `scatterem.utils.transfer.double_and_triple_overlap_areas_torch` | unchanged |
+| `scatterem.utils.transfer.double_and_triple_pixel_counts_torch` | `scatterem.utils.transfer.double_and_triple_pixel_counts_torch` | unchanged |
+| `scatterem.utils.utils.fuse_images_fourier_weighted` | — | internal; use `FusedFullFieldConfig` |
+| `scatterem.utils.warp.aberrations.aberration_function_cartesian` | `scatterem.physics.kernels.lens_wavefront_wp.lens_wavefront_f32` | new argument order `(lens, fy, fx, lambda_a)` |
+| `scatterem.utils.warp.complex.cexp` | `scatterem.utils.warp.cexp` |  |
+| `scatterem.utils.warp.complex.cmul` | `scatterem.utils.warp.cmul` |  |
+| `scatterem.utils.warp.complex.cconj` | `scatterem.utils.warp.cconj` |  |
+| `scatterem.utils.warp.complex.cabs` | `scatterem.utils.warp.cabs` |  |
+| `scatterem.utils.warp.misc.aperture` | `scatterem.utils.warp.probe_cone_pass` | renamed; new argument order `(wavelength, cone_angle, qy, qx)` |
+| `scatterem.vis.complex_color.oklch_to_srgb` | `scatterem.vis.complex_color.oklch_to_srgb` | unchanged |
+| `scatterem.vis.complex_color.complex_to_rgba` | `scatterem.vis.complex_color.complex_to_rgba` | unchanged |
+| `scatterem.vis.complex_color.phase_wheel` | `scatterem.vis.complex_color.phase_wheel` | unchanged |
+| `scatterem.vis.complex_color.add_phase_colorbar` | `scatterem.vis.complex_color.add_phase_colorbar` | unchanged |
+| `scatterem.vis.complex_color.overlay_to_rgba` | `scatterem.vis.complex_color.overlay_to_rgba` | unchanged |
+| `scatterem.vis.complex_color.tile_to_rgba` | `scatterem.vis.complex_color.tile_to_rgba` | unchanged |
+| `scatterem.vis.normalization.NormalizationConfig` | `scatterem.vis.NormalizationConfig` |  |
+| `scatterem.vis.normalization.CustomNormalization` | `scatterem.vis.CustomNormalization` |  |
+| `scatterem.vis.normalization.NORMALIZATION_PRESETS` | `scatterem.vis.normalization.NORMALIZATION_PRESETS` | unchanged |
+| `scatterem.vis.normalization.INTERVAL_TYPES` | `scatterem.vis.normalization.INTERVAL_TYPES` | unchanged |
+| `scatterem.vis.normalization.STRETCH_TYPES` | `scatterem.vis.normalization.STRETCH_TYPES` | unchanged |
+| `scatterem.vis.reconstruction_sampling.reconstruction_sampling` | `scatterem.data.sampling.reconstruction_sampling` | keyword `units` removed |
+| `scatterem.vis.scale_bar.nice_bar_length` | `scatterem.vis.scale_bar.nice_bar_length` | unchanged |
+| `scatterem.vis.scale_bar.draw_scale_bar` | `scatterem.vis.draw_scale_bar` |  |
+| `scatterem.vis.visualization.show_2d` | `scatterem.vis.show_2d` |  |
+| `scatterem.vis.visualization.show_2d_array` | `scatterem.vis.visualization.show_2d_array` | unchanged |
+| `scatterem.vis.visualization_utils.ScalebarConfig` | `scatterem.vis.ScalebarConfig` |  |
+| `scatterem.vis.visualization_utils.estimate_scalebar_length` | `scatterem.vis.visualization_utils.estimate_scalebar_length` | unchanged |
+| `scatterem.vis.visualization_utils.add_scalebar_to_ax` | `scatterem.vis.visualization_utils.add_scalebar_to_ax` | unchanged |
+| `scatterem.vis.visualization_utils.add_cbar_to_ax` | `scatterem.vis.visualization_utils.add_cbar_to_ax` | unchanged |
+| `scatterem.simulation._electron_optics.ELECTRON_REST_ENERGY_EV` | `scatterem.physics.constants.DERIVED_ELECTRON_REST_EV` | v0.3 private module; renamed |
+| `scatterem.simulation._electron_optics.energy2wavelength` | `scatterem.physics.constants.debroglie_at` | v0.3 private module; renamed |
+| `scatterem.simulation._electron_optics.energy2sigma` | `scatterem.physics.constants.phase_per_potential_at` | v0.3 private module; renamed |
+| `scatterem.simulation._electron_optics.relativistic_mass_correction` | `scatterem.physics.constants.gamma_at` | v0.3 private module; renamed |
+| `scatterem.simulation._grid.q_space_array` | `scatterem.physics.periodic_sampling.dft_sample_frequencies` | v0.3 private module; removed, use this function |
+| `scatterem.simulation._grid.q_space_squared` | `scatterem.physics.periodic_sampling.dft_sample_frequencies` | v0.3 private module; removed, sum the squared frequencies |
+| `scatterem.simulation._grid.bandwidth_limit_array_torch` | `scatterem.physics.periodic_sampling.ellipse_mask` | v0.3 private module; removed, use this function (new API) |
+| `scatterem.simulation._grid.broadcast_from_unmeshed` | — | v0.3 private module; removed |
+| `scatterem.simulation._grid.clear_caches` | — | v0.3 private module; removed |
+| `scatterem.simulation.eels._nnw.natural_neighbor_weights` | `scatterem.utils.stem.beamlets.natural_neighbor_weights` | v0.3 private module |
+| `scatterem.simulation.eels._angular.spherical_bessel` | `scatterem.simulation.eels.physics._angular.spherical_bessel` | v0.3 private module; internal |
+| `scatterem.simulation.eels._angular.spherical_harmonic` | `scatterem.simulation.eels.physics._angular.spherical_harmonic` | v0.3 private module; internal |
+| `scatterem.simulation.eels._angular.wigner_3j` | `scatterem.simulation.eels.physics._angular.wigner_3j` | v0.3 private module; internal |
