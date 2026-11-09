@@ -1016,7 +1016,8 @@ def prism_eels_image(
     Returns
     -------
     Tensor or (Tensor, Tensor)
-        With ``qeels_axis=None``: the STEM-EELS image, ``(P,)`` or ``scan_shape``.
+        With ``qeels_axis=None``: the STEM-EELS image, ``(P,)`` or ``scan_shape``,
+        per incident electron and per eV (independent of the grid and of f).
         Otherwise ``(spectrum, q_pixels)``, where ``spectrum`` carries a trailing
         momentum axis (``(P, n_q)`` or ``scan_shape + (n_q,)``) and ``q_pixels``
         is each bin's sorted signed pixel frequency (physical ``q = q_pixels /
@@ -1073,9 +1074,8 @@ def prism_eels_image(
 
     ry, rx = scan_pixels[:, :2].to(torch.float64).unbind(1)
 
-    # The crop window around the shifted origin, the fft of the transition
-    # potentials and the shift-ramp frequencies are all atom-independent, so they
-    # are built once instead of once per ionized atom.
+    # The crop window, fft2(H) and the shift-ramp frequencies are
+    # atom-independent, so they are built once, not once per ionized atom.
     cy = _periodic_window(ny // 2, wy, ny, device)
     cx = _periodic_window(nx // 2, wx, nx, device)
     Hq = torch.fft.fft2(H, dim=(-2, -1))
@@ -1123,7 +1123,7 @@ def prism_eels_image(
     for i in range(nz):
         _accumulate_slice(plan, i)
 
-    img = acc.flush()
+    img = acc.flush() * (fy * fx / (ny * nx))  # Parseval; kept beams stand for f^2
     if scan_shape is not None:
         shape = (int(scan_shape[0]), int(scan_shape[1]))
         img = img.reshape(*shape, n_q) if q_bin is not None else img.reshape(*shape)

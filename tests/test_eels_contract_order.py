@@ -65,7 +65,7 @@ def _image(order, prism_mask, f):
 def test_contract_orders_agree(prism_mask, f):
     ref = _image("window", prism_mask, f)
     new = _image("probe", prism_mask, f)
-    assert torch.allclose(ref, new, rtol=1e-9, atol=1e-12), (
+    assert torch.allclose(ref, new, rtol=1e-9, atol=1e-11 * float(ref.abs().max())), (
         (ref - new).abs().max().item()
     )
 
@@ -73,7 +73,7 @@ def test_contract_orders_agree(prism_mask, f):
 def test_auto_matches_window():
     ref = _image("window", False, 1)
     auto = _image("auto", False, 1)
-    assert torch.allclose(ref, auto, rtol=1e-9, atol=1e-12)
+    assert torch.allclose(ref, auto, rtol=1e-9, atol=1e-11 * float(ref.abs().max()))
 
 
 def test_probe_order_respects_trans_chunking(monkeypatch):
@@ -82,4 +82,6 @@ def test_probe_order_respects_trans_chunking(monkeypatch):
     monkeypatch.setattr(pei, "_EELS_CONTRACT_ORDER", "probe")
     monkeypatch.setattr(pei, "_EELS_TRANS_BLOCK_BYTES", 1)  # force tblk == 1
     chunked = prism_eels_image(*args[:5], **args[5])
-    assert torch.allclose(full, chunked, rtol=1e-9, atol=1e-12)
+    assert torch.allclose(
+        full, chunked, rtol=1e-9, atol=1e-11 * float(full.abs().max())
+    )

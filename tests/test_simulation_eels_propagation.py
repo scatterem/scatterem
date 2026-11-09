@@ -275,7 +275,10 @@ def test_single_slice_vacuum_intensity_has_the_closed_form():
         slice_distance=0.0,
     )
     h = fourier_shift(tp.array, (0.25 * gpts[0], 0.5 * gpts[1]))
+    # Per incident electron: |fft2|^2 / (Ny Nx), so the pattern sums to the
+    # real-space intensity (Parseval).
     expected = torch.fft.fft2(h * probes[0][None], dim=(-2, -1)).abs().pow(2).sum(dim=0)
+    expected = expected / (gpts[0] * gpts[1])
     torch.testing.assert_close(out[0], expected.to(torch.float64))
 
 
@@ -288,8 +291,7 @@ def test_real_space_and_diffraction_outputs_obey_parseval():
     real = multislice_transition_potential(
         probes, T, tp, sites, return_real_space=True, **common
     )
-    n = gpts[0] * gpts[1]
-    assert float(diff.sum()) == pytest.approx(n * float(real.sum()), rel=1e-10)
+    assert float(diff.sum()) == pytest.approx(float(real.sum()), rel=1e-10)
     assert float(real.min()) >= 0.0
 
 

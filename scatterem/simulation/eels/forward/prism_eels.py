@@ -169,7 +169,9 @@ def prism_transition_potential(
     Returns
     -------
     Tensor
-        Intensity ``(P, Ny, Nx)`` summed over transitions and sites.
+        Intensity ``(P, Ny, Nx)`` summed over transitions and sites, per
+        incident electron and per eV of energy loss: ``|fft2|^2 / (Ny Nx)``,
+        or ``|psi|^2`` with ``return_real_space``.
     """
     device = transmissions.device
     ny, nx = transmissions.shape[-2:]
@@ -281,7 +283,7 @@ def prism_transition_potential(
                 exit_cols = field = ex = dst = None
         cols = coeffs = h_site = None
 
-    return out
+    return out if return_real_space else out / (ny * nx)  # Parseval: per electron
 
 
 def prism_transition_potential_hybrid(
@@ -342,7 +344,9 @@ def prism_transition_potential_hybrid(
     Returns
     -------
     Tensor
-        Intensity ``(P, Ny, Nx)`` summed over transitions and sites.
+        Intensity ``(P, Ny, Nx)`` summed over transitions and sites, per
+        incident electron and per eV of energy loss: ``|fft2|^2 / (Ny Nx)``,
+        or ``|psi|^2`` with ``return_real_space``.
     """
     device = transmissions.device
     ny, nx = transmissions.shape[-2:]
@@ -415,4 +419,4 @@ def prism_transition_potential_hybrid(
                 out += _abs_complex(stack).pow(2).sum(dim=1)
             stack = None
 
-    return out
+    return out if return_real_space else out / (ny * nx)  # Parseval: per electron

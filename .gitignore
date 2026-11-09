@@ -23,3 +23,8 @@ experiments/ff_stem/outputs/
 # exactly what happened once.
 !logo.png
 !favicon.png
+
+# The two images of the start page. Without this exception the blanket *.png
+# above drops them, and the start page shows two broken images -- which is
+# what happened to the first push of the book layout.
+!docs/images/*.png

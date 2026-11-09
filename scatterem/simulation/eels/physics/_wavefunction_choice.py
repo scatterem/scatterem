@@ -60,10 +60,11 @@ def resolve_wavefunctions(wavefunctions: str) -> str:
         "hydrogenic bound and free continuum states are used. These EELS "
         "numbers are not quantitative and differ from the GPAW results. "
         "Install the eels extra to use GPAW. v0.4 uses a new absolute "
-        "first-Born scale (Angstrom^2/eV). After a best scalar fit, the v0.4 "
-        "map shapes differ from v0.3 by 18-61 % with these hydrogenic states. "
-        "With GPAW they differ by 0.03-0.6 % for the K, L23 and M45 edges "
-        "tested and by 1.4 % for Fe L1. "
+        "first-Born scale: the transition potentials in Angstrom^2/eV, the "
+        "maps in probability per incident electron per eV. After a best "
+        "scalar fit, the v0.4 map shapes differ from v0.3 by 18-61 % with these "
+        "hydrogenic states. With GPAW they differ by 0.03-0.6 % for the K, L23 "
+        "and M45 edges tested and by 1.4 % for Fe L1. "
         'Pass wavefunctions="hydrogenic" to choose the analytic states '
         "explicitly.",
         HydrogenicFallbackWarning,

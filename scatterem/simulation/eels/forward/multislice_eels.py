@@ -112,7 +112,8 @@ def multislice_transition_potential(
     Tensor
         Real, non-negative intensity ``(P, Ny, Nx)`` -- the inelastically
         scattered diffraction pattern (corner origin) summed over all
-        transitions and sites.
+        transitions and sites, per incident electron and per eV of energy
+        loss: ``|fft2|^2 / (Ny Nx)``, or ``|psi|^2`` with ``return_real_space``.
     """
     device = probes.device
     P, ny, nx = probes.shape
@@ -212,6 +213,6 @@ def multislice_transition_potential(
             if i < nz - 1:
                 psi = propagate(psi, kernel)
 
-        out[b0:b1] = acc
+        out[b0:b1] = acc if return_real_space else acc / (ny * nx)
 
     return out

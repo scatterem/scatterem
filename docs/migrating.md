@@ -116,7 +116,7 @@ per output.
 | `result.energy_losses`, `result.edge`, `result.epsilon` | unchanged |
 | — | `PrismEelsSimulator.elastic_cbed()`: elastic 4D-STEM by PRISM, new |
 
-Three differences change numbers:
+Four differences change numbers:
 
 - The driver builds the specimen with the new physics base layer:
   `potential_stack` with its defaults (Hann rolloff 1/3, band-limited point
@@ -151,9 +151,19 @@ Three differences change numbers:
 
   With GPAW states, after a best scalar fit, the map shapes change by
   0.03-0.6 % for the K, L23 and M45 edges we tested and by 1.4 % for Fe L1
-  (300 kV). With hydrogenic states, they change by 18-61 %. The forward model does
-  not change: given the same transition potentials, the kernels give the v0.3
-  maps. See [The BiP-PRISM paper and v0.4](#bip-prism-paper-v04).
+  (300 kV). With hydrogenic states, they change by 18-61 %. Apart from the
+  output scale below, the forward model does not change: given the same
+  transition potentials, the kernels give the v0.3 map shapes. See
+  [The BiP-PRISM paper and v0.4](#bip-prism-paper-v04).
+- The EELS outputs are probabilities per incident electron (per eV). v0.3
+  summed the raw squared FFT amplitudes at the detector. So a v0.3 map
+  (`prism_eels_image`, `StemEelsSimulator` maps) was $N_y N_x / (f_y f_x)$
+  times larger, and a v0.3 cube or multislice pattern
+  (`prism_transition_potential`, `transition_potential_multislice`) was
+  $N_y N_x$ times larger, with $N_y N_x$ the grid and $f$ the
+  `interpolation_factor`. So the v0.3 maps grew with the number of pixels at a
+  fixed cell. To compare, divide the v0.3 values by that factor. Real-space
+  outputs (`return_real_space=True`) do not change.
 
 The EELS code also follows these rules in v0.4:
 

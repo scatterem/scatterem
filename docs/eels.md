@@ -148,6 +148,14 @@ ti_map.data            # (16, 16), real, non-negative
 ti_map.energy_losses   # the per-transition losses summed into the map, eV
 ```
 
+**Units.** A map value is a probability per incident electron and per eV of
+energy loss. It is the probability that the electron ionizes the edge at the
+point `epsilon` and arrives inside the detector. The probe has unit total
+intensity, and the transition potentials carry the first-Born scale per eV.
+So the value does not depend on the number of pixels or on
+`interpolation_factor`, except for the PRISM error. To get counts, multiply by
+the dose per scan position and by the energy width of your window.
+
 `edge` names the *bound* orbital that is ionized, as `(Z, n, l)`. Ti L is
 `(22, 2, 1)`, O K is `(8, 1, 0)`, Fe L is `(26, 2, 1)`. Every atom of that `Z` in
 the structure ionizes; there is no site selection. Each site ionizes with the
@@ -180,6 +188,10 @@ cube.detector_sampling  # detector (dky, dkx) in 1/A
 
 The diffraction patterns are corner-origin, like everything else in reciprocal
 space here. Apply `torch.fft.fftshift` before you plot them.
+
+A cube pixel holds the probability per incident electron and per eV that the
+electron arrives in that detector pixel. So the sum over the detector pixels
+inside a collection angle is the map value at $f = 1$.
 
 For the cube, `partition=dict(n_radial=N)` partitions $\mathcal{S}_1$ only. The
 exit leg keeps the full diffraction pattern.
@@ -267,8 +279,9 @@ the EELS calls warn:
 HydrogenicFallbackWarning: wavefunctions="auto": GPAW is not installed, so the
 analytic hydrogenic bound and free continuum states are used. These EELS
 numbers are not quantitative and differ from the GPAW results. Install the
-eels extra to use GPAW. v0.4 uses a new absolute first-Born scale
-(Angstrom^2/eV). After a best scalar fit, the v0.4 map shapes differ from v0.3
+eels extra to use GPAW. v0.4 uses a new absolute first-Born scale: the
+transition potentials in Angstrom^2/eV, the maps in probability per incident
+electron per eV. After a best scalar fit, the v0.4 map shapes differ from v0.3
 by 18-61 % with these hydrogenic states. With GPAW they differ by 0.03-0.6 %
 for the K, L23 and M45 edges tested and by 1.4 % for Fe L1. Pass
 wavefunctions="hydrogenic" to choose the analytic states explicitly.
@@ -286,10 +299,11 @@ pass `transitions=dict(wavefunctions="gpaw")`.
 
 v0.4 builds the transition potentials from a rewritten first-Born model. The
 forward model (`prism_eels_image` and its partitioned forms) is the same as in
-v0.3: given the same transition potentials, it gives the same maps. So the
-numbers of the paper move through the transition potentials and, when you
-build the specimen with v0.4, through the new physics base layer (structure,
-projected potentials, transmission functions and probe):
+v0.3, except for one fixed factor (the output scale below): given the same
+transition potentials, it gives the same map shapes. So the numbers of the
+paper move through the transition potentials, through that factor and, when
+you build the specimen with v0.4, through the new physics base layer
+(structure, projected potentials, transmission functions and probe):
 
 - **Absolute scale.** The transition potentials now carry the first-Born
   cross-section. For a unit plane wave, the summed intensity of the channels of
@@ -299,6 +313,14 @@ projected potentials, transmission functions and probe):
   scale. So no single factor converts v0.3 values to v0.4 values: the ratio
   depends on the edge and on the beam energy (see
   [Migrating from v0.3](migrating.md)).
+- **Output scale.** A map value, a qEELS bin, a cube pixel and a multislice
+  pattern pixel are now probabilities per incident electron (per eV). v0.3
+  summed the raw squared FFT amplitudes at the detector, so its maps were
+  $N_y N_x / (f_y f_x)$ times larger: they grew with the number of pixels and
+  fell with `interpolation_factor`. To compare a v0.3 map with a v0.4 map,
+  divide the v0.3 map by $N_y N_x / (f_y f_x)$; for a cube or a multislice
+  pattern, divide by $N_y N_x$. This factor does not change a relative error
+  or a normalised map at a fixed grid, which is what the paper reports.
 - **GPAW states.** We compared v0.4 with v0.3 for each GPAW edge of the paper,
   at the beam energies of the paper (100 and 300 kV), 10 eV above threshold,
   after a best scalar fit. The map shapes change by 0.03-0.06 % for O K, Mg K and Al K, and by
@@ -428,7 +450,7 @@ also approximate, and the detector side is the demanding one; see
 valid only if the probe fits inside a $1/f$ fraction of the cell around the atom.
 If it does not, neighbouring periodic copies of the probe leak in. For the 4D-STEM
 cube it is the *only* lever on the exit leg, because partitioning there changes
-only $\mathcal{S}_1$. It also changes the absolute scale; see below.
+only $\mathcal{S}_1$. It also changes the absolute scale of the cube; see below.
 
 **`inelastic_crop`** restricts the per-atom contraction to a
 `(Ny, Nx) // inelastic_crop` window. $H_{n0}$ has sub-ångström support, so a
@@ -512,11 +534,14 @@ method.
 :::{admonition} `interpolation_factor` changes the absolute scale of the cube
 :class: important
 
-A larger $f$ keeps the pattern but scales the intensity of the cube by roughly
-$f^2$. So a raw relative error against an $f = 1$ reference is dominated by this
-factor and tells you almost nothing. **Hold $f$ fixed when you compare
-anything.** Take absolute cross-sections at $f = 1$, or calibrate the scale
-against it.
+The map and the qEELS output keep their scale at every $f$: each kept detector
+beam stands for $f^2$ beams of the grid. The cube does not. A cube at $f > 1$
+has no PRISM mask, so each periodic copy of the probe ionizes the atoms near
+it, and the intensity of the cube grows by roughly $f^2$. So a raw relative
+error of a cube against an $f = 1$ reference is dominated by this factor and
+tells you almost nothing. **Hold $f$ fixed when you compare cubes.** The cube
+at $f = 1$ is on the absolute scale; take absolute cross-sections there, or
+calibrate the scale against it.
 :::
 
 Partitioning is a separate approximation. Compare `partition=None` with your

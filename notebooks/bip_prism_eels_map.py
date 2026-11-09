@@ -194,6 +194,7 @@ def _(SCAN, plt, sto, ti_map):
         figax=(_fig, _ax),
         sampling=scan_sampling,
     )
+    _fig.axes[-1].set_ylabel("probability per electron per eV")
     _fig
     return
 
