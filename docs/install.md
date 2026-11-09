@@ -61,16 +61,22 @@ and 5.3 GiB.
 named datasets, or crop your own array before constructing.
 :::
 
-## Colab
+(molab)=
+## molab
 
-<a href="https://colab.research.google.com/github/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb" class="colab-badge"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open the demo notebook in Google Colab"></a>
+[![Open in molab](https://marimo.io/molab-shield.svg)](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/ffstem_demo.py)
 
-The [notebook](https://github.com/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb)
-runs the Au low-dose reconstruction end to end on a free T4, with the paper's
-configuration (1024² output, 5.5 GiB peak). On a GPU with less than 8 GiB it
-uses a reduced scan (512² output, 1.4 GiB). It needs a GPU runtime
-(*Runtime → Change runtime type → T4 GPU*) and nothing else — the code and the
-data are both public, and the dataset downloads itself, md5-verified.
+molab is the free hosted notebook service of marimo. The
+[FF-STEM demo notebook](https://github.com/scatterem/scatterem/blob/main/notebooks/ffstem_demo.py)
+runs the Au low-dose reconstruction end to end, with the paper's configuration
+(1024² output, 5.5 GiB peak). On a GPU with less than 8 GiB it uses a reduced
+scan (512² output, 1.4 GiB). Switch on the GPU in the notebook specs; nothing
+else is needed. The code and the data are both public, the notebook installs
+`scatterem` itself, and the dataset downloads itself, md5-verified.
+
+The folder `notebooks/` also holds a notebook for each FF-STEM figure script
+and a small BiP-PRISM core-loss map; see
+[Run the paper's figure scripts](figures.md).
 
 <span id="from-source"></span>
 

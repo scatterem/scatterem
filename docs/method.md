@@ -1,5 +1,17 @@
 # The method
 
+A 4D-STEM dataset holds more information than any single reconstruction recovers.
+Direct ptychography reads the phase gradient encoded in the bright-field disk and
+recovers low and mid spatial frequencies with high efficiency, but its transfer
+falls away past the disk. Tilt-corrected dark field reads the parallax shift of
+scattering *outside* the disk and recovers high frequencies, but carries almost
+nothing at low ones. Neither channel spans the band on its own, and used alone
+each leaves a gap where the other is strong.
+
+**Fused full-field STEM** combines them as an SSNR-weighted Wiener fusion, so each
+spatial frequency is taken from whichever channel measures it better. The result
+is one image with no missing band.
+
 ## Two channels, two halves of the band
 
 A converged probe illuminates a specimen and a pixelated detector records the full

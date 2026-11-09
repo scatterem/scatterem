@@ -48,6 +48,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "myst_parser",
     "sphinx_copybutton",
+    "sphinx_design",
 ]
 
 source_suffix = {".md": "markdown"}
@@ -128,7 +129,7 @@ myst_heading_anchors = 3
 
 # -- HTML -------------------------------------------------------------------------
 
-html_theme = "pydata_sphinx_theme"
+html_theme = "sphinx_book_theme"
 html_title = "scatterem"
 html_baseurl = "https://scatterem.github.io/scatterem/"
 html_static_path = ["_static"]
@@ -137,23 +138,31 @@ html_logo = "../logo.png"
 html_favicon = "../favicon.png"
 # The former site served the logo and the favicon at its root; keep those URLs.
 html_extra_path = ["../logo.png", "../favicon.png"]
-# The navigation bar lists every page; each page is a top-level page, so a
-# left sidebar would only show an empty "Section navigation".
-html_sidebars: dict[str, list[str]] = {"**": []}
+# The page sources are not copied, so no button may link to them: the source,
+# edit and download buttons would point at files the site does not have.
 html_copy_source = False
 html_show_sourcelink = False
 html_theme_options = {
-    "github_url": "https://github.com/scatterem/scatterem",
+    "repository_url": "https://github.com/scatterem/scatterem",
+    "repository_branch": "main",
+    "use_repository_button": True,
+    "use_issues_button": True,
+    "use_edit_page_button": False,
+    "use_source_button": False,
+    "use_download_button": False,
+    "use_fullscreen_button": False,
+    "home_page_in_toc": False,
+    "show_navbar_depth": 1,
+    "show_toc_level": 2,
     "logo": {"text": "scatterem", "alt_text": "scatterem"},
     "navigation_with_keys": False,
-    "show_prev_next": True,
     "pygments_light_style": "github-light",
     "pygments_dark_style": "github-dark",
-    "footer_start": ["copyright"],
-    "footer_end": ["sphinx-version"],
+    # GitHub and PyPI are links of the left sidebar (index.md, "Project").
+    "icon_links": [],
 }
-# Dark first, as on the former site; the navbar switch changes it.
-html_context = {"default_mode": "dark"}
+# Light first; the switch in the page header changes it.
+html_context = {"default_mode": "light"}
 
 linkcheck_anchors = True
 linkcheck_timeout = 20

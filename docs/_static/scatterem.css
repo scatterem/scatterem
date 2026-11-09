@@ -1,5 +1,5 @@
 /*
- * scatterem look for pydata-sphinx-theme.
+ * scatterem look for sphinx-book-theme (built on pydata-sphinx-theme).
  *
  * The palette is measured from the logo (logo.png), not invented next to it:
  * the median of each saturated hue band of the logo gives seven colours, in
@@ -127,7 +127,9 @@ body {
 .bd-sidebar-secondary,
 .bd-footer,
 .bd-footer-content,
-.bd-footer-article {
+.bd-footer-article,
+.bd-header-article,
+.bd-header-article .header-article__inner {
   background: transparent;
 }
 
@@ -165,6 +167,15 @@ body::before {
   -webkit-backdrop-filter: blur(14px) saturate(1.3);
   border-block-end: 1px solid var(--edge);
   box-shadow: none;
+}
+
+/* sphinx-book-theme keeps the search and the theme switch in the sidebar and
+ * the article header. The pydata page header repeats the search; on a wide
+ * screen it is only an empty band, so hide it there. */
+@media (min-width: 960px) {
+  .bd-header {
+    display: none !important;
+  }
 }
 
 /* The logo is black-backed by design; give it a tile radius and a hairline. */
@@ -604,4 +615,63 @@ button.copybtn:hover {
     color: var(--ink);
     background: none;
   }
+}
+
+/* ---------------------------------------------------------------------------
+ * Landing page (index.md): the logo and the tagline above the title row, the
+ * two images, and the three method cards (sphinx-design).
+ * ------------------------------------------------------------------------- */
+
+.bd-article img.sem-hero-logo {
+  float: inline-start;
+  inline-size: 4.4rem;
+  block-size: 4.4rem;
+  margin-inline-end: 1rem;
+  margin-block-start: 0.15rem;
+  border-radius: 0.6rem;
+  box-shadow: 0 0 0 1px var(--logo-ring), 0 2px 8px -3px oklch(0 0 0 / 0.35);
+}
+
+.bd-article p.sem-tagline {
+  clear: both;
+  font-size: 1.15rem;
+  color: var(--ink-soft);
+  margin-block: 0.6rem 1.2rem;
+}
+
+.sem-hero-images figure {
+  margin: 0;
+}
+
+.sem-hero-images figure img {
+  border-radius: 0.4rem;
+  background: #fff;
+}
+
+.sem-hero-images figcaption {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  text-align: start;
+}
+
+.bd-article .sd-card {
+  background: var(--paper-2);
+  border: 1px solid var(--edge);
+  border-radius: 0.6rem;
+  box-shadow: none;
+}
+
+.bd-article .sd-card .sd-card-title {
+  font-weight: 680;
+  color: var(--ink);
+}
+
+.bd-article .sd-card .sd-card-body,
+.bd-article .sd-card .sd-card-footer {
+  font-size: 0.9rem;
+}
+
+.bd-article .sd-card .sd-card-footer {
+  background: transparent;
+  border-block-start: 1px solid var(--edge);
 }

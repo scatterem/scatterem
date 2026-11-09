@@ -32,7 +32,7 @@ CC=g++ pip install "scatterem[eels]" gpaw-data       # adds GPAW wavefunctions f
 ```
 
 - **Documentation:** [scatterem.github.io/scatterem](https://scatterem.github.io/scatterem)
-- **Try it in the browser:** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/scatterem/scatterem/blob/main/docs/colab/ffstem_you2026_demo.ipynb) (one FF-STEM reconstruction on a free T4)
+- **Try it in the browser:** [![Open in molab](https://marimo.io/molab-shield.svg)](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/ffstem_demo.py) (one FF-STEM reconstruction on a free molab GPU)
 - **FF-STEM data:** [doi:10.5281/zenodo.18008901](https://doi.org/10.5281/zenodo.18008901) (CC-BY-4.0)
 - **Upgrading from v0.3:** every module moved. Read [Migrating from v0.3](https://scatterem.github.io/scatterem/docs/migrating.html).
 
@@ -47,9 +47,9 @@ The `eels` extra adds GPAW, the all-electron backend for quantitative
 STEM-EELS. pip builds GPAW from source, and the build needs a C++ compiler (see
 [Installation](https://scatterem.github.io/scatterem/docs/install.html)).
 
-The Colab notebook installs the package, fetches one dataset from Zenodo and
-runs the full FF-STEM reconstruction on a free Colab T4. It sizes the scan to
-the GPU it gets, so it also works on smaller instances.
+The molab notebook installs the package, fetches one dataset from Zenodo and
+runs the full FF-STEM reconstruction on a free molab GPU. It sizes the scan to
+the GPU it gets, so it also works on smaller GPUs.
 
 ## Run the FF-STEM paper figures
 
@@ -87,7 +87,10 @@ python experiments/ff_stem/Fig2_carbon.py
 | `Fig1_Gd2O3.py` | Gd₂O₃ | 6.6 GB | 21.7 GiB |
 
 The peaks were measured with v0.4 on an NVIDIA RTX A6000.
-`Fig1_Gd2O3.py` does not fit a free Colab T4.
+Each script also has a molab notebook in `notebooks/` that runs it in the
+browser on a free GPU, for example
+[![Open in molab](https://marimo.io/molab-shield.svg)](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig2_carbon.py)
+for `Fig2_carbon.py`.
 
 ## Use FF-STEM on your own data
 
@@ -192,7 +195,7 @@ pre-release code, which uses the v0.3 transition potentials. See the
   The default `"combined"` fit does not read `meta.aberrations`.
 * **Sub-pixel dark-field shifts use drizzle by default**
   (`shift_method="drizzle"`, `tcdf_shift_method="drizzle"` in the fusion).
-  The figure scripts and the Colab notebook use this default. The paper's
+  The figure scripts and the notebooks use this default. The paper's
   figures used Fourier upsampling and a phase ramp (`shift_method="fourier"`).
   See [Method](https://scatterem.github.io/scatterem/docs/method.html).
 * **The STEM-EELS code is the forward simulation only.** There is no EELS

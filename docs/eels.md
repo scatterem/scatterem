@@ -24,6 +24,40 @@ structure and calls `prism_eels_image` (map, qEELS) or
 `prism_transition_potential` (cube). It adds no physics of its own. The same
 driver also runs the elastic simulation; see [Elastic PRISM](prism.md).
 
+## The short version
+
+`structure` is a `scatterem.physics.atom_set.AtomSet`; [A structure](#a-structure)
+below builds one.
+
+```python
+from scatterem.simulation.eels import PrismEelsSimulator
+
+sim = PrismEelsSimulator(
+    structure,                     # scatterem.physics.atom_set.AtomSet
+    eV=100e3,
+    semiconvergence_angle=25.0,    # mrad
+    pixels=(128, 128),
+    scan=(16, 16),
+    num_slices=16,
+    device="cuda",
+)
+
+ti_map = sim.eels_map(
+    (22, 2, 1),                    # Ti L: (Z, n, l)
+    detector_mrad=25.0,
+    partition=dict(n_radial=4),
+    partition_s2=dict(n_radial=4),
+)
+ti_map.data                        # (16, 16) elemental map
+cbed = sim.elastic_cbed()          # elastic 4D-STEM by PRISM
+```
+
+Without GPAW, this example uses analytic hydrogenic states and emits a
+`HydrogenicFallbackWarning`: the numbers are then not quantitative. See
+[Transition potentials, and the GPAW question](#transition-potentials-and-the-gpaw-question)
+and [The BiP-PRISM paper and v0.4](#bip-prism-paper-v04). The sections below
+go through each step.
+
 ## A structure
 
 `AtomSet` is an immutable NumPy container. It holds the side lengths of a

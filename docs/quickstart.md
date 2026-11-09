@@ -1,5 +1,45 @@
 # Quickstart
 
+## The whole pipeline
+
+The few lines below take a 4D-STEM array to the fused image. `array` is your
+data, a NumPy array of shape `(scan_y, scan_x, det_y, det_x)`.
+
+```python
+from scatterem import Dataset4DStem
+from scatterem.reconstruction import run
+from scatterem.reconstruction.fusion.ffstem import FusedFullFieldConfig
+from scatterem.reconstruction.ptychography.direct import AberrationFitConfig
+
+dataset = Dataset4DStem.from_array(
+    array,                          # (scan_y, scan_x, det_y, det_x)
+    energy=300e3,                   # eV
+    semiconvergence_angle=19.7e-3,  # rad
+    scan_step=0.25,                 # Angstrom
+    device="cuda",
+)
+dataset.calibrate_reciprocal_from_bright_field()  # measure dk; from_array sets a placeholder
+
+fit = run(
+    dataset,
+    AberrationFitConfig(correct_order=2, bright_field_mask_threshold=dataset.bright_field_mask_threshold),
+)
+dataset.meta = fit.applied_to(dataset.meta)
+
+fused = run(dataset, FusedFullFieldConfig(n_dark_field_segments=32)).fused
+```
+
+That is the whole pipeline; the sections below go through it step by step.
+Each channel is also available on its own, through
+`run(dataset, DirectPtychographyConfig(...))` and
+`run(dataset, TiltCorrectedDarkFieldConfig(...))`. All three share one
+calibration, so they land on the same grid.
+
+[![Open in molab](https://marimo.io/molab-shield.svg)](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/ffstem_demo.py)
+
+Run it now on a free GPU: the molab notebook installs the package, fetches one
+dataset from Zenodo and reconstructs it, with nothing to set up locally.
+
 ## From an array
 
 The container needs the acquisition geometry, because every reconstruction here is

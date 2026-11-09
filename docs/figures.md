@@ -48,6 +48,23 @@ with v0.4 on an NVIDIA RTX A6000.
 Carbon is the one to run first: smallest download, about a second of
 reconstruction, and it exercises the whole pipeline.
 
+## Run them in the browser
+
+Each script has a marimo notebook in `notebooks/`. molab, the free hosted
+notebook service of marimo, opens it from GitHub. Switch on the GPU in the
+notebook specs. The notebook installs `scatterem` 0.4.0, fetches the script of
+the release, downloads the dataset from Zenodo and shows the figures.
+
+| Script | Notebook |
+|---|---|
+| `Fig2_carbon.py` | [fig2_carbon.py](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig2_carbon.py) |
+| `Fig2_Co3O4.py` | [fig2_co3o4.py](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig2_co3o4.py) |
+| `Fig4_diffraction.py` | [fig4_diffraction.py](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig4_diffraction.py) |
+| `Fig1_Gd2O3.py` | [fig1_gd2o3.py](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig1_gd2o3.py) |
+
+[bip_prism_eels_map.py](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/bip_prism_eels_map.py) simulates a small BiP-PRISM
+core-loss map, as on [Simulate STEM-EELS](eels.md).
+
 :::{admonition} Fitting a smaller GPU
 :class: note
 
