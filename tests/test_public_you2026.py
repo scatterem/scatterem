@@ -1,8 +1,9 @@
 """Tests for the Zenodo-backed FF-STEM paper datasets (You et al., Adv. Sci. 2026).
 
-No test here touches the network except the one marked ``slow``: the download
-path is exercised by monkeypatching ``download_url`` and by writing tiny
-synthetic files into a ``tmp_path`` cache directory.
+No test here touches the network except the two marked ``slow`` (the mirror
+one also needs ``SCATTEREM_TEST_NETWORK=1``): the download path is exercised
+by monkeypatching ``download_url`` or the network calls under it, and by
+writing tiny synthetic files into a ``tmp_path`` cache directory.
 """
 
 import json
@@ -111,8 +112,11 @@ def test_base_builds_metadata_from_class_attributes(tmp_path, synthetic_class):
 def test_base_raises_when_data_absent_and_download_false(tmp_path, synthetic_class):
     empty = tmp_path / "empty"
     empty.mkdir()
-    with pytest.raises(RuntimeError, match="synthetic_cube.npy"):
+    with pytest.raises(RuntimeError, match="synthetic_cube.npy") as info:
         synthetic_class(root=empty, download=False)
+    # The message names both download sources: the mirror and Zenodo.
+    assert "huggingface.co/datasets/philipp-pelz/public-4dstem" in str(info.value)
+    assert "https://zenodo.org/records/18008901" in str(info.value)
 
 
 def test_base_rejects_corrupt_cache(tmp_path, synthetic_class):
@@ -127,7 +131,8 @@ def test_base_rejects_corrupt_cache(tmp_path, synthetic_class):
 def test_base_download_fetches_every_declared_resource(
     tmp_path, synthetic_class, monkeypatch
 ):
-    """download() hits every declared resource with its Zenodo content URL.
+    """download() hits every declared resource with its Zenodo content URL
+    (mirror switched off here; the mirror tests are further down).
 
     Built from an already-valid cached instance (no exception dance): the
     ``_token``-guard construction contract also raises ``RuntimeError``, so a
@@ -145,6 +150,7 @@ def test_base_download_fetches_every_declared_resource(
     monkeypatch.setattr(
         "scatterem.data.public.zenodo_cache.download_url", _fake_download
     )
+    monkeypatch.setenv("SCATTEREM_DATA_MIRROR", "0")
 
     ds.download()
 
@@ -178,7 +184,7 @@ def test_base_init_downloads_only_the_missing_subset(tmp_path, monkeypatch):
 
     calls = []
 
-    def _fake_download(url, root, filename, md5):
+    def _fake_download(url, root, filename, md5, **kwargs):
         calls.append(filename)
         _write_npy(tmp_path / filename)
 
@@ -588,6 +594,276 @@ def test_real_zenodo_download_of_smallest_resource(tmp_path):
         # offline developer should see "skipped", not "failed".
         pytest.skip(f"test needs network access to Zenodo: {exc}")
     assert check_integrity(tmp_path / filename, md5)
+
+
+# --- download sources: Hugging Face mirror first, then Zenodo ---------------
+# These tests patch the two network calls under the real ``download_url``
+# (``_get_redirect_url`` and ``_urlretrieve``), so its own md5 check runs
+# unchanged. No test here touches the network.
+
+MIRROR_PAYLOAD = b"the bytes of the Zenodo file"
+MIRROR_FILE = "fig2_carbon.npy"
+
+
+class _FakeNetwork:
+    """Serves a URL from a table: bytes to write, or an exception to raise."""
+
+    def __init__(self, monkeypatch, root):
+        import scatterem.data.public.utils as utils_mod
+
+        self.root = root
+        self.urls = []  # every URL opened, in order
+        self.timeouts = []
+        self.routes = {}  # url -> bytes or BaseException
+        self.seen_before_write = {}  # url -> did the target file exist?
+        monkeypatch.setattr(utils_mod, "_get_redirect_url", self._redirect)
+        monkeypatch.setattr(utils_mod, "_urlretrieve", self._retrieve)
+
+    def _route(self, url):
+        return self.routes.get(url.replace("http://", "https://", 1))
+
+    def _redirect(self, url, max_hops=3, timeout=None):
+        route = self._route(url)
+        if isinstance(route, urllib_error().HTTPError):
+            self.urls.append(url)
+            raise route
+        return url
+
+    def _retrieve(self, url, filename, chunk_size=0, timeout=None, desc=None):
+        self.urls.append(url)
+        self.timeouts.append(timeout)
+        self.seen_before_write[url] = os.path.exists(filename)
+        route = self._route(url)
+        if isinstance(route, tuple):  # (partial bytes, exception)
+            with open(filename, "wb") as fh:
+                fh.write(route[0])
+            raise route[1]
+        if isinstance(route, BaseException):
+            raise route
+        with open(filename, "wb") as fh:
+            fh.write(route)
+
+
+def urllib_error():
+    import urllib.error
+
+    return urllib.error
+
+
+def _http_404(url):
+    import email.message
+
+    return urllib_error().HTTPError(
+        url, 404, "Not Found", email.message.Message(), None
+    )
+
+
+def _mirror_cache(tmp_path, record=ZENODO_RECORD):
+    import hashlib
+
+    from scatterem.data.public.zenodo_cache import ZenodoResourceCache
+
+    md5 = hashlib.md5(MIRROR_PAYLOAD).hexdigest()
+    root = tmp_path / "cache"
+    return ZenodoResourceCache(root, record, [(MIRROR_FILE, md5)]), root, md5
+
+
+def _urls(record=ZENODO_RECORD, filename=MIRROR_FILE):
+    from scatterem.data.public.zenodo_cache import mirror_file_url
+
+    return mirror_file_url(record, filename), zenodo_file_url(record, filename)
+
+
+def test_mirror_url_is_pinned_to_a_commit_of_the_dataset_repository():
+    """``resolve/<commit sha>``, never ``resolve/main``: a later edit of the
+    Hub repository cannot change what scatterem downloads."""
+    import re
+
+    from scatterem.data.public.zenodo_cache import ZENODO_MIRRORS, mirror_file_url
+
+    base = ZENODO_MIRRORS[ZENODO_RECORD]
+    assert re.fullmatch(
+        r"https://huggingface\.co/datasets/philipp-pelz/public-4dstem/resolve/"
+        r"[0-9a-f]{40}/mirrors/zenodo-18008901",
+        base,
+    )
+    for cls in (You2026Gd2O3, You2026Carbon, You2026Co3O4, You2026AuLowDose):
+        for filename, _md5 in cls.resources:
+            assert mirror_file_url(ZENODO_RECORD, filename) == f"{base}/{filename}"
+    assert mirror_file_url(int(ZENODO_RECORD), MIRROR_FILE) == f"{base}/{MIRROR_FILE}"
+    assert mirror_file_url("12345", MIRROR_FILE) is None
+    assert mirror_file_url(None, MIRROR_FILE) is None
+
+
+def test_download_takes_the_file_from_the_mirror_when_it_works(tmp_path, monkeypatch):
+    monkeypatch.delenv("SCATTEREM_DATA_MIRROR", raising=False)
+    cache, root, md5 = _mirror_cache(tmp_path)
+    mirror, zenodo = _urls()
+    net = _FakeNetwork(monkeypatch, root)
+    net.routes = {mirror: MIRROR_PAYLOAD, zenodo: AssertionError("not Zenodo")}
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        cache.download()
+
+    assert net.urls == [mirror]
+    assert net.timeouts == [pytest.approx(60.0)]
+    assert calculate_md5(root / MIRROR_FILE) == md5
+    assert cache.missing_resources() == []
+
+
+def test_download_falls_back_to_zenodo_when_the_mirror_gives_404(tmp_path, monkeypatch):
+    monkeypatch.delenv("SCATTEREM_DATA_MIRROR", raising=False)
+    cache, root, md5 = _mirror_cache(tmp_path)
+    mirror, zenodo = _urls()
+    net = _FakeNetwork(monkeypatch, root)
+    net.routes = {mirror: _http_404(mirror), zenodo: MIRROR_PAYLOAD}
+
+    with pytest.warns(UserWarning, match="HTTPError.*from Zenodo record 18008901"):
+        cache.download()
+
+    assert net.urls == [mirror, zenodo]
+    assert calculate_md5(root / MIRROR_FILE) == md5
+
+
+def test_download_falls_back_to_zenodo_when_the_mirror_md5_is_wrong(
+    tmp_path, monkeypatch
+):
+    """``download_url`` rejects the mirror bytes by md5; the bad file is
+    deleted before Zenodo is asked, and the result has the declared md5."""
+    monkeypatch.delenv("SCATTEREM_DATA_MIRROR", raising=False)
+    cache, root, md5 = _mirror_cache(tmp_path)
+    mirror, zenodo = _urls()
+    net = _FakeNetwork(monkeypatch, root)
+    net.routes = {mirror: b"other bytes", zenodo: MIRROR_PAYLOAD}
+
+    with pytest.warns(UserWarning, match="RuntimeError.*from Zenodo"):
+        cache.download()
+
+    assert net.urls == [mirror, zenodo]
+    assert net.seen_before_write[zenodo] is False  # bad file deleted first
+    assert calculate_md5(root / MIRROR_FILE) == md5
+
+
+def test_download_falls_back_to_zenodo_after_a_mirror_timeout(tmp_path, monkeypatch):
+    """A timeout in the body leaves a partial file; it is deleted, and the
+    file comes from Zenodo. (``download_url`` retries over plain http once
+    before it gives up, as it does for every source.)"""
+    monkeypatch.delenv("SCATTEREM_DATA_MIRROR", raising=False)
+    cache, root, md5 = _mirror_cache(tmp_path)
+    mirror, zenodo = _urls()
+    net = _FakeNetwork(monkeypatch, root)
+    net.routes = {
+        mirror: (MIRROR_PAYLOAD[:5], TimeoutError("timed out")),
+        zenodo: MIRROR_PAYLOAD,
+    }
+
+    with pytest.warns(UserWarning, match="TimeoutError"):
+        cache.download()
+
+    assert net.urls[0] == mirror
+    assert net.urls[-1] == zenodo
+    assert all("huggingface.co/" in u for u in net.urls[:-1])
+    assert net.seen_before_write[zenodo] is False
+    assert calculate_md5(root / MIRROR_FILE) == md5
+
+
+@pytest.mark.parametrize("value", ["0", "false", "no"])
+def test_environment_switches_the_mirror_off(tmp_path, monkeypatch, value):
+    monkeypatch.setenv("SCATTEREM_DATA_MIRROR", value)
+    cache, root, md5 = _mirror_cache(tmp_path)
+    mirror, zenodo = _urls()
+    net = _FakeNetwork(monkeypatch, root)
+    net.routes = {mirror: AssertionError("mirror is off"), zenodo: MIRROR_PAYLOAD}
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        cache.download()
+
+    assert net.urls == [zenodo]
+    assert net.timeouts == [None]  # the Zenodo call is as before
+    assert calculate_md5(root / MIRROR_FILE) == md5
+
+
+def test_record_without_a_mirror_downloads_from_zenodo_only(tmp_path, monkeypatch):
+    monkeypatch.delenv("SCATTEREM_DATA_MIRROR", raising=False)
+    cache, root, md5 = _mirror_cache(tmp_path, record="12345")
+    zenodo = zenodo_file_url("12345", MIRROR_FILE)
+    net = _FakeNetwork(monkeypatch, root)
+    net.routes = {zenodo: MIRROR_PAYLOAD}
+
+    cache.download()
+
+    assert net.urls == [zenodo]
+    assert calculate_md5(root / MIRROR_FILE) == md5
+
+
+def test_zenodo_error_propagates_when_both_sources_fail(tmp_path, monkeypatch):
+    monkeypatch.delenv("SCATTEREM_DATA_MIRROR", raising=False)
+    cache, root, _md5 = _mirror_cache(tmp_path)
+    mirror, zenodo = _urls()
+    net = _FakeNetwork(monkeypatch, root)
+    net.routes = {mirror: _http_404(mirror), zenodo: b"also wrong"}
+
+    with pytest.warns(UserWarning, match="mirror download"):
+        with pytest.raises(RuntimeError, match="corrupted"):
+            cache.download()
+    assert net.urls == [mirror, zenodo]
+
+
+def test_dataset_download_true_goes_through_the_mirror(tmp_path, monkeypatch):
+    """End to end through ``PublicDataset4DStem.__init__``: the file comes
+    from the mirror, and the dataset loads it."""
+    monkeypatch.delenv("SCATTEREM_DATA_MIRROR", raising=False)
+    src = tmp_path / "src"
+    src.mkdir()
+    _write_npy(src / "synthetic_cube.npy")
+    payload = (src / "synthetic_cube.npy").read_bytes()
+
+    class _Mirrored(PublicDataset4DStem):
+        zenodo_record_id = ZENODO_RECORD
+        resources: ClassVar[list[tuple[str, str]]] = [
+            ("synthetic_cube.npy", calculate_md5(src / "synthetic_cube.npy"))
+        ]
+        energy = 60e3
+        semiconvergence_angle = 30e-3
+        scan_step = 0.43
+
+        def _load_array(self):
+            return np.load(self.raw_folder / self.resources[0][0])
+
+    root = tmp_path / "cache"
+    mirror, zenodo = _urls(filename="synthetic_cube.npy")
+    net = _FakeNetwork(monkeypatch, root)
+    net.routes = {mirror: payload, zenodo: AssertionError("not Zenodo")}
+
+    ds = _Mirrored(root=root, download=True, calibrate=False)
+
+    assert net.urls == [mirror]
+    assert tuple(ds.array.shape) == (4, 4, 8, 8)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(
+    os.environ.get("SCATTEREM_TEST_NETWORK") != "1",
+    reason="network test; set SCATTEREM_TEST_NETWORK=1 to run it",
+)
+def test_real_mirror_serves_every_you2026_file():
+    """HEAD of every mirror URL of the four You2026 classes at the pinned
+    commit: HTTP 200 after the redirects. Downloads nothing."""
+    import urllib.request
+
+    from scatterem.data.public.utils import USER_AGENT
+    from scatterem.data.public.zenodo_cache import mirror_file_url
+
+    for cls in (You2026Gd2O3, You2026Carbon, You2026Co3O4, You2026AuLowDose):
+        for filename, _md5 in cls.resources:
+            url = mirror_file_url(ZENODO_RECORD, filename)
+            req = urllib.request.Request(
+                url, method="HEAD", headers={"User-Agent": USER_AGENT}
+            )
+            with urllib.request.urlopen(req, timeout=60) as response:
+                assert response.status == 200, (url, response.status)
 
 
 # --- md5 verification stamp -------------------------------------------------

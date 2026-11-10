@@ -38,7 +38,7 @@ calibration, so they land on the same grid.
 [![Open in molab](https://marimo.io/molab-shield.svg)](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/ffstem_demo.py)
 
 Run it now on a free GPU: the molab notebook installs the package, fetches one
-dataset from Zenodo and reconstructs it, with nothing to set up locally.
+dataset and reconstructs it, with nothing to set up locally.
 
 ## From an array
 
@@ -189,7 +189,9 @@ handing you a half-populated object. See
 
 ## The named datasets
 
-The four specimens from the paper download themselves, verified by md5:
+The four specimens from the paper download themselves from the Hugging Face
+mirror of Zenodo record 18008901 (Zenodo as fallback), verified by md5. Cite
+the Zenodo DOI. `SCATTEREM_DATA_MIRROR=0` downloads from Zenodo only:
 
 ```python
 from scatterem import You2026Carbon

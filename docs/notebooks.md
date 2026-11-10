@@ -3,10 +3,12 @@
 The folder `notebooks/` of the repository holds marimo notebooks. molab, the
 free hosted notebook service of marimo, opens each one from GitHub and runs it
 on a GPU. Click a badge, switch on the GPU in the notebook specs, and run all
-cells. Each notebook installs `scatterem==0.4.1` from PyPI (the PEP 723 header
+cells. Each notebook installs `scatterem==0.4.2` from PyPI (the PEP 723 header
 of the file), so you need no account, token or local install.
 
-The FF-STEM figure notebooks download their dataset from Zenodo. The BiP-PRISM
+The FF-STEM figure notebooks download their dataset from the
+[Hugging Face mirror](https://huggingface.co/datasets/philipp-pelz/public-4dstem)
+of the Zenodo record, with Zenodo as fallback, and check it by md5. The BiP-PRISM
 notebooks build their specimens in the notebook; the FePt notebook downloads
 the atomic model from the data page of its authors. Each notebook explains what
 the figure shows, what to look at and how its numbers differ from the paper.
@@ -16,7 +18,9 @@ Each has controls (sliders, switches and menus) that change the calculation.
 
 Paper: S. You *et al.*, *Advanced Science* **13**, e76620 (2026),
 [doi:10.1002/advs.76620](https://doi.org/10.1002/advs.76620). Data: Zenodo record
-[18008901](https://zenodo.org/records/18008901), CC-BY-4.0.
+[18008901](https://zenodo.org/records/18008901), CC-BY-4.0 (cite
+[10.5281/zenodo.18008901](https://doi.org/10.5281/zenodo.18008901)); the
+notebooks download it from the Hugging Face mirror.
 
 | Notebook | What it shows | Runtime | Peak GPU memory | Data |
 |---|---|---|---|---|

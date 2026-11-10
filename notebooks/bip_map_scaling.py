@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#     "scatterem==0.4.1",
+#     "scatterem==0.4.2",
 #     "marimo==0.25.2",
 #     "matplotlib>=3.10",
 #     "numpy>=2.1.0",

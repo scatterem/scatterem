@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#     "scatterem==0.4.1",
+#     "scatterem==0.4.2",
 #     "marimo==0.25.2",
 #     "matplotlib>=3.10",
 #     "numpy>=2.1.0",
@@ -54,7 +54,7 @@ def _(mo):
     GPAW from source and needs a C++ compiler:
 
     ```bash
-    CC=g++ pip install "scatterem[eels]==0.4.1" gpaw-data
+    CC=g++ pip install "scatterem[eels]==0.4.2" gpaw-data
     ```
 
     This notebook does not install GPAW.

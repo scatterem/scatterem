@@ -42,7 +42,7 @@ from .reconstruction import (
     tilt_corrected_dark_field,
 )
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 __all__ = [
     "Dataset4DStem",

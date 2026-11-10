@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#     "scatterem==0.4.1",
+#     "scatterem==0.4.2",
 #     "marimo==0.25.2",
 #     "matplotlib>=3.10",
 #     "torch>=2.5.0",
@@ -57,9 +57,10 @@ def _(mo):
     2. Run all cells.
 
     The code and the data are public, so you need no token or account.
-    The header of this file pins `scatterem==0.4.1`, and molab installs
-    it. The dataset (about 500 MB) downloads on first use, and its md5
-    checksums are verified. Set `FFSTEM_DATA_ROOT` to keep the data in a
+    The header of this file pins `scatterem==0.4.2`, and molab installs
+    it. The dataset (about 500 MB) downloads on first use from the
+    Hugging Face mirror of the Zenodo record (Zenodo is the fallback), and
+    its md5 checksums are verified. Cite the Zenodo DOI. Set `FFSTEM_DATA_ROOT` to keep the data in a
     different directory (the default is `data`).
     """)
     return
@@ -135,8 +136,9 @@ def _(mo):
     mo.md(r"""
     ## 3. Load the dataset
 
-    `You2026AuLowDose` downloads three Zenodo files (the Dectris master
-    file and its two data blocks, about 500 MB) and checks the md5 of each.
+    `You2026AuLowDose` downloads three files of the Zenodo record (the
+    Dectris master file and its two data blocks, about 500 MB) from the
+    Hugging Face mirror, with Zenodo as fallback, and checks the md5 of each.
     If the files are already in the data directory, it uses them. The class
     also repairs the acquisition:
 

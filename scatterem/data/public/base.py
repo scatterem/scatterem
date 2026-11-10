@@ -20,7 +20,7 @@ from scatterem.data.datasets import (
     Dataset4DStem,
     _metadata4dstem_from_physics,
 )
-from scatterem.data.public.zenodo_cache import ZenodoResourceCache
+from scatterem.data.public.zenodo_cache import ZenodoResourceCache, download_sources
 from scatterem.utils.env import env_flag
 from scatterem.utils.validators import (
     _H2D_STAGE_CHUNK_BYTES,
@@ -397,7 +397,7 @@ class PublicDataset4DStem(Dataset4DStem):
 
     Args:
         root: Directory holding (or to receive) the raw files.
-        download: Fetch any missing/corrupt file from Zenodo.
+        download: Fetch any missing/corrupt file (mirror, then Zenodo).
         device: Torch device for the data array.
         calibrate: Run ``calibrate_reciprocal_from_bright_field()`` after
             construction, replacing the placeholder ``dk``. All the paper's
@@ -453,7 +453,7 @@ class PublicDataset4DStem(Dataset4DStem):
             raise RuntimeError(
                 f"{type(self).__name__}: missing or corrupt data file(s) in "
                 f"{self.raw_folder}: {detail}. Pass download=True to fetch them "
-                f"from https://zenodo.org/records/{self.zenodo_record_id}"
+                f"from {download_sources(self.zenodo_record_id)}"
             )
 
         # Published where _load_array can see it so a loader may put the array
@@ -645,7 +645,7 @@ class PublicDataset4DStem(Dataset4DStem):
         return self._resource_cache.verify_resource(fpath, md5)
 
     def download(self) -> None:
-        """Fetch every declared resource from Zenodo.
+        """Fetch every declared resource (mirror first, then Zenodo).
 
         Argument-free by design: subclasses that declare
         ``def download(self) -> None`` would ``TypeError`` on construction if this

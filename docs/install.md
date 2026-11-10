@@ -72,7 +72,8 @@ runs the Au low-dose reconstruction end to end, with the paper's configuration
 (1024² output, 5.5 GiB peak). On a GPU with less than 8 GiB it uses a reduced
 scan (512² output, 1.4 GiB). Switch on the GPU in the notebook specs; nothing
 else is needed. The code and the data are both public, the notebook installs
-`scatterem` itself, and the dataset downloads itself, md5-verified.
+`scatterem` itself, and the dataset downloads itself from the Hugging Face
+mirror (Zenodo as fallback), md5-verified.
 
 The folder `notebooks/` also holds an interactive notebook for each FF-STEM
 figure and for the BiP-PRISM figures; [Notebooks](notebooks.md) lists them.

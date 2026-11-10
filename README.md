@@ -47,7 +47,7 @@ The `eels` extra adds GPAW, the all-electron backend for quantitative
 STEM-EELS. pip builds GPAW from source, and the build needs a C++ compiler (see
 [Installation](https://scatterem.github.io/scatterem/docs/install.html)).
 
-The molab notebook installs the package, fetches one dataset from Zenodo and
+The molab notebook installs the package, fetches one dataset and
 runs the full FF-STEM reconstruction on a free molab GPU. It sizes the scan to
 the GPU it gets, so it also works on smaller GPUs.
 
@@ -66,13 +66,15 @@ The scripts are in this repository, not in the PyPI package. Clone the
 repository at the release tag and install the same release from PyPI:
 
 ```bash
-git clone --branch v0.4.1 https://github.com/scatterem/scatterem
+git clone --branch v0.4.2 https://github.com/scatterem/scatterem
 cd scatterem
-pip install scatterem==0.4.1
+pip install scatterem==0.4.2
 ```
 
-Each script downloads its dataset from Zenodo on the first run and checks it by
-md5. You only set where the data goes:
+Each script downloads its dataset on the first run from the
+[Hugging Face mirror](https://huggingface.co/datasets/philipp-pelz/public-4dstem)
+of the Zenodo record, with Zenodo as fallback, and checks it by md5. Cite the
+Zenodo DOI. You only set where the data goes:
 
 ```bash
 export FFSTEM_DATA_ROOT=/path/with/space

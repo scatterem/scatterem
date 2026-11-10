@@ -4,14 +4,17 @@ The scripts are in this repository, not in the PyPI package. Clone the
 repository at the release tag and install the same release from PyPI:
 
 ```bash
-git clone --branch v0.4.1 https://github.com/scatterem/scatterem
+git clone --branch v0.4.2 https://github.com/scatterem/scatterem
 cd scatterem
-pip install scatterem==0.4.1
+pip install scatterem==0.4.2
 ```
 
 Four scripts under `experiments/ff_stem/`, one per specimen. Each downloads its
-dataset from Zenodo on first run and verifies it by md5, so the only thing to
-decide is where the data should live:
+dataset on first run from the [Hugging Face mirror](https://huggingface.co/datasets/philipp-pelz/public-4dstem)
+of Zenodo record 18008901, with Zenodo as fallback, and verifies it by md5. The
+files are identical; cite the Zenodo DOI
+[10.5281/zenodo.18008901](https://doi.org/10.5281/zenodo.18008901). The only
+thing to decide is where the data should live:
 
 ```bash
 export FFSTEM_DATA_ROOT=/path/with/space
@@ -52,8 +55,8 @@ reconstruction, and it exercises the whole pipeline.
 
 Each script has an interactive marimo notebook in `notebooks/`. molab, the
 free hosted notebook service of marimo, opens it from GitHub. Switch on the
-GPU in the notebook specs. The notebook installs `scatterem` 0.4.1, downloads
-the dataset from Zenodo and runs the calls of the script with the parameters
+GPU in the notebook specs. The notebook installs `scatterem` 0.4.2, downloads
+the dataset (Hugging Face mirror, Zenodo as fallback) and runs the calls of the script with the parameters
 of the script. With the default controls, its three images are the images
 that the script saves. The controls change the fusion: the number of
 dark-field segments, each channel on or off, the low-q handover and the band

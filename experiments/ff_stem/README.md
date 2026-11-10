@@ -84,8 +84,11 @@ calibrates the reciprocal-space pixel size from the measured bright-field disk.
 Source: Zenodo record [18008901](https://zenodo.org/records/18008901)
 (DOI 10.5281/zenodo.18008901), **CC-BY-4.0** — please cite it if you use the data.
 
-Files are cached flat in `root`, so an existing local copy is reused (md5-verified)
-rather than re-downloaded. A cold `You2026Gd2O3` fetch is 6.6 GB.
+The classes download the files from the byte-identical
+[Hugging Face mirror](https://huggingface.co/datasets/philipp-pelz/public-4dstem)
+of the record, with Zenodo as fallback (`SCATTEREM_DATA_MIRROR=0` uses Zenodo
+only). Files are cached flat in `root`, so an existing local copy is reused
+(md5-verified) rather than re-downloaded. A cold `You2026Gd2O3` fetch is 6.6 GB.
 
 This release has no scripts for the other figures of the paper.
 

@@ -37,15 +37,25 @@ from tqdm import tqdm
 USER_AGENT = "scatterem"
 
 
+def _timeout_kwargs(timeout: float | None) -> dict[str, float]:
+    """``urlopen`` keyword for a socket timeout; none means the global default."""
+    return {} if timeout is None else {"timeout": timeout}
+
+
 def _urlretrieve(
-    url: str, filename: str | pathlib.Path, chunk_size: int = 1024 * 32
+    url: str,
+    filename: str | pathlib.Path,
+    chunk_size: int = 1024 * 32,
+    timeout: float | None = None,
+    desc: str | None = None,
 ) -> None:
     with urllib.request.urlopen(
-        urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        urllib.request.Request(url, headers={"User-Agent": USER_AGENT}),
+        **_timeout_kwargs(timeout),
     ) as response:
         with (
             open(filename, "wb") as fh,
-            tqdm(total=response.length, unit="B", unit_scale=True) as pbar,
+            tqdm(total=response.length, unit="B", unit_scale=True, desc=desc) as pbar,
         ):
             while chunk := response.read(chunk_size):
                 fh.write(chunk)
@@ -122,13 +132,13 @@ def _get_google_drive_file_id(url: str) -> str | None:
     return match.group("id")
 
 
-def _get_redirect_url(url: str, max_hops: int = 3) -> str:
+def _get_redirect_url(url: str, max_hops: int = 3, timeout: float | None = None) -> str:
     initial_url = url
     headers = {"Method": "HEAD", "User-Agent": USER_AGENT}
 
     for _ in range(max_hops + 1):
         with urllib.request.urlopen(
-            urllib.request.Request(url, headers=headers)
+            urllib.request.Request(url, headers=headers), **_timeout_kwargs(timeout)
         ) as response:
             if response.url == url or response.url is None:
                 return url
@@ -146,6 +156,7 @@ def download_url(
     filename: str | pathlib.Path | None = None,
     md5: str | None = None,
     max_redirect_hops: int = 3,
+    timeout: float | None = None,
 ) -> None:
     """Download a file from a url and place it in root.
 
@@ -155,6 +166,11 @@ def download_url(
         filename (str, optional): Name to save the file under. If None, use the basename of the URL
         md5 (str, optional): MD5 checksum of the download. If None, do not check
         max_redirect_hops (int, optional): Maximum number of redirect hops allowed
+        timeout (float, optional): Socket timeout in seconds for each blocking
+            network operation. If None, use the global default (no timeout).
+
+    The progress bar names the file and the host of ``url``, so a log shows
+    where each file came from.
     """
     root = os.path.expanduser(root)
     if not filename:
@@ -167,8 +183,10 @@ def download_url(
     if check_integrity(fpath, md5):
         return
 
+    desc = f"{os.path.basename(fpath)} from {urlparse(url).netloc}"
+
     # expand redirect chain if needed
-    url = _get_redirect_url(url, max_hops=max_redirect_hops)
+    url = _get_redirect_url(url, max_hops=max_redirect_hops, timeout=timeout)
 
     # check if file is located on Google Drive
     file_id = _get_google_drive_file_id(url)
@@ -177,11 +195,11 @@ def download_url(
 
     # download the file
     try:
-        _urlretrieve(url, fpath)
+        _urlretrieve(url, fpath, timeout=timeout, desc=desc)
     except (urllib.error.URLError, OSError) as e:
         if url[:5] == "https":
             url = url.replace("https:", "http:")
-            _urlretrieve(url, fpath)
+            _urlretrieve(url, fpath, timeout=timeout, desc=desc)
         else:
             raise e
 

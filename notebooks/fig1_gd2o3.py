@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#     "scatterem==0.4.1",
+#     "scatterem==0.4.2",
 #     "marimo==0.25.2",
 #     "matplotlib>=3.10",
 #     "numpy>=2.1.0",
@@ -68,8 +68,9 @@ def _(mo):
        GPU (molab gives an NVIDIA RTX PRO 6000 with 96 GB).
     2. Run all cells.
 
-    The dataset (about 6.6 GB) downloads on first use, and its md5
-    checksums are verified. Set `FFSTEM_DATA_ROOT` to keep the data in a
+    The dataset (about 6.6 GB) downloads on first use from the
+    Hugging Face mirror of the Zenodo record (Zenodo is the fallback), and
+    its md5 checksums are verified. Cite the Zenodo DOI. Set `FFSTEM_DATA_ROOT` to keep the data in a
     different directory (the default is `data`).
 
     ## What to look at

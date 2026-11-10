@@ -6,7 +6,10 @@ E. Spiecker, P. Pelz. "Gap-Free Information Transfer in 4D-STEM via Fusion of
 Complementary Scattering Channels." Advanced Science (2026).
 https://doi.org/10.1002/advs.76620
 
-Data: Zenodo record 18008901 (DOI 10.5281/zenodo.18008901), CC-BY-4.0.
+Data: Zenodo record 18008901 (DOI 10.5281/zenodo.18008901), CC-BY-4.0. Cite
+the Zenodo DOI. The classes download the files from a byte-identical mirror on
+the Hugging Face Hub (``philipp-pelz/public-4dstem``) and fall back to Zenodo;
+both are md5-checked (see :mod:`scatterem.data.public.zenodo_cache`).
 
 Each class carries the acquisition constants of one specimen -- beam energy,
 probe semiconvergence angle, scan step and scan rotation -- plus any repair of
@@ -68,7 +71,8 @@ class You2026Gd2O3(_DenseNpyDataset):
     root : str or pathlib.Path
         Directory holding (or to receive) the raw files.
     download : bool, optional
-        Fetch any missing/corrupt file from Zenodo, by default False.
+        Fetch any missing/corrupt file (Hugging Face mirror first, then
+        Zenodo; md5-checked), by default False.
     device : str or torch.device, optional
         Torch device for the data array, by default ``"cpu"``.
     calibrate : bool, optional
@@ -96,7 +100,8 @@ class You2026Carbon(_DenseNpyDataset):
     root : str or pathlib.Path
         Directory holding (or to receive) the raw files.
     download : bool, optional
-        Fetch any missing/corrupt file from Zenodo, by default False.
+        Fetch any missing/corrupt file (Hugging Face mirror first, then
+        Zenodo; md5-checked), by default False.
     device : str or torch.device, optional
         Torch device for the data array, by default ``"cpu"``.
     calibrate : bool, optional
@@ -124,7 +129,8 @@ class You2026Co3O4(_DenseNpyDataset):
     root : str or pathlib.Path
         Directory holding (or to receive) the raw files.
     download : bool, optional
-        Fetch any missing/corrupt file from Zenodo, by default False.
+        Fetch any missing/corrupt file (Hugging Face mirror first, then
+        Zenodo; md5-checked), by default False.
     device : str or torch.device, optional
         Torch device for the data array, by default ``"cpu"``.
     calibrate : bool, optional
