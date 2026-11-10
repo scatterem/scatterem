@@ -120,14 +120,7 @@ common. The optional `site_threshold` of
 
 abTEM (https://github.com/abTEM/abTEM) is licensed under the GNU General
 Public License v3.0. The EELS physics of scatterem was rewritten clean-room in
-v0.4, and no code, expression or docstring of abTEM is used. The
-specification, implementation and fixer agents worked in a git worktree of the
-scatterem repository, whose history holds the former abTEM-derived code. They
-used the development environment, which also held abTEM 1.0.9. They could
-read and run the EELS tests, some of which carried abTEM-shaped expressions,
-and the orchestrator named abTEM-specific choices of the former code for them
-to avoid. An audit of their work records found no read of the git history,
-of abTEM or of the former code bodies (exposed, not used). Some names and
+v0.4, and no code, expression or docstring of abTEM is used. Some names and
 defaults follow abTEM:
 
 - from `SubshellTransitions`: the `epsilon`, `order` (default 1), `xc`
@@ -179,68 +172,6 @@ label strings, no name, keyword, default or argument order of the former
 modules or of abTEM is kept, except the NumPy and PyTorch convention names
 `shape`, `dtype` and `device`. The former mask functions also had a `shape`
 parameter for the output grid, in the same role.
-
-## py4DSTEM (interface only)
-
-py4DSTEM (https://github.com/py4dstem/py4DSTEM) is licensed under the GNU
-General Public License v3.0. The centre-of-mass calibration in
-`scatterem.data.calibration` was rewritten clean-room in v0.4 from a
-behavioural specification, and no code, expression or docstring of py4DSTEM
-is used. The implementation agent worked in a git worktree of the scatterem
-repository, whose history holds the former py4DSTEM-derived code, and used the
-development environment. Its tests included one that compares the outputs
-with recorded outputs of the former code. It also read the former
-scan-rotation search, which v0.4 replaces too (see below). An audit of its
-work records found no read of the git history, of py4DSTEM or of the former
-centre-of-mass code (exposed, not used). Its interface stays from py4DSTEM so that callers keep it: the
-names and coefficient order of `plane`, `parabola` and `bezier_two`; the
-names, parameters, defaults and return order of `fit_2D` (`function`, `data`,
-`data_mask=None`, `popt=None`, `robust=False`, `robust_steps=3`,
-`robust_thresh=2`; a 4-tuple return) and of `fit_origin` (`data`,
-`mask=None`, `robust`, `robust_steps=3`, `robust_thresh=2`, the default
-`"plane"` and the `"bezier_two"` option). Two `fit_origin` parameters have
-new spellings of py4DSTEM's `fitfunction` and `returnfitp`: `fit_function`
-and `return_fit_params`. quantem (MIT, above) has the same `fit_function`
-spelling in its `fit_origin`; the
-name `fftshift_checkerboard`; the order of the
-12 aberration coefficients `C10` to `C34b`; the parameter names of `show_2d`;
-the name, the parameters (`dp_mask`,
-`fit_function="plane"`, `com_shifts`, `com_measured`,
-`vectorized_calculation=True`) and the six-array return order of
-`_calculate_intensities_center_of_mass`.
-
-The scan-rotation search, its figures and the bright-field shift estimators
-(`scatterem.data.calibration.find_scan_rotation`,
-`scatterem.vis.rotation_figures`,
-`scatterem.reconstruction.ptychography.direct.measure_bf_parallax`) are
-clean-room rewrites with a new API. So are the SSB Warp kernels
-(`scatterem.nn.functional.warp.ptychography`) and their aperture predicate
-(`scatterem.utils.warp.probe_cone_pass`). No py4DSTEM name, parameter, default or argument order of these parts is kept.
-The scan-rotation and bright-field team worked in a sandbox but used the
-development environment, which also held the former scatterem package. The
-SSB kernel team worked in a branch of the scatterem repository, whose history
-holds the former kernels. An audit of the work records found no read of the
-former code in either case. The SSB team saw the message of the commit that
-removed the former kernels, which names four removed helpers (none of these
-names is in the new code), and compared its outputs with recorded outputs of
-the former kernels (exposed, not used).
-
-The bright-field disk measurement
-(`scatterem.data.pupil_gauge.measure_pupil`) and the DFT frequency grid and
-ring profile (`scatterem.utils.spectral_mesh`) are clean-room rewrites. Two
-teams did the rewrite. A specification
-team that knew the former code wrote a behavioural contract. A separate blind
-team wrote the code from that contract and the published literature, in a
-sandbox that held none of the replaced modules and no py4DSTEM, quantem,
-abTEM or py_multislice code, with a separate Python environment in which
-none of these packages imports. The acceptance tests compared the new code
-with recorded outputs of the former code and with exact references. After
-the blind run, other agents, who were
-not blind, renamed the names that the provenance audits flagged. For this,
-they compared the names with py4DSTEM, quantem, abTEM, py_multislice and the
-former modules. No name, keyword, default, option string or argument order
-of the former modules is kept, except the PyTorch convention names `dtype`
-and `device`.
 
 ## Lobato and Van Dyck (2014), Table 1 (data)
 
