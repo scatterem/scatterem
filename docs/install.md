@@ -74,9 +74,8 @@ scan (512² output, 1.4 GiB). Switch on the GPU in the notebook specs; nothing
 else is needed. The code and the data are both public, the notebook installs
 `scatterem` itself, and the dataset downloads itself, md5-verified.
 
-The folder `notebooks/` also holds a notebook for each FF-STEM figure script
-and a small BiP-PRISM core-loss map; see
-[Run the paper's figure scripts](figures.md).
+The folder `notebooks/` also holds an interactive notebook for each FF-STEM
+figure and for the BiP-PRISM figures; [Notebooks](notebooks.md) lists them.
 
 <span id="from-source"></span>
 

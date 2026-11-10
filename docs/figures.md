@@ -50,10 +50,15 @@ reconstruction, and it exercises the whole pipeline.
 
 ## Run them in the browser
 
-Each script has a marimo notebook in `notebooks/`. molab, the free hosted
-notebook service of marimo, opens it from GitHub. Switch on the GPU in the
-notebook specs. The notebook installs `scatterem` 0.4.1, fetches the script of
-the release, downloads the dataset from Zenodo and shows the figures.
+Each script has an interactive marimo notebook in `notebooks/`. molab, the
+free hosted notebook service of marimo, opens it from GitHub. Switch on the
+GPU in the notebook specs. The notebook installs `scatterem` 0.4.1, downloads
+the dataset from Zenodo and runs the calls of the script with the parameters
+of the script. With the default controls, its three images are the images
+that the script saves. The controls change the fusion: the number of
+dark-field segments, each channel on or off, the low-q handover and the band
+limit (and the phase sign for Gd₂O₃). The notebook also plots the SSNR of each
+channel and the fusion weights against the spatial frequency.
 
 | Script | Notebook |
 |---|---|
@@ -62,8 +67,8 @@ the release, downloads the dataset from Zenodo and shows the figures.
 | `Fig4_diffraction.py` | [fig4_diffraction.py](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig4_diffraction.py) |
 | `Fig1_Gd2O3.py` | [fig1_gd2o3.py](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig1_gd2o3.py) |
 
-[bip_prism_eels_map.py](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/bip_prism_eels_map.py) simulates a small BiP-PRISM
-core-loss map, as on [Simulate STEM-EELS](eels.md).
+[Notebooks](notebooks.md) lists all notebooks, with their runtime and GPU
+memory, including the BiP-PRISM figure notebooks.
 
 :::{admonition} Fitting a smaller GPU
 :class: note
