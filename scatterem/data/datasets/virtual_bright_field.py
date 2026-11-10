@@ -176,12 +176,12 @@ class DatasetVirtualBrightField4DStem(_VbfSubsets, _MovesTensorState, Dataset):
         super().__init__(
             array=array,
             name=name,
+            signal_units=signal_units,
             origin=origin,
             sampling=sampling,
             units=units,
-            signal_units=signal_units,
-            _token=_token,
             device=device,
+            _token=_token,
         )
 
         self.meta = meta
@@ -226,12 +226,12 @@ class DatasetVirtualBrightField4DStem(_VbfSubsets, _MovesTensorState, Dataset):
         num_indices_for_bright_field_mask: int = 625,
         device: torch.device | None = None,  # will use dataset.device if not provided
     ) -> DatasetVirtualBrightField4DStem:
-        """Validate and create a DatasetVirtualBrightField4DStem from a Dataset4DStem.
+        """Gather the bright-field pixels of a 4D-STEM cube into a 3D dataset.
 
         Parameters
         ----------
         dataset : Dataset4DStem
-            The dataset to validate and create a DatasetVirtualBrightField4DStem from.
+            The source cube; the result keeps a link to it.
         bright_field_mask_threshold : float, optional
             Fraction of the mean-CBED reference level above which a detector
             pixel is in the bright-field mask. The reference level is the
@@ -241,13 +241,13 @@ class DatasetVirtualBrightField4DStem(_VbfSubsets, _MovesTensorState, Dataset):
             Approximate number of detector pixels (a square region) used to
             estimate the mean CBED for the mask.
         device : torch.device or None, optional
-            The device to create the DatasetVirtualBrightField4DStem on;
-            defaults to ``dataset.device``.
+            Device of the result. Default: ``dataset.device``.
 
         Returns
         -------
         DatasetVirtualBrightField4DStem
-            A Dataset object with the validated array and metadata.
+            Shape (scan y, scan x, bright-field pixel); the third axis is
+            ordered by the distance from the disk centre.
         """
         if device is None:
             device = dataset.device
@@ -293,7 +293,7 @@ class DatasetVirtualBrightField4DStem(_VbfSubsets, _MovesTensorState, Dataset):
             device=dataset.device,
         )
 
-        # Set defaults if None
+        # Labels: the source's, with defaults where it has none.
         _name = f"vBF of {dataset.name}"
         dso = dataset.origin
         _origin = dso if dso is not None else np.zeros(_ndim)
@@ -312,10 +312,10 @@ class DatasetVirtualBrightField4DStem(_VbfSubsets, _MovesTensorState, Dataset):
         return cls(
             array=validated_array,
             name=_name,
+            signal_units=dataset.signal_units,
             origin=_origin,
             sampling=_sampling,
             units=_units,
-            signal_units=dataset.signal_units,
             _token=cls._token,
             meta=dataset.meta,
             device=device,

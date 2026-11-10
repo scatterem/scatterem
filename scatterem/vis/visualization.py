@@ -11,7 +11,10 @@ from numpy.typing import NDArray
 from scatterem.data.sampling import Sampling
 from scatterem.vis._display_input import (
     _clipped_norm,
+    _drop_unit_axes,
     _normalize_show_input_to_grid,
+    _panel_axes,
+    _panel_title,
     _resolve_sampling,
     one_cmap_warning,
     prepare_display,
@@ -77,22 +80,26 @@ def _show_2d(
     xlabel: str | None = None,
     ylabel: str | None = None,
 ) -> tuple[Any, Any]:
-    """Draw a 2D array as an image, optionally with a colorbar and scale bar.
+    """Draw one panel: a real image through a colour map, a complex one as hue.
 
-    The array must be real. Normalisation, the colour map, and the scale bar are
-    each configurable, and a calibrated dataset supplies the bar's length and
-    units on its own.
+    A complex input is split into its modulus, which sets the lightness, and its
+    angle, which sets the hue. A real input goes through the colour map that
+    ``cmap`` or ``role`` selects. The modulus (or the real values) is mapped to
+    ``[0, 1]`` by :class:`CustomNormalization` before it is coloured.
 
     Parameters
     ----------
     array : ndarray
-        The 2D array to visualize. Can be real or complex.
+        One 2D panel, real or complex.
     norm : NormalizationConfig or dict or str, optional
-        Configuration for normalizing the data before visualization.
+        Interval and stretch of the value mapping. A string names an entry of
+        :data:`~scatterem.vis.normalization.NORMALIZATION_PRESETS`. None takes
+        the limits of ``role``.
     scalebar : ScalebarConfig or dict or bool or str, optional
-        Configuration for adding a scale bar to the plot.
+        What :func:`~scatterem.vis.visualization_utils._resolve_scalebar`
+        accepts. ``"auto"`` draws a calibrated bar when ``sampling`` allows it.
     sampling : Sampling, optional
-        Calibration metadata driving the physical scale bar.
+        Pixel size and units; they set the bar length and the colour-bar unit.
     cmap : str or Colormap, optional
         Explicit colour map; overrides ``role``. Unscientific maps warn.
     role : str, default="intensity"
@@ -100,15 +107,22 @@ def _show_2d(
     background : {"light", "dark"}, default="light"
         Figure background, used by Fig. 6 of Crameri et al. (2020).
     chroma_boost : float, default=1.0
-        Factor to boost color saturation when displaying complex data.
+        Accepted for call compatibility. The hue colouring of complex data does
+        not read it.
     cbar : bool, default=True
-        Whether to add a colorbar to the plot.
+        Attach a value bar on the right (and a phase bar for complex data).
     figax : tuple, optional
-        (fig, ax) tuple to use for plotting. If None, a new figure and axes are created.
+        ``(fig, ax)`` to draw into. Without it, one new figure of ``figsize``.
     figsize : tuple, default=(8, 8)
-        Figure size in inches, used only if figax is None.
+        Width and height in inches of the new figure; ignored with ``figax``.
     title : str, optional
-        Title for the plot.
+        Panel title.
+    aspect : int, optional
+        Passed to :meth:`matplotlib.axes.Axes.imshow`.
+    xticks, yticks, xticklabels, yticklabels : sequence, optional
+        Tick positions and labels. The defaults are empty: no ticks.
+    xlabel, ylabel : str, optional
+        Axis labels.
 
     Returns
     -------
@@ -132,11 +146,7 @@ def _show_2d(
     scaled_amplitude = norm_obj(amplitude)
     rgba = complex_to_rgba(scaled_amplitude, angle, cmap=choice.cmap)
 
-    if figax is None:
-        fig, ax = plt.subplots(figsize=figsize)
-    else:
-        fig, ax = figax
-
+    fig, ax = plt.subplots(figsize=figsize) if figax is None else figax
     ax.imshow(rgba, aspect=aspect)
     ax.set(
         xticks=xticks,
@@ -207,7 +217,7 @@ def _show_2d_combined(
     chroma_boost : float, default=1.0
         Saturation multiplier, above 1 for more vivid hues.
     cbar : bool, default=False
-        Not implemented for an overlay -- there is no single value axis to label.
+        Must stay False: an overlay has no single value axis for a bar.
     figax : tuple, optional
         An existing ``(fig, ax)`` to draw into. A new figure is made if omitted.
     figsize : tuple, default=(8, 8)
@@ -225,25 +235,20 @@ def _show_2d_combined(
     Raises
     ------
     NotImplementedError
-        If cbar is True (colorbar for combined visualization not yet implemented).
+        For ``cbar=True``. The image is drawn first, so the axes hold it.
     """
     norm_config = _resolve_normalization(norm)
     scalebar_config = _resolve_scalebar(scalebar, sampling)
-
     norm_obj = CustomNormalization(**normalization_kwargs(norm_config))
-
     rgba = overlay_to_rgba(list(list_of_arrays), norm=norm_obj)
 
-    if figax is None:
-        fig, ax = plt.subplots(figsize=figsize)
-    else:
-        fig, ax = figax
-
+    fig, ax = plt.subplots(figsize=figsize) if figax is None else figax
     ax.imshow(rgba)
-    ax.set(xticks=[], yticks=[], title=title)
-
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_title(title)
     if cbar:
-        raise NotImplementedError()
+        raise NotImplementedError("an overlay of several arrays has no colour bar")
 
     if scalebar_config is not None:
         draw_scale_bar(ax, **scalebar_config.draw_kwargs(rgba.shape[1]))
@@ -265,32 +270,35 @@ def show_2d(
     style: str | None = None,
     **kwargs,
 ):
-    """Display one or more 2D arrays in a grid.
+    """Show 2D data as one panel or as a grid of panels.
 
-    Accepts a numpy array, a torch tensor, or a (nested) sequence of either.
-    ``sampling`` (a :class:`Sampling` or a dict of its fields) drives the
-    physical scale bar; if omitted, the object's ``.sampling_meta`` is used if
-    present, otherwise the bar falls back to ``a.u.``.
+    The input can be a numpy array, a torch tensor, or a list (or a list of
+    lists) of them. A tensor goes to the CPU and becomes a numpy array. A 3D
+    array is a stack: each slice gets a panel. The scale bar uses ``sampling``;
+    without it, the ``.sampling_meta`` of the input if it has one; else the
+    bar reads ``1 a.u.``.
 
     Parameters
     ----------
     array : numpy.ndarray or torch.Tensor or sequence
-        Array, tensor, or (nested) sequence of either to display.
+        The data. A list gives one row of panels; a list of lists gives rows.
     sampling : Sampling or dict, optional
-        Calibration metadata driving the physical scale bar; falls back to
-        ``array.sampling_meta`` if present, else uncalibrated. Default is None.
+        Pixel size and units (a :class:`Sampling` or a dict of its fields).
+        Default is None: use ``array.sampling_meta`` if it exists.
     scalebar : "auto", bool, dict, or ScalebarConfig, optional
-        Scale-bar configuration; "auto" draws one, False/None draw "1 a.u.".
-        Default is "auto".
+        ``"auto"`` draws a calibrated bar when the sampling allows it.
+        False or None still draw a bar, the "1 a.u." bar. Default is "auto".
     figax : tuple, optional
-        (fig, axs) tuple to use for plotting. Default is None (new figure).
+        ``(fig, axes)`` to draw into; ``axes`` must match the panel grid.
+        Default is None, which makes a new figure.
     axsize : tuple of int, optional
-        Size of each subplot, in inches. Default is (4, 4).
+        Width and height in inches of one panel of a new figure.
+        Default is (4, 4).
     tight_layout : bool, optional
-        Whether to apply ``tight_layout`` to the figure. Default is True.
+        Call ``fig.tight_layout()`` at the end. Default is True.
     combine_images : bool, optional
-        Whether to combine a sequence of arrays into one color-encoded
-        visualization. Default is False.
+        Blend one row of arrays into a single image, one hue per array.
+        Default is False.
     clip_percentile : tuple of float, optional
         ``(low, high)`` percentiles (0-100) used to set each array's display
         vmin/vmax. A centred role keeps limits symmetric about its centre.
@@ -315,9 +323,10 @@ def show_2d(
     Returns
     -------
     fig : matplotlib.figure.Figure
-        The matplotlib figure object.
-    axs : numpy.ndarray of matplotlib.axes.Axes
-        The matplotlib axes object(s).
+        The figure that holds the panels.
+    axs : matplotlib.axes.Axes or numpy.ndarray of matplotlib.axes.Axes
+        One Axes for one panel. A 1D array for a single row or column of
+        panels, and a 2D array for a grid.
     """
     meta = _resolve_sampling(array, sampling)
     arrays, meta, scalebar = prepare_display(array, meta, scalebar, max_display_pixels)
@@ -349,53 +358,64 @@ def show_2d_array(
     clip_percentile: tuple[float, float] | None = None,
     **kwargs: Any,
 ) -> tuple[Any, Any]:
-    """Display one or more 2D arrays in a grid layout.
+    """Draw panels into a grid of axes and return the figure and the axes.
 
-    This is the main visualization function that can display a single array,
-    a list of arrays, or a grid of arrays. It supports both individual and
-    combined visualization modes.
+    :func:`show_2d` converts and bounds its input, then calls this function.
+    Each panel is drawn by ``_show_2d``. With ``combine_images``, the one row
+    of panels is blended into one image by ``_show_2d_combined`` instead.
 
     Parameters
     ----------
     arrays : ndarray or sequence of ndarray or sequence of sequences of ndarray
-        The arrays to visualize. Can be a single array, a sequence of arrays,
-        or a nested sequence representing a grid of arrays.
+        One 2D array, a 3D stack (one panel per slice), a list (one row), or
+        a list of lists (one row per inner list; rows can be short).
     figax : tuple, optional
-        (fig, axs) tuple to use for plotting. If None, a new figure and axes are created.
+        ``(fig, axes)`` to draw into. ``axes`` is one Axes or a numpy array of
+        them, with the shape of the panel grid (a 1D array counts as one row).
+        Default is None, which makes a new figure.
     axsize : tuple, default=(4, 4)
-        Size of each subplot in inches.
+        Width and height in inches of one panel of a new figure.
     tight_layout : bool, default=True
-        Whether to apply tight_layout to the figure.
+        Call ``fig.tight_layout()`` after drawing.
     combine_images : bool, default=False
-        If True and arrays is a sequence, combine all arrays into a single visualization
-        using color encoding. Only works for a single row of arrays.
+        Blend a single row of arrays into one image, one hue per array. Only
+        ``norm``, ``cmap``, ``chroma_boost``, ``cbar`` and ``figsize`` are
+        accepted in ``kwargs`` then.
     scalebar : "auto", bool, dict, or ScalebarConfig, default="auto"
-        Configuration for adding a scale bar to the plot.
+        The scale bar of the panels that ``scalebar_panel`` selects.
     sampling : Sampling, optional
-        Calibration metadata driving the physical scale bar.
+        Pixel size and units for the scale bar and the colour-bar unit.
     scalebar_panel : "first", "all", or int, default="first"
-        Which panel(s) to draw the scale bar on.
+        Panels with a bar: the first, all, or the one at this flat index
+        (row by row).
     clip_percentile : tuple of (float, float), optional
-        ``(low, high)`` percentiles (0-100). When given, each panel's display
-        vmin/vmax are computed from those percentiles of its own finite
-        values (amplitude, for complex data) and used as a manual-interval
-        normalization, overriding any ``norm`` kwarg for that panel.
+        ``(low, high)`` percentiles (0-100). Each panel then gets the limits
+        of these percentiles of its own finite values (the modulus, for
+        complex data), as a manual interval. It replaces ``norm``.
     **kwargs : dict
-        Additional keyword arguments passed to _show_2d or _show_2d_combined.
+        Passed to every panel, for example ``norm``, ``cmap``, ``role`` or
+        ``cbar``. ``title`` is special: one string for all panels, a flat
+        list (row by row), or a list of lists.
 
-    Returns:
-        The figure, and the axes -- a single Axes for one array, otherwise a 2D
-        array of them matching the grid.
+    Returns
+    -------
+    fig : Figure
+        The figure that holds the panels.
+    axs : Axes or ndarray of Axes
+        One Axes for a 1 x 1 grid, a 1D array for one row or one column, and
+        a 2D array otherwise.
 
-    Raises:
-        ValueError: if ``figax`` is given and its axes do not match the grid
-            shape.
-        NotImplementedError: if ``combine_images`` is requested, which this
-            release does not provide.
+    Raises
+    ------
+    ValueError
+        If the axes of ``figax`` do not have the grid shape, or if
+        ``combine_images`` gets several rows or a per-panel keyword.
+    NotImplementedError
+        If ``combine_images`` is used with ``cbar=True``.
     """
     grid = _normalize_show_input_to_grid(arrays)
     nrows = len(grid)
-    ncols = max(len(row) for row in grid)
+    ncols = max(map(len, grid))
 
     title = kwargs.pop("title", None)
 
@@ -417,74 +437,47 @@ def show_2d_array(
             **kwargs,
         )
 
-    if figax is not None:
-        fig, axs = figax
-        if not isinstance(axs, np.ndarray):
-            axs = np.array([[axs]])
-        elif axs.ndim == 1:
-            axs = axs.reshape(1, -1)
-        if axs.shape != (nrows, ncols):
-            raise ValueError()
-    else:
-        fig, axs = plt.subplots(
-            nrows, ncols, figsize=(axsize[0] * ncols, axsize[1] * nrows), squeeze=False
-        )
+    fig, axs = _panel_axes(figax, nrows, ncols, axsize)
 
-    flat_index = 0
-    for i, row in enumerate(grid):
-        for j, array in enumerate(row):
-            figax_cell = (fig, axs[i][j])
-            if title is None:
-                t = None
-            elif isinstance(title, str):
-                t = title
-            elif isinstance(title[0], str):  # a flat list of titles
-                t = title[i * ncols + j] if i * ncols + j < len(title) else None
-            else:
-                # Grid of titles
-                t = title[i][j] if i < len(title) and j < len(title[i]) else None
-
-            draw_here = (
-                scalebar_panel == "all"
-                or (scalebar_panel == "first" and flat_index == 0)
-                or (isinstance(scalebar_panel, int) and flat_index == scalebar_panel)
-            )
-            cell_kwargs = kwargs
-            if clip_percentile is not None:
-                cell_kwargs = dict(kwargs)
-                cell_kwargs["norm"] = _clipped_norm(
-                    array,
+    # Panels are numbered row by row; a short row leaves its cells empty.
+    cells = [(r, c) for r in range(nrows) for c in range(ncols)]
+    drawn = 0
+    for r, c in cells:
+        if c >= len(grid[r]):
+            axs[r, c].axis("off")
+            continue
+        panel = grid[r][c]
+        if scalebar_panel == "all":
+            bar_here = True
+        elif scalebar_panel == "first":
+            bar_here = drawn == 0
+        else:
+            bar_here = isinstance(scalebar_panel, int) and drawn == scalebar_panel
+        panel_kwargs = kwargs
+        if clip_percentile is not None:
+            panel_kwargs = {
+                **kwargs,
+                "norm": _clipped_norm(
+                    panel,
                     clip_percentile,
                     kwargs.get("role", "intensity"),
                     kwargs.get("background", "light"),
-                )
-            with one_cmap_warning(kwargs.get("cmap") if flat_index == 0 else None):
-                _show_2d(
-                    array,
-                    figax=figax_cell,
-                    title=t,
-                    scalebar=(scalebar if draw_here else _GRID_NO_BAR),
-                    sampling=sampling,
-                    **cell_kwargs,
-                )
-            flat_index += 1
-
-    # Hide unused axes in incomplete rows
-    for i, row in enumerate(grid):
-        for j in range(len(row), ncols):
-            axs[i][j].axis("off")
+                ),
+            }
+        with one_cmap_warning(None if drawn else kwargs.get("cmap")):
+            _show_2d(
+                panel,
+                figax=(fig, axs[r, c]),
+                title=_panel_title(title, r, c, ncols),
+                scalebar=scalebar if bar_here else _GRID_NO_BAR,
+                sampling=sampling,
+                **panel_kwargs,
+            )
+        drawn += 1
 
     if tight_layout:
         fig.tight_layout()
-
-    # Squeeze the axes to the expected shape
-    if axs.shape == (1, 1):
-        axs = axs[0, 0]
-    elif axs.shape[0] == 1:
-        axs = axs[0]
-    elif axs.shape[1] == 1:
-        axs = axs[:, 0]
-    return fig, axs
+    return fig, _drop_unit_axes(axs)
 
 
 __all__ = [

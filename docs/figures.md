@@ -4,9 +4,9 @@ The scripts are in this repository, not in the PyPI package. Clone the
 repository at the release tag and install the same release from PyPI:
 
 ```bash
-git clone --branch v0.4.0 https://github.com/scatterem/scatterem
+git clone --branch v0.4.1 https://github.com/scatterem/scatterem
 cd scatterem
-pip install scatterem==0.4.0
+pip install scatterem==0.4.1
 ```
 
 Four scripts under `experiments/ff_stem/`, one per specimen. Each downloads its
@@ -52,7 +52,7 @@ reconstruction, and it exercises the whole pipeline.
 
 Each script has a marimo notebook in `notebooks/`. molab, the free hosted
 notebook service of marimo, opens it from GitHub. Switch on the GPU in the
-notebook specs. The notebook installs `scatterem` 0.4.0, fetches the script of
+notebook specs. The notebook installs `scatterem` 0.4.1, fetches the script of
 the release, downloads the dataset from Zenodo and shows the figures.
 
 | Script | Notebook |

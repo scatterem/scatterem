@@ -64,7 +64,7 @@ class Dataset(PrettyDatasetMixin, TorchDataset, Serializable):
     Attributes
     ----------
     array : torch.Tensor
-        The underlying n-dimensional array data.
+        The values, as a tensor of any rank.
     name : str
         Label used in reprs and figure titles.
     origin : numpy.ndarray
@@ -84,7 +84,7 @@ class Dataset(PrettyDatasetMixin, TorchDataset, Serializable):
 
     def __init__(
         self,
-        array: Any,  # Input can be array-like
+        array: Any,
         name: str,
         origin: NDArray | tuple | list | float | int,
         sampling: NDArray | tuple | list | float | int,
@@ -94,19 +94,24 @@ class Dataset(PrettyDatasetMixin, TorchDataset, Serializable):
         device: torch.device | str | None = None,
     ):
         if _token is not self._token:
-            raise RuntimeError("Use Dataset.from_array() to instantiate this class.")
+            raise RuntimeError(
+                "Use Dataset.from_array() (or the from_array of the subclass) to "
+                "build a dataset; the constructor is internal."
+            )
 
         self._array: Tensor = ensure_valid_array(array, device=device)
+        # The value labels first, then the per-axis calibration. The calibration
+        # setters check each value against the rank of the array.
         self.name = name
+        self.signal_units = signal_units
         self.origin = origin
         self.sampling = sampling
         self.units = units
-        self.signal_units = signal_units
 
     @classmethod
     def from_array(
         cls,
-        array: Any,  # Input can be array-like
+        array: Any,
         name: str | None = None,
         origin: NDArray | tuple | list | float | int | None = None,
         sampling: NDArray | tuple | list | float | int | None = None,
@@ -116,22 +121,23 @@ class Dataset(PrettyDatasetMixin, TorchDataset, Serializable):
         device: torch.device | str | None = None,
     ) -> "Dataset":
         """
-        Validate an array and wrap it in a Dataset.
+        Build a dataset from array-like data; unset calibration gets defaults.
 
         Parameters
         ----------
         array : array-like
-            The array to validate and create a Dataset from.
+            Numpy array, tensor, or anything ``torch.as_tensor`` reads.
         name : str, optional
-            The name of the Dataset. Defaults to ``"{rank}d dataset"``.
+            Label. Default: ``"{rank}d dataset"``, for example "2d dataset".
         origin : numpy.ndarray, tuple, list, float, int, or None
-            The origin of the Dataset. Defaults to zeros.
+            Coordinate of index zero per axis; a scalar applies to all axes.
+            Default: 0 on every axis.
         sampling : numpy.ndarray, tuple, list, float, int, or None
-            The sampling of the Dataset. Defaults to ones.
+            Pitch per axis; a scalar applies to all axes. Default: 1.
         units : list of str, tuple, list, or None
-            The units of the Dataset. Defaults to ``"pixels"`` per axis.
+            Unit per axis. Default: ``"pixels"`` on every axis.
         signal_units : str
-            The units of the signal.
+            Unit of the values.
         device : torch.device or str or None, optional
             ``None`` keeps a torch tensor's device; other inputs become CPU.
 
@@ -152,10 +158,9 @@ class Dataset(PrettyDatasetMixin, TorchDataset, Serializable):
             _token=cls._token,
         )
 
-    # --- Properties ---
     @property
     def array(self) -> Tensor:
-        """The underlying n-dimensional array data."""
+        """The values as a tensor; the setter keeps dtype, rank and device."""
         return self._array
 
     @array.setter
@@ -209,32 +214,31 @@ class Dataset(PrettyDatasetMixin, TorchDataset, Serializable):
     def signal_units(self, value: str) -> None:
         self._signal_units = str(value)
 
-    # --- Derived Properties ---
+    # Read-only facts of the stored tensor.
     @property
     def shape(self) -> tuple[int, ...]:
-        """Shape of the underlying array."""
+        """Shape of the stored tensor."""
         return self.array.shape
 
     @property
     def ndim(self) -> int:
-        """Number of dimensions of the underlying array."""
+        """Rank of the stored tensor."""
         return self.array.ndim
 
     @property
     def dtype(self) -> torch.dtype:
-        """Dtype of the underlying array."""
+        """Element type of the stored tensor."""
         return self.array.dtype
 
     @property
     def device(self) -> torch.device:
-        """Device the underlying array is stored on."""
+        """Device that holds the tensor; setting it moves the data."""
         return self.array.device
 
     @device.setter
     def device(self, value: torch.device) -> None:
         self.array = self.array.to(value)
 
-    # --- Summaries ---
     def _summary_rows(self) -> dict[str, Any]:
         return {
             "name": self.name,
@@ -247,7 +251,6 @@ class Dataset(PrettyDatasetMixin, TorchDataset, Serializable):
             "signal_units": self.signal_units,
         }
 
-    # --- Methods ---
     def copy(self) -> "Dataset":
         """
         Deep-copy the dataset.
@@ -270,18 +273,17 @@ class Dataset(PrettyDatasetMixin, TorchDataset, Serializable):
 
     def mean(self, axes: tuple[int, ...] | None = None) -> Any:
         """
-        Compute the mean of the data array.
+        Average the values, over all axes or over ``axes``.
 
         Parameters
         ----------
         axes : tuple of int, optional
-            Axes over which to compute the mean. If None, the mean of all
-            elements is computed.
+            Dimensions to average out. None averages every value.
 
         Returns
         -------
         numpy.ndarray, torch.Tensor, or float
-            Mean of the data.
+            A 0-d tensor for ``axes=None``, else a tensor without ``axes``.
         """
         return self.array.mean(dim=axes)
 

@@ -26,18 +26,18 @@ _GRID_NO_BAR: Any = object()
 
 @dataclass
 class ScalebarConfig:
-    """Configuration for adding a scale bar to a plot.
+    """Where and how the plot functions draw a scale bar.
 
     Parameters
     ----------
     sampling : float, optional
-        Physical units per pixel; ``None`` means uncalibrated, and the bar
-        reads "1 a.u.".
+        Size of one pixel in ``units``. None draws the uncalibrated
+        "1 a.u." bar.
     units : str, optional
-        Unit label; defaults to ``None`` → shown as ``a.u.`` when uncalibrated.
+        Unit text of the bar label. None (with no sampling) shows ``a.u.``.
     length : float, optional
-        Length of the scale bar in physical units. If None, an appropriate length
-        will be estimated.
+        Bar length in ``units``. None picks the longest 1-2-5 length that
+        fits in a third of the image width.
     width_px : float, default=1
         Thickness of the scale bar, in data pixels.
     pad_px : float, default=0.5
@@ -46,10 +46,10 @@ class ScalebarConfig:
         ``AnchoredSizeBar`` convention). Values above a few push the bar out of
         the corner and into the image.
     color : str, default="white"
-        Color of the scale bar.
+        Matplotlib colour of the bar and of its label.
     loc : str or int, default="lower right"
-        Location of the scale bar on the plot. Can be a string like "lower right"
-        or an integer location code.
+        Corner that holds the bar, as a matplotlib legend location: a name
+        such as ``"upper left"`` or its integer code.
     fontsize : float, optional
         Label font size in points. ``None`` scales it with the bar thickness.
     """
@@ -66,10 +66,8 @@ class ScalebarConfig:
     def draw_kwargs(self, n_pixels: float) -> dict:
         """Complete keyword arguments for :func:`vis.scale_bar.draw_scale_bar`.
 
-        Call sites otherwise spell out every field, which is noise, silently
-        mis-orders if a signature changes, and made two blocks in
-        ``vis/visualization.py`` register as long identical runs against the
-        implementation the scale bar replaced.
+        The plot functions pass the result on as ``**kwargs``, so a new field
+        needs a change here only.
 
         Parameters
         ----------
@@ -210,7 +208,7 @@ def add_scalebar_to_ax(
     sampling : float or None
         Physical units per pixel; None leaves the bar uncalibrated.
     length_units : float or None
-        Length of the scale bar in physical units; None estimates one.
+        Bar length in ``units``; None picks a round length.
     units : str or None
         Unit label shown next to the bar.
     width_px : float
@@ -219,9 +217,9 @@ def add_scalebar_to_ax(
         Corner inset, in multiples of the label font size (legacy
         ``AnchoredSizeBar`` convention).
     color : str
-        Color of the scale bar.
+        Matplotlib colour of the bar and of its label.
     loc : str or int
-        Location of the scale bar on the plot.
+        Corner that holds the bar, as a matplotlib legend location.
     """
     size = max(float(array_size), 1.0)
     thickness = max(float(width_px), 1.0) / size
@@ -256,13 +254,15 @@ def add_cbar_to_ax(
     Parameters
     ----------
     fig : matplotlib.figure.Figure
-        Figure the colorbar belongs to.
+        The figure that gets the bar.
     cax : matplotlib.axes.Axes
-        Axes to draw it in, usually made by ``make_axes_locatable``.
+        The empty axes that the bar fills, for example from
+        ``make_axes_locatable(ax).append_axes``.
     norm : matplotlib.colors.Normalize
-        Normalization whose limits set the tick range.
+        Value mapping of the image. Its ``vmin`` and ``vmax`` must be set;
+        they bound the ticks.
     cmap : matplotlib.colors.Colormap
-        Color map to show.
+        The colour map of the image.
     eps : float, optional
         Tolerance when discarding ticks that fall outside the limits, so a
         tick sitting exactly on a limit is not lost to rounding.
@@ -276,7 +276,7 @@ def add_cbar_to_ax(
     Returns
     -------
     matplotlib.colorbar.Colorbar
-        The created colorbar object.
+        The new bar, for more styling by the caller.
     """
     if norm.vmin is None or norm.vmax is None:
         raise ValueError("norm limits are unresolved")
@@ -288,14 +288,16 @@ def add_cbar_to_ax(
         # A locator may overshoot the data range to reach a round number; keep
         # only the ticks the colorbar can actually place.
         ticks = candidates[(candidates >= lo - eps) & (candidates <= hi + eps)]
+        # Outside about 0.1 to 10, the round ticks share one power of ten,
+        # written once at the end of the bar.
         formatter = ticker.ScalarFormatter(useMathText=True)
         formatter.set_powerlimits((-1, 1))
 
-    sm = cm.ScalarMappable(norm=norm, cmap=cmap)
-    cb = fig.colorbar(sm, cax=cax, ticks=ticks, format=formatter)
+    mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
+    bar = fig.colorbar(mappable, cax=cax, ticks=ticks, format=formatter)
     if label is not None:
-        cb.set_label(label)
-    return cb
+        bar.set_label(label)
+    return bar
 
 
 def special_ticks(data: Any, role: str) -> np.ndarray | None:

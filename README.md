@@ -66,9 +66,9 @@ The scripts are in this repository, not in the PyPI package. Clone the
 repository at the release tag and install the same release from PyPI:
 
 ```bash
-git clone --branch v0.4.0 https://github.com/scatterem/scatterem
+git clone --branch v0.4.1 https://github.com/scatterem/scatterem
 cd scatterem
-pip install scatterem==0.4.0
+pip install scatterem==0.4.1
 ```
 
 Each script downloads its dataset from Zenodo on the first run and checks it by
@@ -224,7 +224,7 @@ Apache-2.0. See
 [`LICENSE`](https://github.com/scatterem/scatterem/blob/main/LICENSE).
 Third-party notices and data sources are in
 [`THIRD-PARTY-NOTICES.md`](https://github.com/scatterem/scatterem/blob/main/THIRD-PARTY-NOTICES.md):
-the MIT notice of quantem, the BSD-3-Clause notice of torchvision, the names
+the acknowledgment of quantem, the BSD-3-Clause notice of torchvision, the names
 kept from py_multislice, abTEM and py4DSTEM (with the Krivanek aberration
 labels, which v0.4 shares with abTEM), and the scattering-factor table of
 Lobato and Van Dyck (2014). Please cite that article when you use the table.

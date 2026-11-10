@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#     "scatterem==0.4.0",
+#     "scatterem==0.4.1",
 #     "marimo==0.25.2",
 #     "matplotlib>=3.10",
 #     "torch>=2.5.0",
@@ -33,7 +33,7 @@ def _(mo):
     fusion (FFF). Then the notebook shows the images that the script saves.
 
     The notebook does not copy the physics. It downloads the script of the
-    release tag `v0.4.0` from GitHub and runs it unchanged. The output
+    release tag `v0.4.1` from GitHub and runs it unchanged. The output
     differs from the published figure; `docs/figures.md` in the repository
     gives the differences and their causes.
 
@@ -87,7 +87,7 @@ def _():
 @app.cell
 def _(Path, os, tempfile, urllib):
     SCRIPT = "Fig2_carbon.py"
-    TAG = "v0.4.0"
+    TAG = "v0.4.1"
     URL = (
         "https://raw.githubusercontent.com/scatterem/scatterem/"
         f"{TAG}/experiments/ff_stem/{SCRIPT}"

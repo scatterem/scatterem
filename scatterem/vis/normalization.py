@@ -1,12 +1,11 @@
 """Display normalization: pick a data interval, then apply a display stretch.
 
 This module was written from the mathematical definitions of interval selection
-and display stretching. The public names (:class:`CustomNormalization`,
-:class:`NormalizationConfig`) and the fields and defaults of
-:class:`NormalizationConfig` are retained from quantem (MIT), so that call sites
-and published figure output do not change; the quantem notice is in
-``THIRD-PARTY-NOTICES.md``. ``vmin``/``vmax``/``clip``/``inverse``/
-``autoscale_None`` are ``matplotlib.colors.Normalize``'s own API.
+and display stretching. The class names and the field names and defaults of
+:class:`NormalizationConfig` are the display API of quantem (MIT), kept so that
+call sites and figures do not change (see ``THIRD-PARTY-NOTICES.md``).
+``vmin``/``vmax``/``clip``/``inverse``/``autoscale_None`` are
+``matplotlib.colors.Normalize``'s own API.
 
 Normalization happens in two stages, in this order:
 
@@ -33,6 +32,7 @@ from __future__ import annotations
 import warnings
 from collections.abc import Callable
 from dataclasses import dataclass, fields, replace
+from functools import partial
 from typing import Any
 
 import numpy as np
@@ -399,21 +399,47 @@ class CustomNormalization(colors.Normalize):
         self._resolve(A)
 
 
-NORMALIZATION_PRESETS = {
-    "linear_auto": lambda: NormalizationConfig(),
-    "linear_minmax": lambda: NormalizationConfig(interval_type="manual"),
-    "linear_centered": lambda: NormalizationConfig(interval_type="centered"),
-    "log_auto": lambda: NormalizationConfig(stretch_type="logarithmic"),
-    "log_minmax": lambda: NormalizationConfig(
-        stretch_type="logarithmic", interval_type="manual"
-    ),
-    "power_squared": lambda: NormalizationConfig(stretch_type="power", power=2.0),
-    "power_sqrt": lambda: NormalizationConfig(stretch_type="power", power=0.5),
-    "asinh_centered": lambda: NormalizationConfig(
-        stretch_type="asinh", interval_type="centered"
-    ),
+#: The fields that each preset sets. A preset name is ``<stretch>_<interval>``,
+#: and the entry sets exactly what the name says; every other field keeps its
+#: :class:`NormalizationConfig` default. The reasons for the values:
+#:
+#: * ``auto`` is the default quantile interval (2 % to 98 %). Two percent at each
+#:   end keeps hot pixels and dead pixels from setting the limits of a detector
+#:   image, and it costs little contrast on a smooth phase image.
+#: * ``minmax`` is the manual interval with no limits given, so the limits are
+#:   the finite minimum and maximum: nothing is clipped. Use it for data whose
+#:   extremes matter, for example a mask or a probability map.
+#: * ``centered`` is symmetric about 0 with the largest deviation as half-width,
+#:   so zero is the middle colour of a diverging map (signed phase, difference
+#:   images).
+#: * ``log`` uses ``logarithmic_index = 1000``: after the interval clip, this
+#:   spreads about three decades over the colour map, the range between the
+#:   central disk and the faint outer reflections of a typical diffraction
+#:   pattern.
+#: * ``power`` with exponent 2 darkens the low values and 0.5 lifts them; these
+#:   are the two exponents that the names ``squared`` and ``sqrt`` state.
+#: * ``asinh_centered`` uses ``asinh_linear_range = 0.1``: nearly linear for
+#:   the lowest tenth of the clipped range and nearly logarithmic above it.
+_PRESET_FIELDS: dict[str, dict[str, Any]] = {
+    # The order is the iteration order of v0.4.0; callers may list it.
+    "linear_auto": {},
+    "linear_minmax": {"interval_type": "manual"},
+    "linear_centered": {"interval_type": "centered"},
+    "log_auto": {"stretch_type": "logarithmic"},
+    "log_minmax": {"interval_type": "manual", "stretch_type": "logarithmic"},
+    "power_squared": {"stretch_type": "power", "power": 2.0},
+    "power_sqrt": {"stretch_type": "power", "power": 0.5},
+    "asinh_centered": {"interval_type": "centered", "stretch_type": "asinh"},
 }
-"""Named shorthands accepted wherever a normalization is configured by string."""
+
+NORMALIZATION_PRESETS: dict[str, Callable[[], NormalizationConfig]] = {
+    name: partial(NormalizationConfig, **settings)
+    for name, settings in _PRESET_FIELDS.items()
+}
+"""Preset name -> a callable that returns a new :class:`NormalizationConfig`.
+
+Any ``norm=`` argument of the plot functions accepts these names.
+"""
 
 
 def _resolve_normalization(norm: Any) -> NormalizationConfig:
@@ -451,11 +477,7 @@ def _resolve_normalization(norm: Any) -> NormalizationConfig:
 def normalization_kwargs(config: NormalizationConfig) -> dict:
     """The config as keyword arguments for :class:`CustomNormalization`.
 
-    Callers otherwise forward each field by hand, eleven lines of
-    ``name=config.name``. That is tedious, it silently drops any field added
-    later, and -- since the field names are this module's public interface -- it
-    made two call sites in ``vis/visualization.py`` register as long identical
-    blocks against the implementation this module replaced.
+    One call forwards every field, also a field that a later version adds.
     """
     from dataclasses import fields
 

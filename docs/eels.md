@@ -263,10 +263,10 @@ The `wavefunctions` option selects the source. Pass it through
 GPAW is an optional extra, because it is GPL-licensed and a large install. The
 `eels` extra installs it. pip builds GPAW from source, and the build needs a
 C++ compiler (see [Installation](install.md)). The line below pins
-scatterem 0.4.0, the release that gives the numbers on this page:
+scatterem 0.4.1, a release that gives the numbers on this page:
 
 ```bash
-CC=g++ pip install "scatterem[eels]==0.4.0" gpaw-data
+CC=g++ pip install "scatterem[eels]==0.4.1" gpaw-data
 ```
 
 :::{admonition} Without GPAW, the numbers change

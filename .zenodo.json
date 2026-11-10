@@ -1,7 +1,7 @@
 {
   "upload_type": "software",
   "title": "scatterem",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "<p>scatterem provides three published methods that share a scattering-matrix substrate.</p><p><strong>Reconstruction (FF-STEM).</strong> Direct (single-side-band) ptychography, tilt-corrected dark-field imaging, and their SSNR-weighted Wiener fusion for 4D-STEM data, giving images with both low-frequency phase contrast and high-frequency detail.</p><p><strong>Core-loss STEM-EELS simulation (BiP-PRISM).</strong> Transition-potential multislice and PRISM, including the bi-partitioned BiP-PRISM algorithm: both the probe-forming scattering matrix and the transposed detector matrix are computed on a sparse hex-ring parent set and reconstructed by natural-neighbour interpolation on a small window around the ionised atom. This makes full-resolution elemental mapping, energy-filtered four-dimensional datasets and momentum-resolved output reachable within a single GPU's memory.</p><p><strong>Elastic PRISM.</strong> 4D-STEM simulation with plane-wave and beam-partitioned scattering matrices, and a thin driver that runs the elastic and the core-loss simulations from one structure.</p><p>Version 0.4.0 moves the code to a new layered package layout; the migration page lists every moved name.</p>",
   "creators": [
     {

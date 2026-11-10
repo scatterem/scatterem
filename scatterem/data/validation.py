@@ -249,4 +249,4 @@ def validate_units(value: str | Sequence[str], ndim: int) -> list[str]:
         )
     if len(value) != ndim:
         raise ValueError(f"units has {len(value)} entries but the data has {ndim} axes")
-    return [str(unit) for unit in value]
+    return list(map(str, value))

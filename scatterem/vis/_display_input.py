@@ -9,6 +9,9 @@ does not alias, as a stride ``img[::3, ::3]`` does, and the ``Sampling`` grows
 by the same factor, so the scale bar stays correct. :func:`scale_scalebar`
 applies the same factor to an explicit scale-bar ``sampling``. The bound is off
 by default in ``show_2d``: pixel coordinates (ticks, overlays) change with it.
+
+The last three helpers read the grid inputs of ``show_2d_array``: the axes of
+``figax``, the ``title`` of each panel, and the shape of the returned axes.
 """
 
 import contextlib
@@ -18,6 +21,7 @@ import warnings
 from collections.abc import Iterator, Sequence
 from typing import Any, cast
 
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 
@@ -281,31 +285,71 @@ def _normalize_show_input_to_grid(
         A list of rows, each a list of arrays.
     """
     if isinstance(arrays, np.ndarray):
-        if arrays.ndim == 3:
-            n_slices = arrays.shape[0]
-
-            # Find the best divisor close to target_dim
-            best_rows = 1
-            best_cols = n_slices
-            min_diff = abs(best_rows - best_cols)
-
-            for i in range(1, int(np.sqrt(n_slices)) + 1):
-                if n_slices % i == 0:
-                    rows, cols = i, n_slices // i
-                    diff = abs(rows - cols)
-                    if diff < min_diff:
-                        min_diff = diff
-                        best_rows, best_cols = rows, cols
-
-            # Reshape the array into the best grid
-            return [
-                arrays[i : i + best_cols].tolist()
-                for i in range(0, n_slices, best_cols)
-            ]
-        else:
+        if arrays.ndim != 3:
             return [[arrays]]
+        # A stack of n slices fills the most nearly square grid with full rows:
+        # the row count is the largest divisor of n that is at most sqrt(n).
+        n_slices = arrays.shape[0]
+        n_rows = max(
+            d for d in range(1, int(np.sqrt(n_slices)) + 1) if n_slices % d == 0
+        )
+        n_cols = n_slices // n_rows
+        return [
+            arrays[first : first + n_cols].tolist()
+            for first in range(0, n_slices, n_cols)
+        ]
     if isinstance(arrays, Sequence) and not isinstance(arrays[0], Sequence):
-        # Convert sequence to list and ensure each element is an NDArray
-        return [[cast(NDArray, arr) for arr in arrays]]
-    # Convert outer and inner sequences to lists, ensuring proper types
-    return [[cast(NDArray, arr) for arr in row] for row in arrays]
+        return [cast(list[NDArray], list(arrays))]
+    return [cast(list[NDArray], list(row)) for row in arrays]
+
+
+def _panel_axes(
+    figax: tuple[Any, Any] | None,
+    nrows: int,
+    ncols: int,
+    axsize: tuple[int, int],
+) -> tuple[Any, NDArray]:
+    """The figure and an ``(nrows, ncols)`` object array of its axes.
+
+    Without ``figax``, a new figure sized ``axsize`` per panel. With it, a
+    lone Axes counts as a 1 x 1 grid and a 1D array as one row. Any other
+    shape than the panel grid raises ``ValueError``.
+    """
+    if figax is None:
+        width, height = axsize
+        return plt.subplots(
+            nrows, ncols, figsize=(width * ncols, height * nrows), squeeze=False
+        )
+    fig, given = figax
+    if isinstance(given, np.ndarray):
+        layout = given[np.newaxis, :] if given.ndim == 1 else given
+    else:
+        layout = np.empty((1, 1), dtype=object)
+        layout[0, 0] = given
+    if layout.shape != (nrows, ncols):
+        raise ValueError(
+            f"figax holds axes of shape {layout.shape}, but the panels need "
+            f"{(nrows, ncols)}"
+        )
+    return fig, layout
+
+
+def _panel_title(title: Any, r: int, c: int, ncols: int) -> str | None:
+    """The title of panel ``(r, c)`` from the ``title`` keyword of a grid.
+
+    ``title`` is None, one string for every panel, a flat list read row by
+    row, or a list of rows. A list that is too short gives None.
+    """
+    if title is None or isinstance(title, str):
+        return title
+    if isinstance(title[0], str):
+        k = r * ncols + c
+        return title[k] if k < len(title) else None
+    row = title[r] if r < len(title) else ()
+    return row[c] if c < len(row) else None
+
+
+def _drop_unit_axes(axs: NDArray) -> Any:
+    """Remove the length-1 dimensions of the axes grid; 1 x 1 gives the Axes."""
+    squeezed = np.squeeze(axs)
+    return squeezed.item() if squeezed.ndim == 0 else squeezed

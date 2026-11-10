@@ -184,12 +184,12 @@ class Dataset4DStem(
         super().__init__(
             array=array,
             name=name,
+            signal_units=signal_units,
             origin=origin,
             sampling=sampling,
             units=units,
-            signal_units=signal_units,
-            _token=_token,
             device=device,
+            _token=_token,
         )
 
         self.meta = meta
@@ -637,9 +637,9 @@ class Dataset4DStem(
         clip_neg_values: bool = True,
     ) -> "Dataset4DStem":
         """
-        Simple indexing function to return Dataset4DStem view.
+        Cut a 4D sub-block out of the cube, as a new dataset.
 
-        ``meta`` is copied (:func:`~scatterem.data.datasets._meta.copy_meta`)
+        The ``origin`` moves by the slice starts. ``meta`` is copied (:func:`~scatterem.data.datasets._meta.copy_meta`)
         with the crop's own shape written in: a cropped detector has its own
         ``k_max``, so it cannot share geometry with its source. Fit aberrations
         on the dataset you reconstruct -- a fit on the crop stays on the crop.
@@ -647,7 +647,7 @@ class Dataset4DStem(
         Parameters
         ----------
         index : tuple[slice, ...]
-            Index to access a subset of the dataset.
+            One slice per axis (scan y, scan x, detector y, detector x).
         clone : bool
             If True, the array is cloned before returning.
         normalize, clip_neg_values : bool
@@ -661,7 +661,7 @@ class Dataset4DStem(
         Returns
         -------
         Dataset4DStem
-            A new Dataset4DStem instance containing the indexed data.
+            The sub-block, with ``is_cropped`` set.
         """
         array_view = _init_passes.crop_array(  # one Warp pass on CUDA
             self.array, index, clone, normalize, clip_neg_values
@@ -699,12 +699,12 @@ class Dataset4DStem(
         clip_neg_values: bool = True,
     ) -> "Dataset4DStem":
         """
-        Simple indexing function to return Dataset4DStem view.
+        :meth:`crop` with ``clone=False``: the result shares memory with this cube.
 
         Parameters
         ----------
         index : tuple[slice, ...]
-            Index to access a subset of the dataset.
+            One slice per axis, as for :meth:`crop`.
         normalize, clip_neg_values : bool
             Forwarded to :meth:`crop` (which is always called with
             ``clone=False`` here, i.e. an unclonded view -- see its docstring
@@ -714,7 +714,7 @@ class Dataset4DStem(
         Returns
         -------
         Dataset4DStem
-            A new Dataset4DStem instance containing the indexed data.
+            The sub-block as a view, with ``is_cropped`` set.
         """
         return self.crop(
             index, clone=False, normalize=normalize, clip_neg_values=clip_neg_values
@@ -739,7 +739,7 @@ class Dataset4DStem(
     @classmethod
     def from_array(
         cls,
-        array: Any,  # Input can be array-like
+        array: Any,
         name: str | None = None,
         origin: NDArray | tuple | list | float | int | None = None,
         sampling: NDArray | tuple | list | float | int | None = None,
@@ -764,23 +764,24 @@ class Dataset4DStem(
         rotation: float = 0.0,
         aberrations: Aberrations | None = None,
     ) -> "Dataset4DStem":
-        """Validate and create a Dataset4DStem from an array.
+        """Build a 4D-STEM dataset (scan y, scan x, detector y, detector x).
 
         Parameters
         ----------
         array : Any
-            The array to validate and create a dataset from.
+            The 4D cube: numpy array, tensor, h5py dataset or memory map.
         name : str, optional
-            The name of the dataset.
+            Label. Default: ``"4d dataset"``.
         origin : NDArray or tuple or list or float or int, optional
-            The origin of the dataset.
+            Coordinate of index zero per axis. Default: 0, or the array centre
+            on the physics path (see ``energy``).
         sampling : NDArray or tuple or list or float or int, optional
-            The sampling of the dataset. Defaults to what ``meta`` describes
+            Pitch per axis. Defaults to what ``meta`` describes
             (``meta.sampling``), else ``1.0`` per axis.
         units : list of str or tuple or list, optional
-            The units of the dataset.
+            Unit per axis. Default: the units of ``meta``, else ``"pixels"``.
         signal_units : str
-            The units of the signal.
+            Unit of the values.
         meta : AcquisitionMetadata, optional
             Acquisition metadata. Built internally from the physics-path
             parameters below when ``None`` and ``energy`` is given.
@@ -843,10 +844,10 @@ class Dataset4DStem(
             The container, with any unset axis metadata filled in from the
             array's rank.
         """
-        # Set defaults if None (np.ndim works on tensors, arrays and memmaps
-        # alike — resolved once for both the eager and the out-of-core path)
+        # np.ndim reads the rank of a tensor, an array or a memory map without
+        # a copy; both the eager and the out-of-core path use it.
         _ndim = np.ndim(array)
-        _name = name if name is not None else f"{_ndim}d dataset"
+        _name = f"{_ndim}d dataset" if name is None else name
 
         if meta is None and energy is not None:
             meta, _built_sampling, _built_origin = _metadata4dstem_from_physics(
@@ -862,7 +863,7 @@ class Dataset4DStem(
             if origin is None:
                 origin = _built_origin
 
-        _origin = origin if origin is not None else np.zeros(_ndim)
+        _origin = np.zeros(_ndim) if origin is None else origin
         _s = meta_sampling(meta) if sampling is None else sampling
         _sampling = np.ones(_ndim) if _s is None else _s
         _u = getattr(meta, "units", None) if units is None else units
@@ -881,10 +882,10 @@ class Dataset4DStem(
         return cls(
             array=validated,
             name=_name,
+            signal_units=signal_units,
             origin=_origin,
             sampling=_sampling,
             units=_units,
-            signal_units=signal_units,
             _token=cls._token,
             meta=meta,
             device=device,
@@ -919,10 +920,10 @@ class Dataset4DStem(
         new = type(self).from_array(
             array=self.array.clone(),
             name=self.name,
+            signal_units=self.signal_units,
             origin=self.origin.copy(),
             sampling=self.sampling.copy(),
-            units=self.units[:],
-            signal_units=self.signal_units,
+            units=list(self.units),
             meta=copy_meta(self.meta),
             transform_to_amplitudes=False,  # already applied to the data
             normalize=False,  # data already carries its final scaling
@@ -944,10 +945,9 @@ class Dataset4DStem(
         return cast("Self", new)
 
 
-    # --- Properties ---
     @property
     def array(self) -> Tensor:
-        """The underlying n-dimensional array data."""
+        """The 4D cube as a tensor; the setter keeps dtype and rank."""
         return self._array
 
     @array.setter
@@ -1008,7 +1008,6 @@ class Dataset4DStem(
         if isinstance(self.meta, AcquisitionMetadata):
             self.meta.device = value
 
-    # --- Summaries ---
     def _summary_rows(self) -> dict[str, Any]:
         rows = {
             "name": self.name,

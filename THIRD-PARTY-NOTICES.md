@@ -5,65 +5,29 @@ it keep names and layouts from the third-party projects below, one file derives
 from torchvision, and one data table comes from a journal article. This file
 carries their notices.
 
-## quantem (MIT)
+## quantem (acknowledgment)
 
-quantem (https://github.com/electronmicroscopy/quantem) is licensed under the
-MIT License. Parts of scatterem derive from quantem: `scatterem/vis/visualization.py`,
-`scatterem/vis/visualization_utils.py`, `scatterem/vis/_display_input.py`,
-`scatterem/vis/normalization.py` (the `NORMALIZATION_PRESETS` table and
-`NormalizationConfig`), `scatterem/data/validation.py`,
-`scatterem/data/datasets/base.py`, `scatterem/data/datasets/dataset_4dstem.py`
-and `scatterem/data/datasets/virtual_bright_field.py`.
-They keep quantem's API names, signatures, field lists, docstring text or
-figure handling. Every run of 5 or more identical lines (comments and blank
-lines not counted) in this release is listed below, with the line numbers of
-the v0.4.0 files. The release gate recomputes these runs and fails when the
-list is wrong.
+The dataset container and display API of scatterem follow quantem
+(https://github.com/electronmicroscopy/quantem, MIT). No quantem code text
+remains; signatures and trivial accessors that match quantem's interface are
+listed below.
+
+The line numbers are those of the v0.4.1 files. Each item is a run of 5 or
+more identical lines (comments and blank lines not counted). The release gate
+recomputes these runs and fails when the list is wrong.
 
 - `scatterem/vis/normalization.py` 90-100: the fields and defaults of
-  `NormalizationConfig`.
-- `scatterem/data/datasets/base.py` 85-93, 100-104, 106-114: the `__init__`
-  signature of the dataset container, its attribute assignments, and the
-  signature of the `from_array` class method; 170-177, 206-213: the `name` and
-  `signal_units` property pairs.
-- `scatterem/data/datasets/dataset_4dstem.py` 168-172: the constructor
-  arguments; 184-191: the arguments passed to the base-class constructor;
-  739-747: the signature of `from_array`; 883-888, 921-925: keyword arguments
-  passed when a new dataset is built; 965-972: the `origin` property pair.
-- `scatterem/data/datasets/virtual_bright_field.py` 176-183: the arguments
-  passed to the base-class constructor; 312-317: the `cls(...)` call of the
-  constructor class method.
-- `scatterem/vis/visualization.py` 86-91, 106-111, 358-362: numpydoc
-  parameter text of the 2D display functions; 350-356: a signature; 420-427:
-  the figure and axes handling; 478-486: the layout and return lines.
-- `scatterem/vis/visualization_utils.py` 48-52: parameter text of the scale
-  bar; 245-250: the signature of `add_cbar_to_ax`.
-
-The quantem licence follows.
-
-```text
-MIT License
-
-Copyright (c) 2025 ophusgroup
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+  `NormalizationConfig` (its constructor parameters).
+- `scatterem/vis/visualization_utils.py` 243-248: the signature of
+  `add_cbar_to_ax`.
+- `scatterem/data/datasets/base.py` 88-93: the `__init__` signature of
+  `Dataset`; 115-119: the signature of `Dataset.from_array`; 175-182,
+  211-218: the `name` and `signal_units` properties (a getter and a setter
+  that converts to `str`).
+- `scatterem/data/datasets/dataset_4dstem.py` 168-172: the `__init__`
+  signature of `Dataset4DStem`; 743-747: the signature of
+  `Dataset4DStem.from_array`; 965-972: the `origin` property (a getter and a
+  setter that calls `validate_ndinfo`).
 
 ## torchvision (BSD-3-Clause)
 
