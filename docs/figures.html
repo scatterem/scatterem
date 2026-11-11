@@ -1,0 +1,820 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="light">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Run the paper’s figure scripts &#8212; scatterem</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/scatterem.css?v=9b234c1c" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=39abee70"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'docs/figures';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://scatterem.github.io/scatterem/docs/figures.html" />
+    <link rel="icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Notebooks" href="notebooks.html" />
+    <link rel="prev" title="Calibration" href="calibration.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.4.2" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="light">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="scatterem"/>
+    <img src="../_static/logo.png" class="logo__image only-dark pst-js-only" alt="scatterem"/>
+  
+  
+    <p class="title logo__title">scatterem</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="method.html">The method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">Calibration</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Figure scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks.html">Notebooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eels.html">Simulate STEM-EELS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bip-prism.html">BiP-PRISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prism.html">Elastic PRISM</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="migrating.html">Migrating from v0.3</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Project</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/scatterem/scatterem">GitHub</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/scatterem/">PyPI</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem/issues/new?title=Issue%20on%20page%20%2Fdocs/figures.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Run the paper’s figure scripts</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-specimens">The specimens</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-them-in-the-browser">Run them in the browser</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-each-script-does">What each script does</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#verifying-your-run">Verifying your run</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-plots">Comparison plots</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-v0-4-differs-from-v0-3">How v0.4 differs from v0.3</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-published-figures">The published figures</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="run-the-paper-s-figure-scripts">
+<h1>Run the paper’s figure scripts<a class="headerlink" href="#run-the-paper-s-figure-scripts" title="Link to this heading">#</a></h1>
+<p>The scripts are in this repository, not in the PyPI package. Clone the
+repository at the release tag and install the same release from PyPI:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--branch<span class="w"> </span>v0.4.2<span class="w"> </span>https://github.com/scatterem/scatterem
+<span class="nb">cd</span><span class="w"> </span>scatterem
+pip<span class="w"> </span>install<span class="w"> </span><span class="nv">scatterem</span><span class="o">==</span><span class="m">0</span>.4.2
+</pre></div>
+</div>
+<p>Four scripts under <code class="docutils literal notranslate"><span class="pre">experiments/ff_stem/</span></code>, one per specimen. Each downloads its
+dataset on first run from the <a class="reference external" href="https://huggingface.co/datasets/philipp-pelz/public-4dstem">Hugging Face mirror</a>
+of Zenodo record 18008901, with Zenodo as fallback, and verifies it by md5. The
+files are identical; cite the Zenodo DOI
+<a class="reference external" href="https://doi.org/10.5281/zenodo.18008901">10.5281/zenodo.18008901</a>. The only
+thing to decide is where the data should live:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FFSTEM_DATA_ROOT</span><span class="o">=</span>/path/with/space
+python<span class="w"> </span>experiments/ff_stem/Fig2_carbon.py
+</pre></div>
+</div>
+<p>Each writes <code class="docutils literal notranslate"><span class="pre">.png</span></code> and <code class="docutils literal notranslate"><span class="pre">.npy</span></code> for all three channels into
+<code class="docutils literal notranslate"><span class="pre">experiments/ff_stem/outputs/</span></code>.</p>
+<div class="important admonition">
+<p class="admonition-title">These scripts do not give the published figures exactly</p>
+<p>The scripts run the paper’s pipeline with the parameters of the paper, on the
+v0.4 code. Several fixes since the paper change the output, and in
+<code class="docutils literal notranslate"><span class="pre">Fig4_diffraction.py</span></code> they change the sign of the direct-ptychography image.
+See
+<a class="reference internal" href="#how-v0-4-differs-from-v0-3">How v0.4 differs from v0.3</a> for the measured
+differences and <a class="reference internal" href="#the-published-figures">The published figures</a>
+for the code that made the figures.</p>
+</div>
+<section id="the-specimens">
+<h2>The specimens<a class="headerlink" href="#the-specimens" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Script</p></th>
+<th class="head"><p>Specimen</p></th>
+<th class="head"><p>Download</p></th>
+<th class="head"><p>Output</p></th>
+<th class="head"><p>Peak GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Fig2_carbon.py</span></code></p></td>
+<td><p>amorphous carbon</p></td>
+<td><p>0.34 GB</p></td>
+<td><p>96²</p></td>
+<td><p>0.8 GiB</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Fig2_Co3O4.py</span></code></p></td>
+<td><p>Co₃O₄</p></td>
+<td><p>0.56 GB</p></td>
+<td><p>185²</p></td>
+<td><p>1.2 GiB</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Fig4_diffraction.py</span></code></p></td>
+<td><p>Au, low dose</p></td>
+<td><p>0.50 GB</p></td>
+<td><p>1024²</p></td>
+<td><p>5.5 GiB</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Fig1_Gd2O3.py</span></code></p></td>
+<td><p>Gd₂O₃</p></td>
+<td><p>6.6 GB</p></td>
+<td><p>1024²</p></td>
+<td><p>21.7 GiB</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>“Peak GPU” is <code class="docutils literal notranslate"><span class="pre">torch.cuda.max_memory_allocated</span></code> over the whole script, measured
+with v0.4 on an NVIDIA RTX A6000.</p>
+<p>Carbon is the one to run first: smallest download, about a second of
+reconstruction, and it exercises the whole pipeline.</p>
+</section>
+<section id="run-them-in-the-browser">
+<h2>Run them in the browser<a class="headerlink" href="#run-them-in-the-browser" title="Link to this heading">#</a></h2>
+<p>Each script has an interactive marimo notebook in <code class="docutils literal notranslate"><span class="pre">notebooks/</span></code>. molab, the
+free hosted notebook service of marimo, opens it from GitHub. Switch on the
+GPU in the notebook specs. The notebook installs <code class="docutils literal notranslate"><span class="pre">scatterem</span></code> 0.4.2, downloads
+the dataset (Hugging Face mirror, Zenodo as fallback) and runs the calls of the script with the parameters
+of the script. With the default controls, its three images are the images
+that the script saves. The controls change the fusion: the number of
+dark-field segments, each channel on or off, the low-q handover and the band
+limit (and the phase sign for Gd₂O₃). The notebook also plots the SSNR of each
+channel and the fusion weights against the spatial frequency.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Script</p></th>
+<th class="head"><p>Notebook</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Fig2_carbon.py</span></code></p></td>
+<td><p><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig2_carbon.py">fig2_carbon.py</a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Fig2_Co3O4.py</span></code></p></td>
+<td><p><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig2_co3o4.py">fig2_co3o4.py</a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Fig4_diffraction.py</span></code></p></td>
+<td><p><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig4_diffraction.py">fig4_diffraction.py</a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Fig1_Gd2O3.py</span></code></p></td>
+<td><p><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig1_gd2o3.py">fig1_gd2o3.py</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><a class="reference internal" href="notebooks.html"><span class="std std-doc">Notebooks</span></a> lists all notebooks, with their runtime and GPU
+memory, including the BiP-PRISM figure notebooks.</p>
+<div class="note admonition">
+<p class="admonition-title">Fitting a smaller GPU</p>
+<p>The Au dataset (<code class="docutils literal notranslate"><span class="pre">You2026AuLowDose</span></code>) takes <code class="docutils literal notranslate"><span class="pre">scan_edge_crop</span></code>, which trims the scan
+and so shrinks the output. The paper uses 128 (256² scan → 1024² output,
+5.5 GiB); 192 gives 128² → 512² at 1.4 GiB; 224 gives 64² → 256² at 0.4 GiB.</p>
+<p>Reducing the scan is the lever that works. <code class="docutils literal notranslate"><span class="pre">n_batches</span></code> changes the peak memory
+only a little: 5.7, 5.5, 5.4 and 5.3 GiB for 15, 25 (the script value), 60 and
+150 batches.</p>
+</div>
+</section>
+<section id="what-each-script-does">
+<h2>What each script does<a class="headerlink" href="#what-each-script-does" title="Link to this heading">#</a></h2>
+<p>The same five steps, with per-specimen parameters:</p>
+<ol class="arabic simple">
+<li><p>Construct the named dataset, which downloads, verifies, and calibrates <code class="docutils literal notranslate"><span class="pre">dk</span></code>
+from the bright-field disk.</p></li>
+<li><p>Set the scan rotation, and a starting C10 for the autofocus.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run(dataset,</span> <span class="pre">AberrationFitConfig(...))</span></code> — fit aberrations by sharpness,
+rotation held fixed.</p></li>
+<li><p>Reconstruct all three channels.</p></li>
+<li><p>Save each with a physical scale bar.</p></li>
+</ol>
+<p>Reading one script is enough to see how to apply the pipeline to your own data;
+<a class="reference internal" href="quickstart.html"><span class="std std-doc">Quickstart</span></a> is the same thing without the paper’s parameters.</p>
+</section>
+<section id="verifying-your-run">
+<h2>Verifying your run<a class="headerlink" href="#verifying-your-run" title="Link to this heading">#</a></h2>
+<p>Each script prints a summary line and asserts the things that quietly go wrong:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Fig2</span><span class="o">-</span><span class="n">carbon</span><span class="p">]</span> <span class="n">OK</span><span class="p">:</span> <span class="n">dp</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">96</span><span class="p">)</span> <span class="n">tcdf</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">96</span><span class="p">)</span> <span class="n">fff</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">96</span><span class="p">)</span> <span class="n">dk</span><span class="o">=</span><span class="mf">0.041975</span> <span class="n">finite</span><span class="o">=</span><span class="kc">True</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">dk</span></code> must not be 1.0 — that is the uncalibrated placeholder, and it means the
+bright-field fit fell back. <code class="docutils literal notranslate"><span class="pre">finite=True</span></code> means no NaNs, which otherwise indicate
+a channel that produced nothing and a division by a zero SSNR.</p>
+</section>
+<section id="comparison-plots">
+<h2>Comparison plots<a class="headerlink" href="#comparison-plots" title="Link to this heading">#</a></h2>
+<p>Where a reference is available — a simulated potential for carbon, a phantom for
+Co₃O₄ — the scripts also emit a side-by-side comparison. Those references are not
+in the Zenodo record, so the scripts skip that step and say so rather than
+failing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Fig2</span><span class="o">-</span><span class="n">carbon</span><span class="p">]</span> <span class="n">reference</span> <span class="n">carbon72_potential</span><span class="o">.</span><span class="n">npy</span> <span class="ow">not</span> <span class="n">found</span><span class="p">;</span> <span class="n">skipping</span> <span class="n">comparison</span> <span class="n">plot</span><span class="o">.</span>
+</pre></div>
+</div>
+<p><span id="how-v0.4-differs-from-v0.3"></span></p>
+</section>
+<section id="how-v0-4-differs-from-v0-3">
+<h2>How v0.4 differs from v0.3<a class="headerlink" href="#how-v0-4-differs-from-v0-3" title="Link to this heading">#</a></h2>
+<p>We ran each script from the v0.4 tree and from the v0.3 tree, with the same
+data on the same GPU (NVIDIA RTX A6000). The v0.4 run is from the release
+tree of 2026-11-08, with the bright-field disk measurement of v0.4. The table compares each v0.4 output
+with the v0.3 output. “relL2” is <span class="math notranslate nohighlight">\(\lVert a - b\rVert / \lVert b\rVert\)</span> with <span class="math notranslate nohighlight">\(b\)</span>
+the v0.3 array. “Affine” is the residual after a least-squares fit
+<span class="math notranslate nohighlight">\(a \approx \alpha b + \beta\)</span>, divided by the spread of the v0.4 array:
+<span class="math notranslate nohighlight">\(\lVert a - (\alpha b + \beta)\rVert / \lVert a - \bar a\rVert\)</span>, with <span class="math notranslate nohighlight">\(\bar a\)</span>
+the mean of <span class="math notranslate nohighlight">\(a\)</span>. A pure change of gain, offset or sign gives 0. The two
+columns have different denominators. An image with a large mean has
+<span class="math notranslate nohighlight">\(\lVert a - \bar a\rVert \ll \lVert b\rVert\)</span>, so its Affine value can be larger
+than its relL2 value (carbon tcDF: 0.64 against 0.073).</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Script</p></th>
+<th class="head"><p>Channel</p></th>
+<th class="head"><p>relL2</p></th>
+<th class="head"><p>Pearson</p></th>
+<th class="head"><p>Affine</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Fig2_carbon.py</span></code></p></td>
+<td><p>direct ptychography</p></td>
+<td><p>5.8e-3</p></td>
+<td><p>0.99996</p></td>
+<td><p>9.0e-3</p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>tcDF</p></td>
+<td><p>0.073</p></td>
+<td><p>0.766</p></td>
+<td><p>0.64</p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>fused</p></td>
+<td><p>0.32</p></td>
+<td><p>0.811</p></td>
+<td><p>0.58</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Fig2_Co3O4.py</span></code></p></td>
+<td><p>direct ptychography</p></td>
+<td><p>4.4e-3</p></td>
+<td><p>0.99999</p></td>
+<td><p>4.6e-3</p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>tcDF</p></td>
+<td><p>0.40</p></td>
+<td><p>0.860</p></td>
+<td><p>0.51</p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>fused</p></td>
+<td><p>0.45</p></td>
+<td><p>0.984</p></td>
+<td><p>0.18</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Fig4_diffraction.py</span></code></p></td>
+<td><p>direct ptychography</p></td>
+<td><p>2.0</p></td>
+<td><p>−0.999</p></td>
+<td><p>0.051</p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>tcDF</p></td>
+<td><p>0.099</p></td>
+<td><p>0.937</p></td>
+<td><p>0.35</p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>fused</p></td>
+<td><p>0.57</p></td>
+<td><p>0.264</p></td>
+<td><p>0.96</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Fig1_Gd2O3.py</span></code></p></td>
+<td><p>direct ptychography</p></td>
+<td><p>0.25</p></td>
+<td><p>0.969</p></td>
+<td><p>0.25</p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>tcDF</p></td>
+<td><p>0.28</p></td>
+<td><p>0.836</p></td>
+<td><p>0.55</p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>fused</p></td>
+<td><p>0.11</p></td>
+<td><p>0.979</p></td>
+<td><p>0.20</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The calibrated <code class="docutils literal notranslate"><span class="pre">dk</span></code> changes with the bright-field disk measurement (item 6
+below): against v0.3 it is −0.36 % (carbon, 0.042126 to 0.041975 Å⁻¹),
++0.01 % (Co₃O₄), −0.03 % (Au) and −0.003 % (Gd₂O₃). Two
+v0.4 runs of the same script differ by at most 2e-4 (relL2, Gd2O3) and by at
+most 8e-7 for the other three.</p>
+<p>We found the cause of each change by switching single changes back to their
+v0.3 behaviour:</p>
+<ol class="arabic simple">
+<li><p><strong>tcDF parallax.</strong> tcDF now shifts each detector segment by its full
+parallax. v0.3 divided the shift by <span class="math notranslate nohighlight">\(2\pi\)</span> a second time. All four datasets
+have a non-zero defocus, so the tcDF channel changes in all four scripts
+(relL2 0.07 to 0.43). The fused image changes through its tcDF channel: by
+0.35 (carbon), 0.32 (Co₃O₄), 0.03 (Au) and 0.02 (Gd₂O₃).</p></li>
+<li><p><strong>Sign of the ptychography phase.</strong> The library default is now
+<code class="docutils literal notranslate"><span class="pre">phase_sign=&quot;preserve&quot;</span></code>: it keeps the sign of the phase. v0.3 flipped each
+image to positive skewness, which is <code class="docutils literal notranslate"><span class="pre">phase_sign=&quot;positive&quot;</span></code>. With the
+default, the Au and Gd₂O₃ direct-ptychography images change sign (Pearson −1
+against the v0.3 rule). For Au, the preserved sign agrees with the tcDF
+image, and <code class="docutils literal notranslate"><span class="pre">Fig4_diffraction.py</span></code> keeps the default. Its fused image changes
+most of all (Pearson 0.26 against v0.3). For Gd₂O₃, the preserved sign is
+opposite to the tcDF image (Pearson −0.53 between the two channels), so the
+fused image would mix opposite contrasts. <code class="docutils literal notranslate"><span class="pre">Fig1_Gd2O3.py</span></code> therefore passes <code class="docutils literal notranslate"><span class="pre">phase_sign=&quot;positive&quot;</span></code> to
+<code class="docutils literal notranslate"><span class="pre">DirectPtychographyConfig</span></code> and to <code class="docutils literal notranslate"><span class="pre">FusedFullFieldConfig</span></code>. The direct
+ptychography and tcDF images of Gd₂O₃ then correlate positively (Pearson
+0.53; v0.3: 0.54), and the table above shows that run. With the default
+sign, the Gd₂O₃ fused image has a Pearson of only 0.30 against the run with
+<code class="docutils literal notranslate"><span class="pre">phase_sign=&quot;positive&quot;</span></code>.</p></li>
+<li><p><strong>Aberration autofocus.</strong> The autofocus now uses the exact derivative of its
+objective and ignores the scan DC of each bright-field pixel. The fitted
+aberrations change: C10 from −53.5 Å to −53.8 Å (carbon), from −43.1 Å to
+−43.6 Å (Co₃O₄) and from 31.5 Å to 19.6 Å (Gd₂O₃). Before item 6, this was
+the whole direct-ptychography change of carbon and Co₃O₄ (2.3e-3 and
+3.8e-3), and it is 0.25 (affine) of Gd₂O₃. The Au script holds its
+aberrations fixed.</p></li>
+<li><p><strong>Scan DC of the up-sampled images.</strong> Up-sampled direct-ptychography images
+no longer carry the scan DC on the scan lattice. This changes the Au image,
+which is up-sampled 4 times, by 0.050 (affine) and its fused image by 0.018.</p></li>
+<li><p><strong>Astigmatism frame in tcDF.</strong> tcDF reads the astigmatism A1 in the detector
+frame. This matters only with a scan rotation: it changes the Gd₂O₃ tcDF
+image (rotation 84°) by 0.35 at the v0.3 aberrations.</p></li>
+<li><p><strong>Bright-field disk measurement.</strong> v0.4 measures the disk radius at the
+level halfway between the inside and the outside intensity
+(<code class="docutils literal notranslate"><span class="pre">measure_pupil</span></code>), and the dataset methods use an edge band of 2 pixels.
+v0.3 took the median radius of a threshold sweep. <code class="docutils literal notranslate"><span class="pre">dk</span></code> moves by the
+values above. On carbon, this change alone moves the outputs by 4.8e-3
+(direct ptychography), 3.6e-4 (tcDF) and 2.8e-3 (fused), relL2 against
+the v0.4 run with the v0.3 disk fit.</p></li>
+</ol>
+<p>Two other changes have no measurable effect on these scripts: the matmul
+precision (v0.3 set <code class="docutils literal notranslate"><span class="pre">&quot;medium&quot;</span></code> at import) and the robust level of the
+bright-field mask. Each changes the outputs by about the run-to-run difference
+(at most 4e-7 relL2 on carbon, Co₃O₄ and Au, 2e-4 on Gd₂O₃). With changes 1 to 5
+switched back, the v0.4 code before change 6 gave the v0.3 arrays to a relL2
+of 3e-7 (carbon, Co₃O₄).</p>
+</section>
+<section id="the-published-figures">
+<h2>The published figures<a class="headerlink" href="#the-published-figures" title="Link to this heading">#</a></h2>
+<p>The figures in the paper were made with an earlier version of the code, before
+the later fixes. This repository does not contain that version. v0.3 already
+differs from it: its bright-field disk fit is an independent implementation, and
+it gives a <code class="docutils literal notranslate"><span class="pre">dk</span></code> that differs from the published one by 0.15 % (carbon), 0.07 %
+(Co₃O₄) and 1.37 % (Gd₂O₃). The images look the same, but a pixel-by-pixel
+comparison does not match. The v0.4 differences in the table above add to these.</p>
+<p>The paper applied the sub-pixel dark-field shifts with the Fourier path
+(<code class="docutils literal notranslate"><span class="pre">tcdf_shift_method=&quot;fourier&quot;</span></code>). The scripts use the drizzle default, as v0.3
+did. On <code class="docutils literal notranslate"><span class="pre">Fig2_carbon.py</span></code>, the two paths give fused images that correlate to
+0.993 (relative L2 difference 0.066). See <a class="reference internal" href="method.html"><span class="std std-doc">Method</span></a>.</p>
+<p>Scale-bar lengths are chosen on a 1-2-5 ladder, so a bar may be a different round
+number than in the paper — 10 Å where the paper shows 5 Å on the same field, for
+instance. The bar is correct; only which round number it picks differs.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="calibration.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Calibration</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="notebooks.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Notebooks</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-specimens">The specimens</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-them-in-the-browser">Run them in the browser</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-each-script-does">What each script does</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#verifying-your-run">Verifying your run</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-plots">Comparison plots</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-v0-4-differs-from-v0-3">How v0.4 differs from v0.3</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-published-figures">The published figures</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Shengbo You, Nikita Palatkin, Sihan Shao and Philipp Pelz
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, the scatterem authors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

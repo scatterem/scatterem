@@ -1,0 +1,1086 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="light">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Simulate STEM-EELS &#8212; scatterem</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/scatterem.css?v=9b234c1c" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=39abee70"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'docs/eels';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://scatterem.github.io/scatterem/docs/eels.html" />
+    <link rel="icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BiP-PRISM" href="bip-prism.html" />
+    <link rel="prev" title="Notebooks" href="notebooks.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.4.2" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="light">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="scatterem"/>
+    <img src="../_static/logo.png" class="logo__image only-dark pst-js-only" alt="scatterem"/>
+  
+  
+    <p class="title logo__title">scatterem</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="method.html">The method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">Figure scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks.html">Notebooks</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Simulate STEM-EELS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bip-prism.html">BiP-PRISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prism.html">Elastic PRISM</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="migrating.html">Migrating from v0.3</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Project</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/scatterem/scatterem">GitHub</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/scatterem/">PyPI</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem/issues/new?title=Issue%20on%20page%20%2Fdocs/eels.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Simulate STEM-EELS</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-short-version">The short version</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-structure">A structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-simulator">The simulator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-full-resolution-elemental-map">A full-resolution elemental map</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-cube">A cube</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#momentum-resolved-output-and-pacbed">Momentum-resolved output and PACBED</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an-energy-window-and-several-edges">An energy window, and several edges</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transition-potentials-and-the-gpaw-question">Transition potentials, and the GPAW question</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-bip-prism-paper-and-v0-4">The BiP-PRISM paper and v0.4</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calling-the-kernels-directly">Calling the kernels directly</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-it-costs-and-the-levers">What it costs, and the levers</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-cost-of-a-call-v0-3-and-v0-4">The cost of a call: v0.3 and v0.4</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-your-setup">Checking your setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-further">Reading further</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="simulate-stem-eels">
+<h1>Simulate STEM-EELS<a class="headerlink" href="#simulate-stem-eels" title="Link to this heading">#</a></h1>
+<p>This page covers the forward problem: given a structure, produce the core-loss
+EELS signal that a STEM records. There is no EELS <em>reconstruction</em> here.</p>
+<p>Three algorithms compute the same physics at very different cost. Pick the one
+that gives the output you need:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>You want</p></th>
+<th class="head"><p>Algorithm</p></th>
+<th class="head"><p>Entry point</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A reference to check the others against</p></td>
+<td><p>conventional multislice</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">multislice_transition_potential</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>An energy-filtered 4D-STEM cube on a real scan</p></td>
+<td><p>PRISM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PrismEelsSimulator.eels_cube</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>A 2D elemental map at full resolution</p></td>
+<td><p>BiP-PRISM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PrismEelsSimulator.eels_map</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Momentum-resolved output (qEELS, PACBED)</p></td>
+<td><p>BiP-PRISM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PrismEelsSimulator.qeels</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The cube keeps the whole diffraction pattern at every scan position. It is the
+general output and the expensive one. The map integrates over an EELS collection
+aperture. The same two-matrix path can also keep individual detector beams for
+qEELS and PACBED; see <a class="reference internal" href="bip-prism.html"><span class="std std-doc">BiP-PRISM</span></a>. If you want an elemental map,
+do not simulate a cube and sum it.</p>
+<p><code class="docutils literal notranslate"><span class="pre">PrismEelsSimulator</span></code> is a thin driver. It builds the kernel inputs from a
+structure and calls <code class="docutils literal notranslate"><span class="pre">prism_eels_image</span></code> (map, qEELS) or
+<code class="docutils literal notranslate"><span class="pre">prism_transition_potential</span></code> (cube). It adds no physics of its own. The same
+driver also runs the elastic simulation; see <a class="reference internal" href="prism.html"><span class="std std-doc">Elastic PRISM</span></a>.</p>
+<section id="the-short-version">
+<h2>The short version<a class="headerlink" href="#the-short-version" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">structure</span></code> is a <code class="docutils literal notranslate"><span class="pre">scatterem.physics.atom_set.AtomSet</span></code>; <a class="reference internal" href="#a-structure">A structure</a>
+below builds one.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.simulation.eels</span><span class="w"> </span><span class="kn">import</span> <span class="n">PrismEelsSimulator</span>
+
+<span class="n">sim</span> <span class="o">=</span> <span class="n">PrismEelsSimulator</span><span class="p">(</span>
+    <span class="n">structure</span><span class="p">,</span>                     <span class="c1"># scatterem.physics.atom_set.AtomSet</span>
+    <span class="n">eV</span><span class="o">=</span><span class="mf">100e3</span><span class="p">,</span>
+    <span class="n">semiconvergence_angle</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span>    <span class="c1"># mrad</span>
+    <span class="n">pixels</span><span class="o">=</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
+    <span class="n">scan</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+    <span class="n">num_slices</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="s2">"cuda"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">ti_map</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">eels_map</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">22</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>                    <span class="c1"># Ti L: (Z, n, l)</span>
+    <span class="n">detector_mrad</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span>
+    <span class="n">partition</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_radial</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+    <span class="n">partition_s2</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_radial</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">ti_map</span><span class="o">.</span><span class="n">data</span>                        <span class="c1"># (16, 16) elemental map</span>
+<span class="n">cbed</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">elastic_cbed</span><span class="p">()</span>          <span class="c1"># elastic 4D-STEM by PRISM</span>
+</pre></div>
+</div>
+<p>Without GPAW, this example uses analytic hydrogenic states and emits a
+<code class="docutils literal notranslate"><span class="pre">HydrogenicFallbackWarning</span></code>: the numbers are then not quantitative. See
+<a class="reference internal" href="#transition-potentials-and-the-gpaw-question">Transition potentials, and the GPAW question</a>
+and <a class="reference internal" href="#bip-prism-paper-v04">The BiP-PRISM paper and v0.4</a>. The sections below
+go through each step.</p>
+</section>
+<section id="a-structure">
+<h2>A structure<a class="headerlink" href="#a-structure" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">AtomSet</span></code> is an immutable NumPy container. It holds the side lengths of a
+rectangular box in Ångström, the fractional coordinates of the atoms and their
+atomic numbers.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.physics.atom_set</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomSet</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="mf">3.905</span>
+<span class="n">sto</span> <span class="o">=</span> <span class="n">AtomSet</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">a</span><span class="p">]),</span>        <span class="c1"># box sides (y, x, depth), Angstrom</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>                  <span class="c1"># fractional coordinates (y, x, depth)</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>        <span class="c1"># Sr</span>
+        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>        <span class="c1"># Ti</span>
+        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>        <span class="c1"># O</span>
+        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+    <span class="p">]),</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">38</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">]),</span>  <span class="c1"># atomic numbers</span>
+    <span class="n">msd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>                   <span class="c1"># &lt;u^2&gt; per atom; None gives every atom 0.01 A^2</span>
+<span class="p">)</span><span class="o">.</span><span class="n">replicated</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>         <span class="c1"># 15.6 x 15.6 x 31.2 A, 640 atoms</span>
+</pre></div>
+</div>
+<p>Coordinate 0 runs along grid axis 0 (y), coordinate 1 along grid axis 1 (x),
+and coordinate 2 along the beam. <code class="docutils literal notranslate"><span class="pre">read_atom_set</span></code> (same module) reads
+Kirkland/Prismatic <code class="docutils literal notranslate"><span class="pre">.xyz</span></code>, POSCAR-style <code class="docutils literal notranslate"><span class="pre">.p1</span></code> (VESTA), muSTEM <code class="docutils literal notranslate"><span class="pre">.xtl</span></code>, <code class="docutils literal notranslate"><span class="pre">.cif</span></code>
+and extended <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> (<code class="docutils literal notranslate"><span class="pre">.extxyz</span></code>) files. A Kirkland <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file holds Cartesian
+positions in Å and an rms thermal displacement; pass
+<code class="docutils literal notranslate"><span class="pre">displacement_kind=&quot;mean_square&quot;</span></code> if the file holds <span class="math notranslate nohighlight">\(\langle u^2 \rangle\)</span>.
+The <code class="docutils literal notranslate"><span class="pre">.cif</span></code> and extended <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> readers need the optional <code class="docutils literal notranslate"><span class="pre">ase</span></code> package. If you give lattice vectors as <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">3)</span></code> rows, <code class="docutils literal notranslate"><span class="pre">AtomSet</span></code> reduces the
+cell to a rectangular box, because the multislice handles only that box.</p>
+<div class="note admonition">
+<p class="admonition-title"><code class="docutils literal notranslate"><span class="pre">msd</span></code> is <span class="math notranslate nohighlight">\(\langle u^2 \rangle\)</span>, one-dimensional</p>
+<p><code class="docutils literal notranslate"><span class="pre">AtomSet.msd</span></code> holds the <em>one-dimensional</em> mean-square thermal
+displacement in Å². It is not the Debye-Waller <span class="math notranslate nohighlight">\(B\)</span> and not the three-dimensional
+total. <span class="math notranslate nohighlight">\(B = 8\pi^2 \langle u^2 \rangle\)</span>. If you use the wrong convention, the
+frozen-phonon smearing is wrong by <span class="math notranslate nohighlight">\(\sqrt{3}\)</span>.</p>
+</div>
+</section>
+<section id="the-simulator">
+<h2>The simulator<a class="headerlink" href="#the-simulator" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.simulation.eels</span><span class="w"> </span><span class="kn">import</span> <span class="n">PrismEelsSimulator</span>
+
+<span class="n">sim</span> <span class="o">=</span> <span class="n">PrismEelsSimulator</span><span class="p">(</span>
+    <span class="n">sto</span><span class="p">,</span>
+    <span class="n">eV</span><span class="o">=</span><span class="mf">100e3</span><span class="p">,</span>                    <span class="c1"># probe energy</span>
+    <span class="n">semiconvergence_angle</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span>  <span class="c1"># mrad</span>
+    <span class="n">pixels</span><span class="o">=</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>           <span class="c1"># real-space grid across the cell</span>
+    <span class="n">scan</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>               <span class="c1"># scan positions, a raster over the cell</span>
+    <span class="n">num_slices</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">interpolation_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>      <span class="c1"># PRISM factor f</span>
+    <span class="n">device</span><span class="o">=</span><span class="s2">"cuda"</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The grid is the whole cell, and the scan is a regular raster over the cell. The
+probe has zero defocus by default; pass <code class="docutils literal notranslate"><span class="pre">defocus=</span></code> (Å) to change it. Pass
+<code class="docutils literal notranslate"><span class="pre">dtype=torch.complex128</span></code> for double precision. For thermal averaging, pass
+<code class="docutils literal notranslate"><span class="pre">num_frozen_phonons=</span></code> with <code class="docutils literal notranslate"><span class="pre">displacements=True</span></code> and a <code class="docutils literal notranslate"><span class="pre">seed</span></code>.</p>
+<div class="important admonition">
+<p class="admonition-title"><code class="docutils literal notranslate"><span class="pre">semiconvergence_angle</span></code> is in <strong>milliradians</strong> here</p>
+<p><code class="docutils literal notranslate"><span class="pre">Dataset4DStem.from_array</span></code> on the reconstruction side takes radians. The
+simulator takes mrad, and so does <code class="docutils literal notranslate"><span class="pre">detector_mrad</span></code> below. A factor of 1000 gives
+a probe that fills the whole grid or a single pixel, so the error is easy to
+see. But it costs a run.</p>
+</div>
+</section>
+<section id="a-full-resolution-elemental-map">
+<h2>A full-resolution elemental map<a class="headerlink" href="#a-full-resolution-elemental-map" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ti_map</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">eels_map</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">22</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>                    <span class="c1"># Ti L: (Z, n, l) of the ionized subshell</span>
+    <span class="n">epsilon</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>                  <span class="c1"># eV above the ionization threshold</span>
+    <span class="n">detector_mrad</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span>            <span class="c1"># EELS collection semi-angle</span>
+    <span class="n">inelastic_crop</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">partition</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_radial</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>    <span class="c1"># partition S1</span>
+    <span class="n">partition_s2</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_radial</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span> <span class="c1"># ... and S2: this is the "Bi" in BiP</span>
+<span class="p">)</span>
+<span class="n">ti_map</span><span class="o">.</span><span class="n">data</span>            <span class="c1"># (16, 16), real, non-negative</span>
+<span class="n">ti_map</span><span class="o">.</span><span class="n">energy_losses</span>   <span class="c1"># the per-transition losses summed into the map, eV</span>
+</pre></div>
+</div>
+<p><strong>Units.</strong> A map value is a probability per incident electron and per eV of
+energy loss. It is the probability that the electron ionizes the edge at the
+point <code class="docutils literal notranslate"><span class="pre">epsilon</span></code> and arrives inside the detector. The probe has unit total
+intensity, and the transition potentials carry the first-Born scale per eV.
+So the value does not depend on the number of pixels or on
+<code class="docutils literal notranslate"><span class="pre">interpolation_factor</span></code>, except for the PRISM error. To get counts, multiply by
+the dose per scan position and by the energy width of your window.</p>
+<p><code class="docutils literal notranslate"><span class="pre">edge</span></code> names the <em>bound</em> orbital that is ionized, as <code class="docutils literal notranslate"><span class="pre">(Z,</span> <span class="pre">n,</span> <span class="pre">l)</span></code>. Ti L is
+<code class="docutils literal notranslate"><span class="pre">(22,</span> <span class="pre">2,</span> <span class="pre">1)</span></code>, O K is <code class="docutils literal notranslate"><span class="pre">(8,</span> <span class="pre">1,</span> <span class="pre">0)</span></code>, Fe L is <code class="docutils literal notranslate"><span class="pre">(26,</span> <span class="pre">2,</span> <span class="pre">1)</span></code>. Every atom of that <code class="docutils literal notranslate"><span class="pre">Z</span></code> in
+the structure ionizes; there is no site selection. Each site ionizes with the
+weight that its atom has in the elastic potential. If the structure has a
+partial occupancy, that weight is the <code class="docutils literal notranslate"><span class="pre">site_fraction</span></code> of the site, else it is 1.
+So a site with half occupancy gives half the signal of a full site in the same
+specimen, and a site with <code class="docutils literal notranslate"><span class="pre">site_fraction=0</span></code> gives no signal. The kernel runs
+once for each different nonzero <code class="docutils literal notranslate"><span class="pre">site_fraction</span></code> of the ionized element, so a
+structure with many different fractions costs more.</p>
+<p><code class="docutils literal notranslate"><span class="pre">epsilon</span></code> is the energy of the ejected electron <em>above</em> the threshold. So it
+selects a point along the edge, not an absolute energy loss. The onset is the
+binding energy, and <code class="docutils literal notranslate"><span class="pre">energy_losses</span></code> reports the resulting losses.</p>
+<p>If you remove both <code class="docutils literal notranslate"><span class="pre">partition</span></code> arguments, you get the exact dual matrix. Use it
+as the oracle on a small cell. At full resolution it does not fit on one GPU.</p>
+<p>The other keyword arguments of <code class="docutils literal notranslate"><span class="pre">eels_map</span></code> go to <code class="docutils literal notranslate"><span class="pre">prism_eels_image</span></code>:
+<code class="docutils literal notranslate"><span class="pre">inelastic_crop</span></code>, <code class="docutils literal notranslate"><span class="pre">prism_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">mag_preserve</span></code>, <code class="docutils literal notranslate"><span class="pre">focal_backprop</span></code>, <code class="docutils literal notranslate"><span class="pre">contract</span></code>,
+<code class="docutils literal notranslate"><span class="pre">scan_chunk</span></code> and <code class="docutils literal notranslate"><span class="pre">reconstruction_workspace</span></code>. <a class="reference internal" href="bip-prism.html"><span class="std std-doc">BiP-PRISM</span></a> explains
+what they do.</p>
+</section>
+<section id="a-cube">
+<h2>A cube<a class="headerlink" href="#a-cube" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cube</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">eels_cube</span><span class="p">((</span><span class="mi">22</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="n">cube</span><span class="o">.</span><span class="n">data</span>               <span class="c1"># (16, 16, 128, 128), real, non-negative</span>
+<span class="n">cube</span><span class="o">.</span><span class="n">detector_sampling</span>  <span class="c1"># detector (dky, dkx) in 1/A</span>
+</pre></div>
+</div>
+<p>The diffraction patterns are corner-origin, like everything else in reciprocal
+space here. Apply <code class="docutils literal notranslate"><span class="pre">torch.fft.fftshift</span></code> before you plot them.</p>
+<p>A cube pixel holds the probability per incident electron and per eV that the
+electron arrives in that detector pixel. So the sum over the detector pixels
+inside a collection angle is the map value at <span class="math notranslate nohighlight">\(f = 1\)</span>.</p>
+<p>For the cube, <code class="docutils literal notranslate"><span class="pre">partition=dict(n_radial=N)</span></code> partitions <span class="math notranslate nohighlight">\(\mathcal{S}_1\)</span> only. The
+exit leg keeps the full diffraction pattern.</p>
+</section>
+<section id="momentum-resolved-output-and-pacbed">
+<h2>Momentum-resolved output and PACBED<a class="headerlink" href="#momentum-resolved-output-and-pacbed" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">q</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">qeels</span><span class="p">((</span><span class="mi">22</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">detector_mrad</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span> <span class="n">inelastic_crop</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">q</span><span class="o">.</span><span class="n">data</span>                  <span class="c1"># (16, 16, n_detector_beams)</span>
+<span class="n">q</span><span class="o">.</span><span class="n">q_pixels</span>              <span class="c1"># (n_detector_beams, 2), (qy, qx) in grid pixels</span>
+<span class="n">q_inv_A</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">q_pixels</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">gridsize</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">q</span><span class="o">.</span><span class="n">q_pixels</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+<span class="n">pacbed</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">axis=&quot;both&quot;</span></code> (the default) keeps each detector beam. <code class="docutils literal notranslate"><span class="pre">axis=0</span></code> or <code class="docutils literal notranslate"><span class="pre">axis=1</span></code>
+returns a one-axis momentum projection, and <code class="docutils literal notranslate"><span class="pre">q_pixels</span></code> is then a sorted
+one-dimensional coordinate array. If you sum the last axis of any resolved output,
+you get the map with the same settings. Prefer <code class="docutils literal notranslate"><span class="pre">interpolation_factor=1</span></code> when you
+keep detector coordinates, because a larger factor subsamples the detector.</p>
+</section>
+<section id="an-energy-window-and-several-edges">
+<h2>An energy window, and several edges<a class="headerlink" href="#an-energy-window-and-several-edges" title="Link to this heading">#</a></h2>
+<p>One <code class="docutils literal notranslate"><span class="pre">epsilon</span></code> is one point on the edge. To integrate an energy-filtered window,
+sweep <code class="docutils literal notranslate"><span class="pre">epsilon</span></code> and integrate with the trapezoid rule:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">eps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">45.0</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="n">maps</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">sim</span><span class="o">.</span><span class="n">eels_map</span><span class="p">((</span><span class="mi">22</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">epsilon</span><span class="o">=</span><span class="n">e</span><span class="p">,</span> <span class="n">detector_mrad</span><span class="o">=</span><span class="mf">25.0</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">eps</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">window</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">trapezoid</span><span class="p">(</span><span class="n">maps</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">eps</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">maps</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">maps</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The continuum states are energy-normalised, so the trapezoid integral over
+<code class="docutils literal notranslate"><span class="pre">epsilon</span></code> is the signal collected in that loss window. <code class="docutils literal notranslate"><span class="pre">epsilon</span></code> must be greater
+than zero: the energy-normalised continuum diverges at the threshold.</p>
+<p>For several edges, call the driver once per edge, for example <code class="docutils literal notranslate"><span class="pre">(22,</span> <span class="pre">2,</span> <span class="pre">1)</span></code> and
+<code class="docutils literal notranslate"><span class="pre">(8,</span> <span class="pre">1,</span> <span class="pre">0)</span></code>. Each call rebuilds the transmission functions. If that cost
+matters, build the inputs once with <code class="docutils literal notranslate"><span class="pre">sim.transmissions()</span></code>, <code class="docutils literal notranslate"><span class="pre">sim.probe_q()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">sim.scan_pixels()</span></code>, <code class="docutils literal notranslate"><span class="pre">sim.sites(Z)</span></code> and <code class="docutils literal notranslate"><span class="pre">sim.transition_potentials(edge,</span> <span class="pre">epsilon)</span></code>, and call the kernels directly (see below).</p>
+</section>
+<section id="transition-potentials-and-the-gpaw-question">
+<h2>Transition potentials, and the GPAW question<a class="headerlink" href="#transition-potentials-and-the-gpaw-question" title="Link to this heading">#</a></h2>
+<p>The ionization operator <span class="math notranslate nohighlight">\(H_{n0}\)</span> is built from atomic radial wavefunctions. Their
+source decides whether your numbers are quantitative.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.simulation.eels</span><span class="w"> </span><span class="kn">import</span> <span class="n">gpaw_available</span>
+<span class="n">gpaw_available</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">wavefunctions</span></code> option selects the source. Pass it through
+<code class="docutils literal notranslate"><span class="pre">transitions=dict(...)</span></code> on any driver method:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> (the default) uses GPAW when it is installed, as v0.3 did. Without
+GPAW, it falls back to <code class="docutils literal notranslate"><span class="pre">&quot;hydrogenic&quot;</span></code> and emits a <code class="docutils literal notranslate"><span class="pre">HydrogenicFallbackWarning</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;gpaw&quot;</span></code> takes bound states from an all-electron atomic DFT calculation, and
+continuum states from Numerov integration of the radial Schrödinger equation in
+that all-electron potential. This is the physically accurate path. The
+BiP-PRISM paper uses it wherever the absolute edge physics matters. A missing
+GPAW install is an error.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;hydrogenic&quot;</span></code> uses a hydrogenic bound state and a free spherical-Bessel
+continuum. It runs the entire pipeline, and the test suite selects it
+explicitly. It is <strong>not quantitatively accurate</strong>: the selection rules and the
+shape of the pipeline are right, the cross-sections are not.</p></li>
+</ul>
+<p>GPAW is an optional extra, because it is GPL-licensed and a large install. The
+<code class="docutils literal notranslate"><span class="pre">eels</span></code> extra installs it. pip builds GPAW from source, and the build needs a
+C++ compiler (see <a class="reference internal" href="install.html"><span class="std std-doc">Installation</span></a>). The line below pins
+scatterem 0.4.2, a release that gives the numbers on this page:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CC</span><span class="o">=</span>g++<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"scatterem[eels]==0.4.2"</span><span class="w"> </span>gpaw-data
+</pre></div>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">Without GPAW, the numbers change</p>
+<p>If GPAW is not installed, the default falls back to the hydrogenic states, and
+the EELS calls warn:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>HydrogenicFallbackWarning: wavefunctions="auto": GPAW is not installed, so the
+analytic hydrogenic bound and free continuum states are used. These EELS
+numbers are not quantitative and differ from the GPAW results. Install the
+eels extra to use GPAW. v0.4 uses a new absolute first-Born scale: the
+transition potentials in Angstrom^2/eV, the maps in probability per incident
+electron per eV. After a best scalar fit, the v0.4 map shapes differ from v0.3
+by 18-61 % with these hydrogenic states. With GPAW they differ by 0.03-0.6 %
+for the K, L23 and M45 edges tested and by 1.4 % for Fe L1. Pass
+wavefunctions="hydrogenic" to choose the analytic states explicitly.
+</pre></div>
+</div>
+<p>If you run the examples on this page without GPAW, you see this warning. For
+quantitative numbers, install <code class="docutils literal notranslate"><span class="pre">scatterem[eels]</span></code>. To test the pipeline with the
+analytic states and no warning, pass
+<code class="docutils literal notranslate"><span class="pre">transitions=dict(wavefunctions=&quot;hydrogenic&quot;)</span></code>. To fail when GPAW is missing,
+pass <code class="docutils literal notranslate"><span class="pre">transitions=dict(wavefunctions=&quot;gpaw&quot;)</span></code>.</p>
+</div>
+<section id="the-bip-prism-paper-and-v0-4">
+<span id="bip-prism-paper-v04"></span><h3>The BiP-PRISM paper and v0.4<a class="headerlink" href="#the-bip-prism-paper-and-v0-4" title="Link to this heading">#</a></h3>
+<p>v0.4 builds the transition potentials from a rewritten first-Born model. The
+forward model (<code class="docutils literal notranslate"><span class="pre">prism_eels_image</span></code> and its partitioned forms) is the same as in
+v0.3, except for one fixed factor (the output scale below): given the same
+transition potentials, it gives the same map shapes. So the numbers of the
+paper move through the transition potentials, through that factor and, when
+you build the specimen with v0.4, through the new physics base layer
+(structure, projected potentials, transmission functions and probe):</p>
+<ul class="simple">
+<li><p><strong>Absolute scale.</strong> The transition potentials now carry the first-Born
+cross-section. For a unit plane wave, the summed intensity of the channels of
+one subshell is <span class="math notranslate nohighlight">\(d\sigma/dE\)</span> in Å²/eV. The scale includes the <span class="math notranslate nohighlight">\(1/v^2\)</span> factor
+of the interaction constant and the occupancy <span class="math notranslate nohighlight">\(N/(2l+1) = 2\)</span> of each orbital
+of a closed subshell, and the flux factor <span class="math notranslate nohighlight">\(k_0/k_n\)</span>. v0.3 had no absolute
+scale. So no single factor converts v0.3 values to v0.4 values: the ratio
+depends on the edge and on the beam energy (see
+<a class="reference internal" href="migrating.html"><span class="std std-doc">Migrating from v0.3</span></a>).</p></li>
+<li><p><strong>Output scale.</strong> A map value, a qEELS bin, a cube pixel and a multislice
+pattern pixel are now probabilities per incident electron (per eV). v0.3
+summed the raw squared FFT amplitudes at the detector, so its maps were
+<span class="math notranslate nohighlight">\(N_y N_x / (f_y f_x)\)</span> times larger: they grew with the number of pixels and
+fell with <code class="docutils literal notranslate"><span class="pre">interpolation_factor</span></code>. To compare a v0.3 map with a v0.4 map,
+divide the v0.3 map by <span class="math notranslate nohighlight">\(N_y N_x / (f_y f_x)\)</span>; for a cube or a multislice
+pattern, divide by <span class="math notranslate nohighlight">\(N_y N_x\)</span>. This factor does not change a relative error
+or a normalised map at a fixed grid, which is what the paper reports.</p></li>
+<li><p><strong>GPAW states.</strong> We compared v0.4 with v0.3 for each GPAW edge of the paper,
+at the beam energies of the paper (100 and 300 kV), 10 eV above threshold,
+after a best scalar fit. The map shapes change by 0.03-0.06 % for O K, Mg K and Al K, and by
+0.16-0.37 % for Ti L23, Fe L23, Cu L23, Sr L23 and La M45.
+Fe L1 (spinel PACBED, 300 kV) changes by 1.4 %. Its initial state is an s
+orbital, and the orthogonalised continuum changes its <span class="math notranslate nohighlight">\(l' = l = 0\)</span> channel
+most. At 200 kV, over 256 kernel settings, C K, O K, Si L23 and Ti L23 change
+by at most 0.57 %. We did not re-run the GPAW figures of the paper.</p></li>
+<li><p><strong>Hydrogenic states.</strong> The map shapes change by 18-61 %. The v0.3 hydrogenic
+maps were dominated by a spurious monopole term, which the orthogonalised
+continuum of v0.4 removes. The paper uses hydrogenic states in three studies.
+We re-ran them with v0.4 in two ways. The first re-run kept the paper’s
+specimen setup (structure, transmissions, probe and scan from the paper’s
+code) and changed only the transition potentials. The second re-run built
+the whole specimen setup with the v0.4 physics layer: <code class="docutils literal notranslate"><span class="pre">AtomSet</span></code> for the
+structure, <code class="docutils literal notranslate"><span class="pre">PrismEelsSimulator.transmissions</span></code> (<code class="docutils literal notranslate"><span class="pre">potential_stack</span></code> and
+<code class="docutils literal notranslate"><span class="pre">thin_slice_transmission</span></code>) for the potentials and transmissions, and
+<code class="docutils literal notranslate"><span class="pre">PrismEelsSimulator.probe_q</span></code> for the probe. The scan positions follow the
+paper’s geometry on the v0.4 grid. The conclusions of all three studies
+still hold in both re-runs. The first re-run gives these changes:</p>
+<ul>
+<li><p>Detector-phase ablation (Ti L, LAO/STO line scan): the relative errors of
+the four arms go from 47.48 / 12.86 / 9.36 / 2.12 % to
+48.09 / 13.59 / 9.00 / 2.02 %. The order of the arms and the
+conclusion do not change.</p></li>
+<li><p>Oxygen-row qEELS test: the sum over the resolved momentum still equals the
+map to 4.3e-16 (v0.3: 2.7e-16), and equivalent columns still agree. The
+map and spectrum image shapes change by 43-60 %, and the energy-momentum
+stack by 41 %.</p></li>
+<li><p>Map-scaling study (Ti L, SrTiO₃): the timings do not depend on the
+transition-potential values. The map shapes change by at most 0.9 %. The
+partitioning errors above 1 % change by at most 3 % of their value (for
+example 15.3 % to 15.0 % at 30 nm). Time stays linear in thickness. The
+partitioned peak memory of the paper’s memory panel holds: 0.545 GB at a
+384² grid and 3.60 GB at 1024² (paper code on the same GPU: 0.549 and
+3.76 GB). Against v0.3, the time per call changes because of the matmul
+precision (see <a class="reference internal" href="#the-cost-of-a-call-v03-and-v04">the cost of a call</a>).
+Against the paper’s pre-release code, the time per call changes by a
+factor of 0.3-1.6 at the same precision (<code class="docutils literal notranslate"><span class="pre">&quot;medium&quot;</span></code>), because of kernel
+changes made before v0.3. v0.4 is 1.6x slower at a 32×32 scan and 3.4x
+faster at a 1024² grid. A linear fit over the 8×8, 32×32 and 64×64 scans
+gives 10.1 ms (paper code) and 11.4 ms (v0.4) per scan position. The
+exact PRISM call takes 2.9x as long as the partitioned call in v0.4, and
+1.8-2.2x with the paper’s kernels on the same GPU.</p></li>
+<li><p>With the v0.4 specimen setup (second re-run, v0.4 transition potentials,
+RTX A6000), the numbers change again:</p>
+<ul>
+<li><p>Detector-phase ablation: the four arms use the paper’s kernels on the
+v0.4 setup, because only those kernels have the uncorrected first arm.
+The relative errors of the four arms are 48.06 / 13.31 / 9.82 / 2.21 %
+(paper setup: 48.09 / 13.59 / 9.00 / 2.02 %). The sign fix lowers the
+error 3.6x (published paper: 3.7x), the de-chirp 1.36x (published paper:
+1.37x), and 207 parents still give about 2 %. The v0.4 kernels give the
+same three corrected arms (13.30 / 9.80 / 2.21 %).</p></li>
+<li><p>Oxygen-row qEELS test: the momentum sum equals the map to 4.1e-16, and
+equivalent columns agree to 3.9e-8 of the peak. The map changes shape
+by 1.7 % against the paper setup.</p></li>
+<li><p>Map-scaling study: the time exponents in thickness are 1.90
+(conventional), 1.00 (exact) and 1.00 (partitioned). The partitioned
+peak memory is 0.551 GB at a 384² grid, 53x below the exact call
+(29.0 GB), and 3.60 GB at 1024². Per scan position, the partitioned
+call costs 27 ms and conventional multislice 2.2 s on this GPU. The
+timings agree with the paper setup on the same GPU to 6 %. The
+partitioning errors change by up to 10 % of their value (for example
+15.0 % to 16.5 % at 30 nm, and 11.2 % to 10.5 % at a 128² grid). They
+still grow with thickness and fall with the grid size. The maps change
+shape by 0.8-12 % against the paper setup. Most of this comes from the
+transmissions (7-8 %), because the v0.4 potentials use a B-spline
+deposit with a Fourier correction instead of a pixel average. The
+soft-edged v0.4 probe adds up to 6 %.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>The exact published numbers came from the paper’s pre-release code.</strong> That
+code uses the v0.3 transition potentials. With the same transition
+potentials, its kernels agree with the v0.4 kernels to 4.5e-4 or better
+(relative L2, complex64). It also keeps the uncorrected detector of the
+first ablation arm, which v0.3 and v0.4 do not have, so the first arm above
+(48.09 %) comes from the paper’s kernels with the v0.4 transition
+potentials. With v0.4 you get the numbers above, not the printed ones.</p></li>
+</ul>
+<p>The code caches computed wavefunctions on disk, keyed by their physical
+parameters, so a re-run does not repeat the atomic calculations. Set
+<code class="docutils literal notranslate"><span class="pre">SCATTEREM_EELS_CACHE</span></code> to put the cache somewhere with room.</p>
+<p>Two more <code class="docutils literal notranslate"><span class="pre">transitions</span></code> options are worth knowing. <code class="docutils literal notranslate"><span class="pre">order</span></code> sets how many
+angular-momentum channels are summed. The default 1 keeps the monopole and both
+dipole channels, as the published treatments do. <code class="docutils literal notranslate"><span class="pre">potential_scale</span></code> multiplies
+the atomic potential in which the GPAW continuum states are computed. It does
+not scale the centrifugal term. The default 1.0 is the unscaled Kohn-Sham
+potential of the neutral atom, and 0 gives free continuum states. A change
+moves mostly the <span class="math notranslate nohighlight">\(l' = l\)</span> monopole s-wave.</p>
+</section>
+</section>
+<section id="calling-the-kernels-directly">
+<h2>Calling the kernels directly<a class="headerlink" href="#calling-the-kernels-directly" title="Link to this heading">#</a></h2>
+<p>The driver methods return the inputs they use. You can pass them to the kernels
+yourself, for example to reuse one set of transmission functions for several
+edges:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.simulation.eels</span><span class="w"> </span><span class="kn">import</span> <span class="n">prism_eels_image</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">transmissions</span><span class="p">()</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">transition_potentials</span><span class="p">((</span><span class="mi">22</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+
+<span class="n">ti</span> <span class="o">=</span> <span class="n">prism_eels_image</span><span class="p">(</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">probe_q</span><span class="p">(),</span> <span class="n">T</span><span class="p">,</span> <span class="n">tp</span><span class="p">,</span> <span class="n">sim</span><span class="o">.</span><span class="n">sites</span><span class="p">(</span><span class="mi">22</span><span class="p">),</span> <span class="n">sim</span><span class="o">.</span><span class="n">scan_pixels</span><span class="p">(),</span>
+    <span class="n">wavelength</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">wavelength</span><span class="p">,</span>
+    <span class="n">gridsize</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">gridsize</span><span class="p">,</span>
+    <span class="n">slice_distance</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">slice_distance</span><span class="p">,</span>
+    <span class="n">detector_mrad</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span>
+    <span class="n">interpolation_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">inelastic_crop</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">scan_shape</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">scan</span><span class="p">,</span>
+    <span class="n">partition</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_radial</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+    <span class="n">partition_s2</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_radial</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="what-it-costs-and-the-levers">
+<h2>What it costs, and the levers<a class="headerlink" href="#what-it-costs-and-the-levers" title="Link to this heading">#</a></h2>
+<p>Four options matter most. In rough order of how much they save:</p>
+<p><strong><code class="docutils literal notranslate"><span class="pre">partition</span></code> / <code class="docutils literal notranslate"><span class="pre">partition_s2</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">dict(n_radial=N)</span></code>) build each scattering matrix
+on a sparse set of parent beams instead of every beam. This is the memory lever.
+On a large map it saves an order of magnitude or more, but only when the matrices
+fill the card. On a small problem it saves nothing and costs a little time. It is
+also approximate, and the detector side is the demanding one; see
+<a class="reference internal" href="bip-prism.html#accuracy-and-the-one-caveat-worth-knowing"><span class="std std-ref">accuracy</span></a>.</p>
+<p><strong><code class="docutils literal notranslate"><span class="pre">interpolation_factor</span></code></strong> (<span class="math notranslate nohighlight">\(f\)</span>) subsamples the aperture beams by <span class="math notranslate nohighlight">\(f^2\)</span>. It is
+valid only if the probe fits inside a <span class="math notranslate nohighlight">\(1/f\)</span> fraction of the cell around the atom.
+If it does not, neighbouring periodic copies of the probe leak in. For the 4D-STEM
+cube it is the <em>only</em> lever on the exit leg, because partitioning there changes
+only <span class="math notranslate nohighlight">\(\mathcal{S}_1\)</span>. It also changes the absolute scale of the cube; see below.</p>
+<p><strong><code class="docutils literal notranslate"><span class="pre">inelastic_crop</span></code></strong> restricts the per-atom contraction to a
+<code class="docutils literal notranslate"><span class="pre">(Ny,</span> <span class="pre">Nx)</span> <span class="pre">//</span> <span class="pre">inelastic_crop</span></code> window. <span class="math notranslate nohighlight">\(H_{n0}\)</span> has sub-ångström support, so a
+generous crop costs nothing in accuracy and saves the largest intermediate of
+the contraction. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the full grid and is exact.</p>
+<p><strong><code class="docutils literal notranslate"><span class="pre">num_frozen_phonons</span></code></strong> with <code class="docutils literal notranslate"><span class="pre">displacements=True</span></code> averages over thermal
+configurations. The cost is linear in the count. One configuration is enough for
+a smoke test and wrong for anything quantitative. In each configuration, one
+thermal draw moves the atoms of the elastic potential and the ionized atoms, so
+each transition potential sits on its displaced atom. This is also true with
+<code class="docutils literal notranslate"><span class="pre">seed=None</span></code>, where each configuration draws a new seed.</p>
+<p><strong><code class="docutils literal notranslate"><span class="pre">reconstruction_workspace</span></code></strong> (bytes) bounds the extra memory that a
+partitioned call may use to reconstruct the full grid once per slice instead of
+once per atom window. <code class="docutils literal notranslate"><span class="pre">None</span></code> (default) allows 2 GiB, and <code class="docutils literal notranslate"><span class="pre">0</span></code> turns the reuse off,
+which is the behaviour of the BiP-PRISM paper and of v0.3. The reuse applies only
+when the crop windows of one slice together cover the grid <em>and</em> the full-grid
+reconstruction fits the budget. At the paper’s map-scaling settings
+(<code class="docutils literal notranslate"><span class="pre">inelastic_crop=16</span></code>, 50 mrad detector) it never applies, so both values give
+the same time and peak memory. The output does not depend on the value beyond
+rounding.</p>
+<p>Two things add cost. The scattering matrix is built once, but each scan
+position still needs its own contraction. With <code class="docutils literal notranslate"><span class="pre">prism_mask=False</span></code>, a 64×64 scan
+takes about four times as long as a 32×32 scan (see the table below). A larger
+detector angle increases <span class="math notranslate nohighlight">\(n_{\text{det}}\)</span> and so the <span class="math notranslate nohighlight">\(\mathcal{S}_2\)</span> build.</p>
+<section id="the-cost-of-a-call-v0-3-and-v0-4">
+<span id="the-cost-of-a-call-v03-and-v04"></span><h3>The cost of a call: v0.3 and v0.4<a class="headerlink" href="#the-cost-of-a-call-v0-3-and-v0-4" title="Link to this heading">#</a></h3>
+<p>The PRISM-EELS kernels of v0.4 compute the same forward model as v0.3, but a
+float32 call can take longer, for one reason: <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">scatterem</span></code> no longer sets
+<code class="docutils literal notranslate"><span class="pre">torch.set_float32_matmul_precision(&quot;medium&quot;)</span></code>. So the complex64 contractions
+run at full float32 precision instead of TF32. To get the v0.3 speed and the
+v0.3 rounding, call <code class="docutils literal notranslate"><span class="pre">scatterem.configure(matmul_precision=&quot;medium&quot;)</span></code> before the
+simulation. The TF32 rounding moves a complex64 map by about 1.6e-4 (relative
+L2). complex128 calls do not change. The table gives the measured times on one
+RTX PRO 6000, in seconds per call, with the paper’s map-scaling inputs (complex64, <code class="docutils literal notranslate"><span class="pre">contract=&quot;probe&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">prism_mask=False</span></code>, partitioned <code class="docutils literal notranslate"><span class="pre">n_radial=4</span></code>):</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Configuration</p></th>
+<th class="head"><p>v0.3</p></th>
+<th class="head"><p>v0.4</p></th>
+<th class="head"><p>v0.4 with <code class="docutils literal notranslate"><span class="pre">&quot;medium&quot;</span></code></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>128², 8×8 scan</p></td>
+<td><p>1.20</p></td>
+<td><p>1.35</p></td>
+<td><p>1.08</p></td>
+</tr>
+<tr class="row-odd"><td><p>128², 32×32 scan</p></td>
+<td><p>12.3</p></td>
+<td><p>17.9</p></td>
+<td><p>12.2</p></td>
+</tr>
+<tr class="row-even"><td><p>128², 64×64 scan</p></td>
+<td><p>47.4</p></td>
+<td><p>69.9</p></td>
+<td><p>47.2</p></td>
+</tr>
+<tr class="row-odd"><td><p>384², 8×8 scan</p></td>
+<td><p>2.52</p></td>
+<td><p>3.69</p></td>
+<td><p>2.27</p></td>
+</tr>
+<tr class="row-even"><td><p>1024², 8×8 scan</p></td>
+<td><p>16.5</p></td>
+<td><p>24.6</p></td>
+<td><p>14.3</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>With the same precision, v0.4 is as fast as v0.3 or faster.</p>
+</section>
+</section>
+<section id="checking-your-setup">
+<h2>Checking your setup<a class="headerlink" href="#checking-your-setup" title="Link to this heading">#</a></h2>
+<p>The approximations compose. Check them one at a time, on a cell small enough
+that the exact answer is affordable. At <span class="math notranslate nohighlight">\(f = 1\)</span>, PRISM must reproduce the
+conventional multislice to rounding:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.physics.propagation</span><span class="w"> </span><span class="kn">import</span> <span class="n">fourier_shift_stack</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.simulation.eels</span><span class="w"> </span><span class="kn">import</span> <span class="n">multislice_transition_potential</span>
+
+<span class="n">ref</span> <span class="o">=</span> <span class="n">PrismEelsSimulator</span><span class="p">(</span>
+    <span class="n">sto</span><span class="p">,</span> <span class="n">eV</span><span class="o">=</span><span class="mf">100e3</span><span class="p">,</span> <span class="n">semiconvergence_angle</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span> <span class="n">pixels</span><span class="o">=</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="n">scan</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+    <span class="n">num_slices</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">interpolation_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">complex128</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"cuda"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">edge</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="p">(</span><span class="mi">22</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="mf">10.0</span>
+
+<span class="n">probes</span> <span class="o">=</span> <span class="n">fourier_shift_stack</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft2</span><span class="p">(</span><span class="n">ref</span><span class="o">.</span><span class="n">probe_q</span><span class="p">()),</span> <span class="n">ref</span><span class="o">.</span><span class="n">scan_pixels</span><span class="p">())</span>
+<span class="n">exact</span> <span class="o">=</span> <span class="n">multislice_transition_potential</span><span class="p">(</span>
+    <span class="n">probes</span><span class="p">,</span> <span class="n">ref</span><span class="o">.</span><span class="n">transmissions</span><span class="p">(),</span> <span class="n">ref</span><span class="o">.</span><span class="n">transition_potentials</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">),</span> <span class="n">ref</span><span class="o">.</span><span class="n">sites</span><span class="p">(</span><span class="mi">22</span><span class="p">),</span>
+    <span class="n">wavelength</span><span class="o">=</span><span class="n">ref</span><span class="o">.</span><span class="n">wavelength</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="n">ref</span><span class="o">.</span><span class="n">gridsize</span><span class="p">,</span> <span class="n">slice_distance</span><span class="o">=</span><span class="n">ref</span><span class="o">.</span><span class="n">slice_distance</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">prism</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">eels_cube</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">exact</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="n">rel</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">prism</span> <span class="o">-</span> <span class="n">exact</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">/</span> <span class="n">exact</span><span class="o">.</span><span class="n">norm</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>A large <code class="docutils literal notranslate"><span class="pre">rel</span></code> here means that something is wrong with the setup, not with the
+method.</p>
+<div class="important admonition">
+<p class="admonition-title"><code class="docutils literal notranslate"><span class="pre">interpolation_factor</span></code> changes the absolute scale of the cube</p>
+<p>The map and the qEELS output keep their scale at every <span class="math notranslate nohighlight">\(f\)</span>: each kept detector
+beam stands for <span class="math notranslate nohighlight">\(f^2\)</span> beams of the grid. The cube does not. A cube at <span class="math notranslate nohighlight">\(f &gt; 1\)</span>
+has no PRISM mask, so each periodic copy of the probe ionizes the atoms near
+it, and the intensity of the cube grows by roughly <span class="math notranslate nohighlight">\(f^2\)</span>. So a raw relative
+error of a cube against an <span class="math notranslate nohighlight">\(f = 1\)</span> reference is dominated by this factor and
+tells you almost nothing. <strong>Hold <span class="math notranslate nohighlight">\(f\)</span> fixed when you compare cubes.</strong> The cube
+at <span class="math notranslate nohighlight">\(f = 1\)</span> is on the absolute scale; take absolute cross-sections there, or
+calibrate the scale against it.</p>
+</div>
+<p>Partitioning is a separate approximation. Compare <code class="docutils literal notranslate"><span class="pre">partition=None</span></code> with your
+chosen <code class="docutils literal notranslate"><span class="pre">n_radial</span></code> at a fixed <span class="math notranslate nohighlight">\(f\)</span>. Treat the pattern correlation and the total
+signal as two different questions. For the <em>map</em>, the detector-side partition is
+much more demanding than the probe side. <a class="reference internal" href="bip-prism.html#accuracy-and-the-one-caveat-worth-knowing"><span class="std std-ref">BiP-PRISM</span></a>
+works through that case.</p>
+</section>
+<section id="reading-further">
+<h2>Reading further<a class="headerlink" href="#reading-further" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="bip-prism.html"><span class="std std-doc">BiP-PRISM</span></a>: what the two scattering matrices are, why both can
+be partitioned, and where the approximation breaks down</p></li>
+<li><p><a class="reference internal" href="prism.html"><span class="std std-doc">Elastic PRISM</span></a>: the elastic 4D-STEM simulation from the same driver</p></li>
+<li><p><a class="reference internal" href="api.html"><span class="std std-doc">API reference</span></a>: every symbol above, generated from the source</p></li>
+<li><p>The paper: P. Pelz, <em>J. Phys. Mater.</em> (2026),
+<a class="reference external" href="https://doi.org/10.1088/2515-7639/aebdd0">doi:10.1088/2515-7639/aebdd0</a></p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="notebooks.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Notebooks</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="bip-prism.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">BiP-PRISM</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-short-version">The short version</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-structure">A structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-simulator">The simulator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-full-resolution-elemental-map">A full-resolution elemental map</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-cube">A cube</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#momentum-resolved-output-and-pacbed">Momentum-resolved output and PACBED</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an-energy-window-and-several-edges">An energy window, and several edges</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transition-potentials-and-the-gpaw-question">Transition potentials, and the GPAW question</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-bip-prism-paper-and-v0-4">The BiP-PRISM paper and v0.4</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calling-the-kernels-directly">Calling the kernels directly</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-it-costs-and-the-levers">What it costs, and the levers</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-cost-of-a-call-v0-3-and-v0-4">The cost of a call: v0.3 and v0.4</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-your-setup">Checking your setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-further">Reading further</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Shengbo You, Nikita Palatkin, Sihan Shao and Philipp Pelz
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, the scatterem authors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

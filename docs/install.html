@@ -1,0 +1,664 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="light">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Install &#8212; scatterem</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/scatterem.css?v=9b234c1c" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=39abee70"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'docs/install';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://scatterem.github.io/scatterem/docs/install.html" />
+    <link rel="icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Quickstart" href="quickstart.html" />
+    <link rel="prev" title="scatterem" href="../index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.4.2" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="light">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="scatterem"/>
+    <img src="../_static/logo.png" class="logo__image only-dark pst-js-only" alt="scatterem"/>
+  
+  
+    <p class="title logo__title">scatterem</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="method.html">The method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">Figure scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks.html">Notebooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eels.html">Simulate STEM-EELS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bip-prism.html">BiP-PRISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prism.html">Elastic PRISM</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="migrating.html">Migrating from v0.3</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Project</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/scatterem/scatterem">GitHub</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/scatterem/">PyPI</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem/issues/new?title=Issue%20on%20page%20%2Fdocs/install.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Install</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-the-gpu">About the GPU</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-much-gpu-memory">How much GPU memory</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#molab">molab</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development-version-from-github">Development version from GitHub</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#for-stem-eels-simulation">For STEM-EELS simulation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optional-extras">Optional extras</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="install">
+<h1>Install<a class="headerlink" href="#install" title="Link to this heading">#</a></h1>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>scatterem
+</pre></div>
+</div>
+<p>Python 3.10 or newer. Twelve runtime dependencies, all from PyPI.</p>
+<section id="about-the-gpu">
+<h2>About the GPU<a class="headerlink" href="#about-the-gpu" title="Link to this heading">#</a></h2>
+<p>A CUDA GPU is not optional in practice. The reconstructions are FFT- and
+kernel-bound, and the NVIDIA Warp kernels that do the direct-ptychography work
+need one for anything past a small test. Everything runs on CPU, just slowly
+enough that you would not want to.</p>
+<p>If the default <code class="docutils literal notranslate"><span class="pre">torch</span></code> wheel does not match your driver, install <code class="docutils literal notranslate"><span class="pre">torch</span></code> first
+from the index that does, then install this package — pip will leave your
+existing <code class="docutils literal notranslate"><span class="pre">torch</span></code> alone:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu128
+pip<span class="w"> </span>install<span class="w"> </span>scatterem
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">scatterem</span></code> initialises Warp, which compiles a few kernels the first time
+and prints a short banner. That is expected, and it is cached afterwards.</p>
+<div class="note admonition">
+<p class="admonition-title">Matmul precision</p>
+<p><code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">scatterem</span></code> does not change torch’s float32 matmul precision, so it stays
+at torch’s default, <code class="docutils literal notranslate"><span class="pre">&quot;highest&quot;</span></code> (true fp32). The published figures were
+computed at <code class="docutils literal notranslate"><span class="pre">&quot;medium&quot;</span></code> (TF32 on Ampere and later GPUs); to run exactly as they
+did, call <code class="docutils literal notranslate"><span class="pre">torch.set_float32_matmul_precision(&quot;medium&quot;)</span></code> after importing.</p>
+</div>
+</section>
+<section id="how-much-gpu-memory">
+<h2>How much GPU memory<a class="headerlink" href="#how-much-gpu-memory" title="Link to this heading">#</a></h2>
+<p>Peak memory is set by the <em>output</em> grid, so it grows with scan size and
+upsampling rather than with detector size. Measured with
+<code class="docutils literal notranslate"><span class="pre">torch.cuda.max_memory_allocated</span></code>:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Reconstruction</p></th>
+<th class="head"><p>Scan</p></th>
+<th class="head"><p>Output</p></th>
+<th class="head"><p>Peak</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Amorphous carbon</p></td>
+<td><p>96²</p></td>
+<td><p>96²</p></td>
+<td><p>0.8 GiB</p></td>
+</tr>
+<tr class="row-odd"><td><p>Co₃O₄</p></td>
+<td><p>—</p></td>
+<td><p>185²</p></td>
+<td><p>1.2 GiB</p></td>
+</tr>
+<tr class="row-even"><td><p>Au, low dose, reduced scan</p></td>
+<td><p>128²</p></td>
+<td><p>512²</p></td>
+<td><p>1.4 GiB</p></td>
+</tr>
+<tr class="row-odd"><td><p>Au, low dose, paper configuration</p></td>
+<td><p>256²</p></td>
+<td><p>1024²</p></td>
+<td><p>5.5 GiB</p></td>
+</tr>
+<tr class="row-even"><td><p>Gd₂O₃</p></td>
+<td><p>512²</p></td>
+<td><p>1024²</p></td>
+<td><p>21.7 GiB</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>These are the figure scripts of <code class="docutils literal notranslate"><span class="pre">experiments/ff_stem/</span></code> with v0.4 on an NVIDIA
+RTX A6000, over the whole script.</p>
+<div class="warning admonition">
+<p class="admonition-title">Raising <code class="docutils literal notranslate"><span class="pre">n_batches</span></code> does not reduce memory much</p>
+<p>Measured on the Au reconstruction: <code class="docutils literal notranslate"><span class="pre">n_batches</span></code> of 15, 60 and 150 gave 5.7, 5.4
+and 5.3 GiB.</p>
+<p><strong>Shrinking the scan is the effective lever.</strong> Pass <code class="docutils literal notranslate"><span class="pre">scan_edge_crop</span></code> to the
+named datasets, or crop your own array before constructing.</p>
+</div>
+</section>
+<section id="molab">
+<span id="id1"></span><h2>molab<a class="headerlink" href="#molab" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/ffstem_demo.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a></p>
+<p>molab is the free hosted notebook service of marimo. The
+<a class="reference external" href="https://github.com/scatterem/scatterem/blob/main/notebooks/ffstem_demo.py">FF-STEM demo notebook</a>
+runs the Au low-dose reconstruction end to end, with the paper’s configuration
+(1024² output, 5.5 GiB peak). On a GPU with less than 8 GiB it uses a reduced
+scan (512² output, 1.4 GiB). Switch on the GPU in the notebook specs; nothing
+else is needed. The code and the data are both public, the notebook installs
+<code class="docutils literal notranslate"><span class="pre">scatterem</span></code> itself, and the dataset downloads itself from the Hugging Face
+mirror (Zenodo as fallback), md5-verified.</p>
+<p>The folder <code class="docutils literal notranslate"><span class="pre">notebooks/</span></code> also holds an interactive notebook for each FF-STEM
+figure and for the BiP-PRISM figures; <a class="reference internal" href="notebooks.html"><span class="std std-doc">Notebooks</span></a> lists them.</p>
+<p><span id="from-source"></span></p>
+</section>
+<section id="development-version-from-github">
+<h2>Development version from GitHub<a class="headerlink" href="#development-version-from-github" title="Link to this heading">#</a></h2>
+<p>The PyPI package is the latest release. To install the current state of the
+<code class="docutils literal notranslate"><span class="pre">main</span></code> branch instead:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/scatterem/scatterem
+</pre></div>
+</div>
+<p>To work on the code, clone the repository and install it in editable mode with
+the test dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/scatterem/scatterem
+<span class="nb">cd</span><span class="w"> </span>scatterem
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[dev]"</span>
+pytest
+</pre></div>
+</div>
+</section>
+<section id="for-stem-eels-simulation">
+<h2>For STEM-EELS simulation<a class="headerlink" href="#for-stem-eels-simulation" title="Link to this heading">#</a></h2>
+<p>The simulation code needs nothing beyond the above to run. To be
+<em>quantitative</em>, it needs <code class="docutils literal notranslate"><span class="pre">gpaw</span></code>: GPAW supplies the all-electron bound and
+continuum radial wavefunctions that the ionization transition potentials are
+built from. The <code class="docutils literal notranslate"><span class="pre">eels</span></code> extra installs <code class="docutils literal notranslate"><span class="pre">gpaw</span></code> and <code class="docutils literal notranslate"><span class="pre">ase</span></code>; <code class="docutils literal notranslate"><span class="pre">ase</span></code> also reads <code class="docutils literal notranslate"><span class="pre">.cif</span></code>
+and extended <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> structure files.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CC</span><span class="o">=</span>g++<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"scatterem[eels]"</span><span class="w"> </span>gpaw-data
+</pre></div>
+</div>
+<p>PyPI has no GPAW wheels, so pip builds GPAW from its source package. GPAW
+26.7.0 has C++ sources. The build uses <code class="docutils literal notranslate"><span class="pre">mpic++</span></code> when it is on the <code class="docutils literal notranslate"><span class="pre">PATH</span></code>, and
+otherwise the C compiler of your Python, which cannot compile them. So the
+build needs a C++ compiler (<code class="docutils literal notranslate"><span class="pre">g++</span></code>, set with <code class="docutils literal notranslate"><span class="pre">CC=g++</span></code> as above, or an MPI
+toolchain that provides <code class="docutils literal notranslate"><span class="pre">mpic++</span></code>) and the Python development headers
+(<code class="docutils literal notranslate"><span class="pre">python3-dev</span></code> on Debian and Ubuntu). Without <code class="docutils literal notranslate"><span class="pre">CC=g++</span></code> and without <code class="docutils literal notranslate"><span class="pre">mpic++</span></code>, the
+build stops with <code class="docutils literal notranslate"><span class="pre">fatal</span> <span class="pre">error:</span> <span class="pre">algorithm:</span> <span class="pre">No</span> <span class="pre">such</span> <span class="pre">file</span> <span class="pre">or</span> <span class="pre">directory</span></code>. With
+<code class="docutils literal notranslate"><span class="pre">CC=g++</span></code>, the build did not need libxc, MPI or a Fortran compiler on Ubuntu
+24.04 (GPAW 26.7.0, Python 3.12). If you cannot compile, install GPAW from
+conda-forge, which has prebuilt packages. The default, <code class="docutils literal notranslate"><span class="pre">wavefunctions=&quot;auto&quot;</span></code>, uses GPAW when it is
+installed, as v0.3 did. Without GPAW, the code falls back to hydrogenic orbitals
+and a free continuum, and emits a <code class="docutils literal notranslate"><span class="pre">HydrogenicFallbackWarning</span></code>. These states run
+the whole pipeline but do not give accurate cross-sections. In both cases v0.4
+gives a new absolute scale (first-Born, Å²/eV). After a best scalar fit, the map
+shapes differ from v0.3 by 18-61 % with the hydrogenic states. With GPAW, they
+differ by 0.03-0.6 % for the K, L23 and M45 edges we tested, and by 1.4 % for
+Fe L1. See
+<a class="reference internal" href="eels.html#bip-prism-paper-v04"><span class="std std-ref">The BiP-PRISM paper and v0.4</span></a>.</p>
+<p>The code caches atomic wavefunctions and transition potentials on disk. Set
+<code class="docutils literal notranslate"><span class="pre">SCATTEREM_EELS_CACHE</span></code> to put the cache somewhere with room.</p>
+</section>
+<section id="optional-extras">
+<h2>Optional extras<a class="headerlink" href="#optional-extras" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Extra</p></th>
+<th class="head"><p>Installs</p></th>
+<th class="head"><p>For</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eels</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gpaw</span></code>, <code class="docutils literal notranslate"><span class="pre">ase</span></code></p></td>
+<td><p>quantitative transition potentials; <code class="docutils literal notranslate"><span class="pre">.cif</span></code> and extended <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> files</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">triton</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">triton</span></code></p></td>
+<td><p>the optional Triton kernels; without it the code uses torch</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">notebook</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ipython</span></code>, <code class="docutils literal notranslate"><span class="pre">marimo</span></code></p></td>
+<td><p>inline display of <code class="docutils literal notranslate"><span class="pre">scatterem.vis.show</span></code> figures</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dev</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pytest</span></code></p></td>
+<td><p>running the test suite</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">scatterem</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="quickstart.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Quickstart</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-the-gpu">About the GPU</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-much-gpu-memory">How much GPU memory</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#molab">molab</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development-version-from-github">Development version from GitHub</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#for-stem-eels-simulation">For STEM-EELS simulation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optional-extras">Optional extras</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Shengbo You, Nikita Palatkin, Sihan Shao and Philipp Pelz
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, the scatterem authors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

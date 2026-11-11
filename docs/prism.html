@@ -1,0 +1,662 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="light">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Elastic PRISM &#8212; scatterem</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/scatterem.css?v=9b234c1c" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=39abee70"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'docs/prism';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://scatterem.github.io/scatterem/docs/prism.html" />
+    <link rel="icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API reference" href="api.html" />
+    <link rel="prev" title="BiP-PRISM" href="bip-prism.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.4.2" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="light">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="scatterem"/>
+    <img src="../_static/logo.png" class="logo__image only-dark pst-js-only" alt="scatterem"/>
+  
+  
+    <p class="title logo__title">scatterem</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="method.html">The method</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">Figure scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks.html">Notebooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eels.html">Simulate STEM-EELS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bip-prism.html">BiP-PRISM</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Elastic PRISM</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="migrating.html">Migrating from v0.3</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Project</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/scatterem/scatterem">GitHub</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/scatterem/">PyPI</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem/issues/new?title=Issue%20on%20page%20%2Fdocs/prism.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Elastic PRISM</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-idea-in-one-paragraph">The idea in one paragraph</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#with-the-driver">With the driver</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#with-the-operators">With the operators</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#focal-referencing">Focal referencing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-your-setup">Checking your setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-further">Reading further</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="elastic-prism">
+<h1>Elastic PRISM<a class="headerlink" href="#elastic-prism" title="Link to this heading">#</a></h1>
+<p>This page covers elastic 4D-STEM simulation: a convergent-beam diffraction
+pattern (CBED) at every scan position of a periodic cell. The code computes it
+with the PRISM scattering matrix (Ophus 2017) or with its beam-partitioned form
+(Pelz <em>et al.</em> 2021). The core-loss simulation on <a class="reference internal" href="eels.html"><span class="std std-doc">Simulate STEM-EELS</span></a>
+uses the same matrices.</p>
+<section id="the-idea-in-one-paragraph">
+<h2>The idea in one paragraph<a class="headerlink" href="#the-idea-in-one-paragraph" title="Link to this heading">#</a></h2>
+<p>A converged probe is a sum of plane waves over the aperture, and multislice is
+linear. So the code propagates each aperture beam once through the specimen, and
+stores the exit waves as the columns of the scattering matrix <span class="math notranslate nohighlight">\(\mathcal{S}\)</span>. The
+exit wave at <em>any</em> scan position is then a linear combination of these columns,
+with the phase ramps of the probe as coefficients. With the interpolation factor
+<span class="math notranslate nohighlight">\(f\)</span>, the code keeps only every <span class="math notranslate nohighlight">\(f\)</span>-th beam in each direction and crops each exit
+wave to a window of <code class="docutils literal notranslate"><span class="pre">pixels</span> <span class="pre">//</span> <span class="pre">f</span></code> around the probe. Partitioned PRISM goes one
+step further. It propagates a sparse set of parent beams on hexagonal rings, and
+it reconstructs every other beam by natural-neighbour interpolation of the
+parents.</p>
+</section>
+<section id="with-the-driver">
+<h2>With the driver<a class="headerlink" href="#with-the-driver" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">PrismEelsSimulator.elastic_cbed</span></code> runs the elastic simulation from a structure.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.physics.atom_set</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomSet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.simulation.eels</span><span class="w"> </span><span class="kn">import</span> <span class="n">PrismEelsSimulator</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="mf">3.905</span>
+<span class="n">sto</span> <span class="o">=</span> <span class="n">AtomSet</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">a</span><span class="p">]),</span>        <span class="c1"># box sides (y, x, depth), Angstrom</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>                  <span class="c1"># fractional coordinates (y, x, depth)</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>        <span class="c1"># Sr</span>
+        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>        <span class="c1"># Ti</span>
+        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>        <span class="c1"># O</span>
+        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+    <span class="p">]),</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">38</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">]),</span>  <span class="c1"># atomic numbers</span>
+<span class="p">)</span><span class="o">.</span><span class="n">replicated</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+<span class="n">sim</span> <span class="o">=</span> <span class="n">PrismEelsSimulator</span><span class="p">(</span>
+    <span class="n">sto</span><span class="p">,</span>
+    <span class="n">eV</span><span class="o">=</span><span class="mf">100e3</span><span class="p">,</span>
+    <span class="n">semiconvergence_angle</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span>  <span class="c1"># mrad</span>
+    <span class="n">pixels</span><span class="o">=</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
+    <span class="n">scan</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+    <span class="n">num_slices</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">interpolation_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="s2">"cuda"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">cbed</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">elastic_cbed</span><span class="p">()</span>                 <span class="c1"># PRISM on every aperture beam</span>
+<span class="n">cbed</span><span class="o">.</span><span class="n">data</span>                                 <span class="c1"># (16, 16, 64, 64), corner origin</span>
+<span class="n">cbed</span><span class="o">.</span><span class="n">detector_sampling</span>                    <span class="c1"># (dky, dkx) in 1/A: f / cell size</span>
+
+<span class="n">partitioned</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">elastic_cbed</span><span class="p">(</span><span class="n">n_radial</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>  <span class="c1"># partitioned PRISM, 4 parent rings</span>
+</pre></div>
+</div>
+<p>The diffraction patterns live on the PRISM window of <code class="docutils literal notranslate"><span class="pre">pixels</span> <span class="pre">//</span> <span class="pre">f</span></code> pixels, so
+their reciprocal pixel is <span class="math notranslate nohighlight">\(f\)</span> times the pixel of the full grid. They are
+corner-origin; apply <code class="docutils literal notranslate"><span class="pre">torch.fft.fftshift</span></code> before you plot them. The probe
+carries unit total intensity, so each pattern sums to about 1.</p>
+<p><code class="docutils literal notranslate"><span class="pre">n_angular</span></code> sets the number of parent beams on the first ring (default 6).
+<code class="docutils literal notranslate"><span class="pre">focal_backprop</span></code> sets the plane where the partitioned interpolation happens;
+see below.</p>
+</section>
+<section id="with-the-operators">
+<h2>With the operators<a class="headerlink" href="#with-the-operators" title="Link to this heading">#</a></h2>
+<p>The driver is a thin wrapper. These lines are what <code class="docutils literal notranslate"><span class="pre">elastic_cbed</span></code> runs, so you
+can change any part of them:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.nn.modules.propagator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Propagator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.nn.scan_exit_wave</span><span class="w"> </span><span class="kn">import</span> <span class="n">PrismScanOp</span><span class="p">,</span> <span class="n">build_prism_smeta</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.physics.optics</span><span class="w"> </span><span class="kn">import</span> <span class="n">smooth_disc</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">interpolation_factor</span>
+<span class="n">window</span> <span class="o">=</span> <span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">pixels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">f</span><span class="p">,</span> <span class="n">sim</span><span class="o">.</span><span class="n">pixels</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="n">f</span><span class="p">)</span>
+
+<span class="n">s_meta</span> <span class="o">=</span> <span class="n">build_prism_smeta</span><span class="p">(</span>
+    <span class="n">pixels</span><span class="o">=</span><span class="n">window</span><span class="p">,</span>
+    <span class="n">f</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
+    <span class="n">dx</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">sampling</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+    <span class="n">wavelength</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">wavelength</span><span class="p">,</span>
+    <span class="n">semiconvergence_angle</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">semiconvergence_angle</span> <span class="o">*</span> <span class="mf">1e-3</span><span class="p">,</span>  <span class="c1"># rad</span>
+    <span class="n">fov_shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>              <span class="c1"># periodic specimen</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+    <span class="n">n_radial</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>                  <span class="c1"># None gives pure PRISM</span>
+<span class="p">)</span>
+<span class="n">op</span> <span class="o">=</span> <span class="n">PrismScanOp</span><span class="p">(</span><span class="n">s_meta</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">focal_backprop</span><span class="o">=</span><span class="s2">"centroid"</span><span class="p">)</span>
+<span class="n">propagator</span> <span class="o">=</span> <span class="n">Propagator</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">slice_thickness</span><span class="p">,</span> <span class="n">sim</span><span class="o">.</span><span class="n">wavelength</span><span class="p">,</span> <span class="n">sim</span><span class="o">.</span><span class="n">sampling</span><span class="p">,</span> <span class="n">sim</span><span class="o">.</span><span class="n">pixels</span><span class="p">,</span> <span class="n">sim</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+<span class="c1"># The probe is centred in its window. Each scan position is the window's</span>
+<span class="c1"># top-left corner, split into whole pixels and a sub-pixel rest.</span>
+<span class="c1"># The aperture is a disc of radius alpha / lambda with a rim of 1 pixel, the</span>
+<span class="c1"># rim of the driver's probe and beam set.</span>
+<span class="n">dk</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">window</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">sim</span><span class="o">.</span><span class="n">sampling</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">window</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">sim</span><span class="o">.</span><span class="n">sampling</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+<span class="n">probe_q</span> <span class="o">=</span> <span class="n">smooth_disc</span><span class="p">(</span>
+    <span class="n">window</span><span class="p">,</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">semiconvergence_angle</span> <span class="o">*</span> <span class="mf">1e-3</span> <span class="o">/</span> <span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">wavelength</span> <span class="o">*</span> <span class="n">dk</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+    <span class="n">rim_px</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">px_ratio</span><span class="o">=</span><span class="n">dk</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">dk</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+<span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">complex64</span><span class="p">)</span>                    <span class="c1"># zero defocus</span>
+<span class="n">probe_q</span> <span class="o">=</span> <span class="n">probe_q</span> <span class="o">/</span> <span class="n">probe_q</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span>
+<span class="n">probe</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftshift</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft2</span><span class="p">(</span><span class="n">probe_q</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">"ortho"</span><span class="p">))</span>
+<span class="n">corner</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">scan_pixels</span><span class="p">()</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">window</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">window</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">device</span>
+<span class="p">)</span>
+<span class="n">positions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">corner</span><span class="p">)</span>
+<span class="n">dr</span> <span class="o">=</span> <span class="p">(</span><span class="n">corner</span> <span class="o">-</span> <span class="n">positions</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+<span class="n">probes</span> <span class="o">=</span> <span class="n">probe</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">corner</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">*</span><span class="n">window</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
+
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">transmissions</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">complex64</span><span class="p">)</span>
+    <span class="n">exit_waves</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">probes</span><span class="p">,</span> <span class="n">positions</span><span class="o">.</span><span class="n">int</span><span class="p">(),</span> <span class="n">dr</span><span class="p">,</span> <span class="n">propagator</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">patterns</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">exit_waves</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">"ortho"</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>   <span class="c1"># (256, 64, 64)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">build_prism_smeta</span></code> builds the beam set: the <span class="math notranslate nohighlight">\(f\)</span>-lattice of aperture beams and,
+with <code class="docutils literal notranslate"><span class="pre">n_radial</span></code>, the parent beams and their natural-neighbour weights.
+<code class="docutils literal notranslate"><span class="pre">PrismScanOp</span></code> builds the scattering matrix from the transmission functions and
+synthesises the exit wave at each scan position. It takes the semiconvergence
+angle in radians, unlike the driver.</p>
+</section>
+<section id="focal-referencing">
+<h2>Focal referencing<a class="headerlink" href="#focal-referencing" title="Link to this heading">#</a></h2>
+<p>Partitioned PRISM interpolates the parent columns at one reference plane.
+<code class="docutils literal notranslate"><span class="pre">focal_backprop</span></code> sets that plane, as a fraction of the thickness (0 is the exit
+surface, 1 the entrance surface), or as <code class="docutils literal notranslate"><span class="pre">&quot;centroid&quot;</span></code>. For <code class="docutils literal notranslate"><span class="pre">PrismScanOp</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;centroid&quot;</span></code> (the default) is the scattering-weighted centroid of the specimen.
+For the core-loss path the convention is different; see
+<a class="reference internal" href="bip-prism.html#focal-referencing"><span class="std std-ref">BiP-PRISM</span></a>. Without <code class="docutils literal notranslate"><span class="pre">n_radial</span></code>, every beam is a
+parent, and <code class="docutils literal notranslate"><span class="pre">focal_backprop</span></code> has no effect.</p>
+</section>
+<section id="checking-your-setup">
+<h2>Checking your setup<a class="headerlink" href="#checking-your-setup" title="Link to this heading">#</a></h2>
+<p>Two checks catch most setup errors:</p>
+<ol class="arabic simple">
+<li><p>Compare partitioned PRISM with pure PRISM at the same grid, slices and <span class="math notranslate nohighlight">\(f\)</span>.
+The error must fall as <code class="docutils literal notranslate"><span class="pre">n_radial</span></code> increases.</p></li>
+<li><p>Hold <span class="math notranslate nohighlight">\(f\)</span> fixed when you compare anything. The PRISM window and the detector
+sampling both change with <span class="math notranslate nohighlight">\(f\)</span>.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pure</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">elastic_cbed</span><span class="p">()</span><span class="o">.</span><span class="n">data</span>
+<span class="k">for</span> <span class="n">n_radial</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+    <span class="n">part</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">elastic_cbed</span><span class="p">(</span><span class="n">n_radial</span><span class="o">=</span><span class="n">n_radial</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">rel</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">part</span> <span class="o">-</span> <span class="n">pure</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">/</span> <span class="n">pure</span><span class="o">.</span><span class="n">norm</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">n_radial</span><span class="p">,</span> <span class="n">rel</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The window must hold the probe. If the probe tails reach the window edge, the
+cropped exit waves lose intensity and the patterns are wrong at every <span class="math notranslate nohighlight">\(f\)</span>.
+Choose <span class="math notranslate nohighlight">\(f\)</span> so that <code class="docutils literal notranslate"><span class="pre">pixels</span> <span class="pre">//</span> <span class="pre">f</span></code> times the pixel size is several probe
+diameters.</p>
+</section>
+<section id="reading-further">
+<h2>Reading further<a class="headerlink" href="#reading-further" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>PRISM: Ophus, <em>Adv. Struct. Chem. Imaging</em> <strong>3</strong>, 13 (2017),
+<a class="reference external" href="https://doi.org/10.1186/s40679-017-0046-1">doi:10.1186/s40679-017-0046-1</a></p></li>
+<li><p>Beam partitioning: Pelz <em>et al.</em>, <em>Microsc. Microanal.</em> <strong>27</strong>, 835 (2021),
+<a class="reference external" href="https://doi.org/10.1017/S1431927621012083">doi:10.1017/S1431927621012083</a></p></li>
+<li><p>The software paper for this code: P. Pelz, <em>J. Phys. Mater.</em> (2026),
+<a class="reference external" href="https://doi.org/10.1088/2515-7639/aebdd0">doi:10.1088/2515-7639/aebdd0</a></p></li>
+<li><p><a class="reference internal" href="bip-prism.html"><span class="std std-doc">BiP-PRISM</span></a>: the same matrices for core-loss EELS</p></li>
+<li><p><a class="reference internal" href="api.html"><span class="std std-doc">API reference</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="bip-prism.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">BiP-PRISM</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="api.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">API reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-idea-in-one-paragraph">The idea in one paragraph</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#with-the-driver">With the driver</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#with-the-operators">With the operators</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#focal-referencing">Focal referencing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-your-setup">Checking your setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-further">Reading further</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Shengbo You, Nikita Palatkin, Sihan Shao and Philipp Pelz
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, the scatterem authors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
