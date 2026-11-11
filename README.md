@@ -22,7 +22,7 @@ that make the paper's figures.
 
 | Method | What it does | Paper |
 |---|---|---|
-| **FF-STEM** | Fuses direct (single-side-band) ptychography and tilt-corrected dark field with SSNR-weighted Wiener weights. The image keeps the low-frequency phase contrast and the high-frequency detail. | S. You *et al.*, *Adv. Sci.* 13 (2026) e76620, [doi:10.1002/advs.76620](https://doi.org/10.1002/advs.76620) |
+| **FF-STEM** | Fuses direct (single-side-band) ptychography and tilt-corrected dark field with SSNR-weighted Wiener weights. The image keeps the low-frequency contrast and the high-frequency detail. | S. You *et al.*, *Adv. Sci.* 13 (2026) e76620, [doi:10.1002/advs.76620](https://doi.org/10.1002/advs.76620) |
 | **BiP-PRISM** | Simulates core-loss STEM-EELS by transition-potential multislice, PRISM and the bi-partitioned PRISM algorithm. Full-resolution elemental maps fit on one consumer GPU. | P. Pelz, *J. Phys. Mater.* (2026), [doi:10.1088/2515-7639/aebdd0](https://doi.org/10.1088/2515-7639/aebdd0) |
 | **Elastic PRISM** | Simulates 4D-STEM with the plane-wave and the beam-partitioned scattering matrix. | as used in the BiP-PRISM paper |
 
