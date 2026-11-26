@@ -1,0 +1,766 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="light">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Example gallery &#8212; scatterem</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/scatterem.css?v=9b234c1c" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=5790baa0"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'docs/gallery';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://scatterem.github.io/scatterem/docs/gallery.html" />
+    <link rel="icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="FF-STEM" href="ffstem.html" />
+    <link rel="prev" title="Quickstart" href="quickstart.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.5.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="light">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="scatterem"/>
+    <img src="../_static/logo.png" class="logo__image only-dark pst-js-only" alt="scatterem"/>
+  
+  
+    <p class="title logo__title">scatterem</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Example gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ffstem.html">FF-STEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">Figure scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixed-state.html">Mixed-state ptychography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eels.html">Simulate STEM-EELS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bip-prism.html">BiP-PRISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prism.html">Elastic PRISM</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Project</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/scatterem/scatterem">GitHub</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/scatterem/">PyPI</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem/issues/new?title=Issue%20on%20page%20%2Fdocs/gallery.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Example gallery</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ff-stem">FF-STEM</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mixed-state-ptychography">Mixed-state ptychography</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#bip-prism">BiP-PRISM</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-the-numbers">About the numbers</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="example-gallery">
+<h1>Example gallery<a class="headerlink" href="#example-gallery" title="Link to this heading">#</a></h1>
+<p>The gallery has 13 cards. Twelve are marimo notebooks in the folder
+<code class="docutils literal notranslate"><span class="pre">notebooks/</span></code> of the repository, and one is a script in <code class="docutils literal notranslate"><span class="pre">examples/</span></code>. molab, the
+free hosted notebook service of marimo, opens each notebook from GitHub and
+runs it on a GPU:</p>
+<ol class="arabic simple">
+<li><p>Click the molab badge of the card.</p></li>
+<li><p>Switch on the GPU in the notebook specs.</p></li>
+<li><p>Run all cells.</p></li>
+</ol>
+<p>Each notebook installs <code class="docutils literal notranslate"><span class="pre">scatterem==0.5.0</span></code> from PyPI (the PEP 723 header of the
+file), so you need no account, token or local install. Each notebook explains
+what it shows, what to look at, and how its numbers differ from the paper. Its
+controls (sliders, switches and menus) change the calculation. The image of a
+notebook card is a figure of the notebook, made with the default controls.</p>
+<p>The footer of a notebook card gives the file, the runtime, the peak GPU memory
+(<code class="docutils literal notranslate"><span class="pre">GPU</span></code>) and the size of the data that the notebook downloads (<code class="docutils literal notranslate"><span class="pre">download</span></code>).
+The script card has no image and no measured numbers; it says where the script
+runs. See <a class="reference internal" href="#about-the-numbers">About the numbers</a> for how we measured them.</p>
+<section id="ff-stem">
+<h2>FF-STEM<a class="headerlink" href="#ff-stem" title="Link to this heading">#</a></h2>
+<p>Paper: S. You <em>et al.</em>, <em>Advanced Science</em> <strong>13</strong>, e76620 (2026),
+<a class="reference external" href="https://doi.org/10.1002/advs.76620">doi:10.1002/advs.76620</a>. Data: Zenodo
+record <a class="reference external" href="https://zenodo.org/records/18008901">18008901</a>, CC-BY-4.0 (cite
+<a class="reference external" href="https://doi.org/10.5281/zenodo.18008901">10.5281/zenodo.18008901</a>). The
+notebooks download it from a byte-identical copy in the Hugging Face dataset
+<a class="reference external" href="https://huggingface.co/datasets/philipp-pelz/public-4dstem">philipp-pelz/public-4dstem</a>,
+with Zenodo as fallback, and check it by md5. The page <a class="reference internal" href="ffstem.html"><span class="std std-doc">FF-STEM</span></a>
+explains the method. The page <a class="reference internal" href="figures.html"><span class="std std-doc">Run the paper’s figure scripts</span></a>
+gives the scripts behind the figure notebooks.</p>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-2 sd-row-cols-md-3 sd-row-cols-lg-3 sd-g-3 sd-g-xs-3 sd-g-sm-3 sd-g-md-3 sd-g-lg-3 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<img alt="FF-STEM demo on the Au nanoparticle" class="sd-card-img-top" src="../_images/ffstem_demo.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Au nanoparticle, low dose</div>
+<p class="sd-card-text">Direct ptychography, tcDF and their fusion, sized to the GPU.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/ffstem_demo.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a>
+<code class="docutils literal notranslate"><span class="pre">ffstem_demo.py</span></code> · 18 s · GPU 5.5 GiB · download 0.50 GB</p>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<img alt="Figure 1 notebook, Gd2O3 nanoparticles" class="sd-card-img-top" src="../_images/fig1_gd2o3.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Figure 1: Gd₂O₃ nanoparticles</div>
+<p class="sd-card-text">Gd₂O₃ nanoparticles at 60 kV, with a phase-sign control.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig1_gd2o3.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a>
+<code class="docutils literal notranslate"><span class="pre">fig1_gd2o3.py</span></code> · 8 s · GPU 19.7 GiB · download 6.6 GB</p>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<img alt="Figure 2 notebook, amorphous carbon" class="sd-card-img-top" src="../_images/fig2_carbon.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Figure 2: amorphous carbon</div>
+<p class="sd-card-text">Amorphous carbon at 300 kV: the three images and the SSNR of each channel.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig2_carbon.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a>
+<code class="docutils literal notranslate"><span class="pre">fig2_carbon.py</span></code> · 6 s · GPU 0.8 GiB · download 0.34 GB</p>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<img alt="Figure 2 notebook, Co3O4" class="sd-card-img-top" src="../_images/fig2_co3o4.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Figure 2: Co₃O₄</div>
+<p class="sd-card-text">Co₃O₄ at 200 kV.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig2_co3o4.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a>
+<code class="docutils literal notranslate"><span class="pre">fig2_co3o4.py</span></code> · 6 s · GPU 1.2 GiB · download 0.56 GB</p>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<img alt="Figure 4 notebook, Au nanoparticle at low dose" class="sd-card-img-top" src="../_images/fig4_diffraction.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Figure 4: Au nanoparticle</div>
+<p class="sd-card-text">Au nanoparticle at low dose.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig4_diffraction.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a>
+<code class="docutils literal notranslate"><span class="pre">fig4_diffraction.py</span></code> · 17 s · GPU 5.5 GiB · download 0.50 GB</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="mixed-state-ptychography">
+<h2>Mixed-state ptychography<a class="headerlink" href="#mixed-state-ptychography" title="Link to this heading">#</a></h2>
+<p>Paper: S. You <em>et al.</em>, <em>Transverse quantum-state characterization of
+programmable electron optics</em>, arXiv:2608.05749 (2026),
+<a class="reference external" href="https://doi.org/10.48550/arXiv.2608.05749">doi:10.48550/arXiv.2608.05749</a>.
+Data: Zenodo record <a class="reference external" href="https://doi.org/10.5281/zenodo.24444109">24444109</a>,
+CC-BY-4.0. The notebook downloads a lossless HDF5 copy of scan 1074 from the
+Hugging Face dataset and checks it by sha256. The page
+<a class="reference internal" href="mixed-state.html"><span class="std std-doc">Mixed-state ptychography</span></a> explains the method.</p>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-2 sd-row-cols-md-3 sd-row-cols-lg-3 sd-g-3 sd-g-xs-3 sd-g-sm-3 sd-g-md-3 sd-g-lg-3 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<img alt="Nine-mode reconstruction of a measured vortex probe: mode 0 amplitude and phase, object phase, mode powers, OAM spectrum and mean OAM during the solve" class="sd-card-img-top" src="../_images/mems_vortex_scan1074.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Measured vortex probe</div>
+<p class="sd-card-text">A MEMS phase plate at +1.0 V, on a central crop of scan 1074:
+preprocessing, a seed from bright-field shifts, a one-mode then a nine-mode
+solve, the purity, the OAM spectrum and the OAM density matrix.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/mems_vortex_scan1074.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a>
+<code class="docutils literal notranslate"><span class="pre">mems_vortex_scan1074.py</span></code> · 12.4 min · GPU 19.5 GiB · download 4.7 GB</p>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Synthetic vortex state</div>
+<p class="sd-card-text">A script, not a notebook: a two-mode vortex probe on a weak phase object,
+reconstructed with <code class="docutils literal notranslate"><span class="pre">secant_gd</span></code>, one mode then three. It runs on a CPU in a
+few minutes. Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">examples/vortex_secant_gd.py</span></code> in a clone of the
+repository.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><code class="docutils literal notranslate"><span class="pre">examples/vortex_secant_gd.py</span></code> · CPU or GPU · no download</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference external" href="https://github.com/scatterem/scatterem/blob/v0.5.0/examples/vortex_secant_gd.py"><span>https://github.com/scatterem/scatterem/blob/v0.5.0/examples/vortex_secant_gd.py</span></a></div>
+</div>
+</div>
+</div>
+</section>
+<section id="bip-prism">
+<h2>BiP-PRISM<a class="headerlink" href="#bip-prism" title="Link to this heading">#</a></h2>
+<p>Paper: P. Pelz, <em>J. Phys. Mater.</em> (2026),
+<a class="reference external" href="https://doi.org/10.1088/2515-7639/aebdd0">doi:10.1088/2515-7639/aebdd0</a>. The
+notebooks build their specimens in the notebook. The FePt notebook downloads
+the atomic model from the data page of its authors. The pages
+<a class="reference internal" href="bip-prism.html"><span class="std std-doc">BiP-PRISM</span></a> and <a class="reference internal" href="eels.html"><span class="std std-doc">Simulate STEM-EELS</span></a> explain the method.</p>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-2 sd-row-cols-md-3 sd-row-cols-lg-3 sd-g-3 sd-g-xs-3 sd-g-sm-3 sd-g-md-3 sd-g-lg-3 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<img alt="BiP-PRISM Ti L map of SrTiO3" class="sd-card-img-top" src="../_images/bip_prism_eels_map.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Ti L map of SrTiO₃</div>
+<p class="sd-card-text">A small Ti L map of SrTiO₃, as on the page Simulate STEM-EELS.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/bip_prism_eels_map.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a>
+<code class="docutils literal notranslate"><span class="pre">bip_prism_eels_map.py</span></code> · 5 s · GPU 0.7 GiB · no download</p>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<img alt="BiP-PRISM Fe L map of an FePt nanoparticle" class="sd-card-img-top" src="../_images/bip_fept_parents.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+FePt nanoparticle</div>
+<p class="sd-card-text">An FePt nanoparticle (23 196 atoms): the Fe L map and the partitioning error
+against the number of parent rings, at the paper’s 936² grid and 94² scan
+(f = 8), in full float32 precision.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/bip_fept_parents.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a>
+<code class="docutils literal notranslate"><span class="pre">bip_fept_parents.py</span></code> · 95 s · GPU 15.6 GiB · download: FePt model of Yang <em>et al.</em>, <em>Nature</em> <strong>542</strong>, 75 (2017), checked by SHA-256; no explicit licence, cite the paper</p>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<img alt="BiP-PRISM validity regime against thickness" class="sd-card-img-top" src="../_images/bip_validity_regime.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Validity regime</div>
+<p class="sd-card-text">The cube and map error against thickness for O, Ti, Fe and Cu columns, with
+probe-side partitioning only.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/bip_validity_regime.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a>
+<code class="docutils literal notranslate"><span class="pre">bip_validity_regime.py</span></code> · 47 s · GPU 8.3 GiB · no download</p>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<img alt="BiP-PRISM maps of five edges at a LaAlO3/SrTiO3 interface, and each map minus the reference" class="sd-card-img-top" src="../_images/bip_lao_sto_interface.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+LaAlO₃/SrTiO₃ interface</div>
+<p class="sd-card-text">A stepped and intermixed interface: five edges, partitioned against the
+reference, at the paper’s size (recipe and seed of supplementary S1).</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/bip_lao_sto_interface.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a>
+<code class="docutils literal notranslate"><span class="pre">bip_lao_sto_interface.py</span></code> · 77 s · GPU 13.3 GiB · no download</p>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<img alt="BiP-PRISM qEELS outputs" class="sd-card-img-top" src="../_images/bip_qeels_modes.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+qEELS outputs</div>
+<p class="sd-card-text">The map, spectrum image, field-summed spectrum, PACBED, energy-momentum stack,
+and the momentum-sum invariant.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/bip_qeels_modes.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a>
+<code class="docutils literal notranslate"><span class="pre">bip_qeels_modes.py</span></code> · 9 s · GPU 0.8 GiB · no download</p>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<img alt="BiP-PRISM map scaling measurements" class="sd-card-img-top" src="../_images/bip_map_scaling.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Map scaling</div>
+<p class="sd-card-text">Map scaling, measured live: time against thickness, memory against grid, and
+time against scan, at reduced ranges.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><a class="reference external" href="https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/bip_map_scaling.py"><img alt="Open in molab" src="https://marimo.io/molab-shield.svg" /></a>
+<code class="docutils literal notranslate"><span class="pre">bip_map_scaling.py</span></code> · 92 s · GPU 27.8 GiB · no download</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="about-the-numbers">
+<h2>About the numbers<a class="headerlink" href="#about-the-numbers" title="Link to this heading">#</a></h2>
+<p>We measured the runtime and the peak GPU memory on an NVIDIA RTX PRO 6000
+(96 GB), the GPU of molab, with <code class="docutils literal notranslate"><span class="pre">scatterem</span></code> 0.4.1 (2026-11-10). The runtime is
+the wall time of the whole notebook, with the default controls, from the
+Python start to the last cell (the mixed-state notebook: from its GPU check to
+the last cell, with <code class="docutils literal notranslate"><span class="pre">scatterem</span></code> 0.5.0). It includes the imports and the
+first-use compilation of the GPU kernels. It does not include the installation
+on molab or the dataset download (the data were already on disk). The peak
+memory is <code class="docutils literal notranslate"><span class="pre">torch.cuda.max_memory_allocated</span></code> at the end of the notebook; every
+notebook prints it in its last cell.</p>
+<p>The FF-STEM figure notebooks use the calls and parameters of the figure scripts
+(see <a class="reference internal" href="figures.html"><span class="std std-doc">Run the paper’s figure scripts</span></a>). With the default controls,
+their three images are the images that the scripts save. The release check
+compares the default output of <code class="docutils literal notranslate"><span class="pre">fig2_carbon.py</span></code> with the release reference.</p>
+<p>The BiP-PRISM notebooks run at reduced sizes, so that each one finishes in a few
+minutes on one GPU. Each notebook gives its reduction. Since v0.4.0, a map is a
+probability per incident electron per eV, and v0.4 builds the transition
+potentials from a new first-Born model. The paper’s numbers came from the code
+before v0.3. So the notebooks show the relative quantities of the paper
+(errors, ratios, scaling exponents) next to the paper’s values, and the absolute
+map values differ from the paper. Without GPAW, the notebooks use hydrogenic
+states and show the <code class="docutils literal notranslate"><span class="pre">HydrogenicFallbackWarning</span></code>; see
+<a class="reference internal" href="eels.html#transition-potentials-and-the-gpaw-question"><span class="std std-ref">Simulate STEM-EELS</span></a>.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="quickstart.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Quickstart</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="ffstem.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">FF-STEM</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ff-stem">FF-STEM</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mixed-state-ptychography">Mixed-state ptychography</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#bip-prism">BiP-PRISM</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#about-the-numbers">About the numbers</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Shengbo You, Nikita Palatkin, Sihan Shao and Philipp Pelz
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, the scatterem authors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

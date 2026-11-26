@@ -1,0 +1,762 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="light">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Mixed-state ptychography &#8212; scatterem</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/scatterem.css?v=9b234c1c" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=5790baa0"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'docs/mixed-state';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://scatterem.github.io/scatterem/docs/mixed-state.html" />
+    <link rel="icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Simulate STEM-EELS" href="eels.html" />
+    <link rel="prev" title="Run the paper’s figure scripts" href="figures.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.5.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="light">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="scatterem"/>
+    <img src="../_static/logo.png" class="logo__image only-dark pst-js-only" alt="scatterem"/>
+  
+  
+    <p class="title logo__title">scatterem</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="gallery.html">Example gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ffstem.html">FF-STEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">Figure scripts</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Mixed-state ptychography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eels.html">Simulate STEM-EELS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bip-prism.html">BiP-PRISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prism.html">Elastic PRISM</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Project</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/scatterem/scatterem">GitHub</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/scatterem/">PyPI</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem/issues/new?title=Issue%20on%20page%20%2Fdocs/mixed-state.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Mixed-state ptychography</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-idea-in-one-paragraph">The idea in one paragraph</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-parts">The parts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-first-reconstruction">A first reconstruction</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#read-the-probe">Read the probe</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#measured-data">Measured data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-further">Reading further</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="mixed-state-ptychography">
+<h1>Mixed-state ptychography<a class="headerlink" href="#mixed-state-ptychography" title="Link to this heading">#</a></h1>
+<p>This page covers the reconstruction of a partially coherent probe: a 2D object
+and a probe of several incoherent modes, from one 4D-STEM scan. It then shows
+how to read the probe’s orbital angular momentum (OAM) spectrum and its OAM
+density matrix. The method is the one of S. You <em>et al.</em>, <em>Transverse
+quantum-state characterization of programmable electron optics</em>,
+<a class="reference external" href="https://doi.org/10.48550/arXiv.2608.05749">arXiv:2608.05749</a>.</p>
+<section id="the-idea-in-one-paragraph">
+<h2>The idea in one paragraph<a class="headerlink" href="#the-idea-in-one-paragraph" title="Link to this heading">#</a></h2>
+<p>A probe that is not fully coherent is a density matrix, not a wave function.
+Ptychography can measure it in a finite-rank form: a small set of orthogonal
+modes <span class="math notranslate nohighlight">\(\psi_m\)</span>, each with its own power. Each mode passes through the same
+object, and the detector adds the intensities of the modes:
+<span class="math notranslate nohighlight">\(I(\mathbf{k}) = \sum_m |\mathcal{F}[\psi_m \cdot O]|^2\)</span>. The solver refines
+the modes, the object and the scan positions together, so that the computed
+amplitudes match the measured ones. From the modes you get the purity
+<span class="math notranslate nohighlight">\(\sum_m p_m^2\)</span> of the state (<span class="math notranslate nohighlight">\(p_m\)</span> is the power fraction of mode <span class="math notranslate nohighlight">\(m\)</span>), and its
+projection onto OAM eigenstates.</p>
+</section>
+<section id="the-parts">
+<h2>The parts<a class="headerlink" href="#the-parts" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Part</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PlanarPtychography</span></code></p></td>
+<td><p>The model: probe modes <code class="docutils literal notranslate"><span class="pre">(M,</span> <span class="pre">1,</span> <span class="pre">N,</span> <span class="pre">N)</span></code>, one object slice, sub-pixel scan offsets and an optional detector mask</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">solve_ptychography(...,</span> <span class="pre">solver=&quot;secant_gd&quot;)</span></code></p></td>
+<td><p>Minibatch gradient descent with one Newton step size per parameter group; no learning rate to tune</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PlanarConstraints</span></code></p></td>
+<td><p>Per-pass constraints: mode orthogonalisation, a radial support, an aperture-plane probe support and an absorption bound</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PassStopRule</span></code>, <code class="docutils literal notranslate"><span class="pre">PassStopCallback</span></code></p></td>
+<td><p>When to stop a solve, and which pass to return</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scatterem.diagnostics.metrics</span></code></p></td>
+<td><p>Probe gauges, aperture plane, OAM spectrum, mean OAM, OAM density matrix</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>All of them are in <code class="docutils literal notranslate"><span class="pre">scatterem.reconstruction.ptychography.iterative.second_order</span></code>,
+except the diagnostics. The loss is <code class="docutils literal notranslate"><span class="pre">normalized_amplitude_rmse_loss</span></code> from
+<code class="docutils literal notranslate"><span class="pre">scatterem.nn.losses</span></code>: the amplitude RMSE divided by the mean measured
+amplitude, so it has no unit.</p>
+</section>
+<section id="a-first-reconstruction">
+<h2>A first reconstruction<a class="headerlink" href="#a-first-reconstruction" title="Link to this heading">#</a></h2>
+<p>The example below makes a synthetic data set and reconstructs it. A vortex probe
+(a disk aperture with the phase <span class="math notranslate nohighlight">\(e^{i l \theta}\)</span>) in two incoherent modes
+illuminates a weak phase object. The script <code class="docutils literal notranslate"><span class="pre">examples/vortex_secant_gd.py</span></code> of
+the repository is a longer version of it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.reconstruction.ptychography.iterative.second_order</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PassStopCallback</span><span class="p">,</span>
+    <span class="n">PassStopRule</span><span class="p">,</span>
+    <span class="n">PlanarConstraints</span><span class="p">,</span>
+    <span class="n">PlanarPtychography</span><span class="p">,</span>
+    <span class="n">solve_ptychography</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cuda"</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">"cpu"</span><span class="p">)</span>
+<span class="n">GRID</span><span class="p">,</span> <span class="n">DK</span><span class="p">,</span> <span class="n">STEP</span><span class="p">,</span> <span class="n">SCAN</span> <span class="o">=</span> <span class="mi">48</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mi">16</span>   <span class="c1"># detector px, 1/A per px, A, positions per side</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">vortex</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">radius</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Real-space probe of a disk aperture with the phase exp(i l theta)."""</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">yy</span><span class="p">,</span> <span class="n">xx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">"ij"</span><span class="p">)</span>
+    <span class="n">aperture</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">yy</span><span class="p">,</span> <span class="n">xx</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">radius</span><span class="p">)</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">charge</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">yy</span><span class="p">,</span> <span class="n">xx</span><span class="p">))</span>
+    <span class="n">probe</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft2</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">aperture</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftshift</span><span class="p">(</span><span class="n">probe</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">complex64</span><span class="p">)</span>
+
+
+<span class="c1"># The truth: 90 % of the power in l = 1, 10 % in l = 2.</span>
+<span class="n">true_probe</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">vortex</span><span class="p">(</span><span class="n">GRID</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="mf">0.35</span> <span class="o">*</span> <span class="n">vortex</span><span class="p">(</span><span class="n">GRID</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">)])[:,</span> <span class="kc">None</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<span class="n">blank</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">SCAN</span><span class="p">,</span> <span class="n">SCAN</span><span class="p">,</span> <span class="n">GRID</span><span class="p">,</span> <span class="n">GRID</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+<span class="n">truth</span> <span class="o">=</span> <span class="n">PlanarPtychography</span><span class="o">.</span><span class="n">from_scan</span><span class="p">(</span><span class="n">blank</span><span class="p">,</span> <span class="n">STEP</span><span class="p">,</span> <span class="n">DK</span><span class="p">,</span> <span class="n">true_probe</span><span class="p">,</span> <span class="n">rotation_deg</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="n">gen</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">()</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">phase</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">truth</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="n">gen</span><span class="p">)</span>
+<span class="n">phase</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">avg_pool2d</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">truth</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">complex</span><span class="p">(</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">phase</span><span class="p">,</span> <span class="mf">0.02</span> <span class="o">*</span> <span class="n">phase</span><span class="o">.</span><span class="n">abs</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
+    <span class="n">intensities</span> <span class="o">=</span> <span class="n">truth</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">SCAN</span> <span class="o">*</span> <span class="n">SCAN</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span>
+<span class="n">intensities</span> <span class="o">=</span> <span class="n">intensities</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">SCAN</span><span class="p">,</span> <span class="n">SCAN</span><span class="p">,</span> <span class="n">GRID</span><span class="p">,</span> <span class="n">GRID</span><span class="p">)</span>   <span class="c1"># what the detector records</span>
+</pre></div>
+</div>
+<p>The reconstruction has two stages. Stage 1 finds a coherent probe and a first
+object with one mode. Stage 2 expands that probe into several modes and refines
+everything again, with the modes orthogonalised after each pass.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stage 1: one mode, from the aperture you expect.</span>
+<span class="n">seed</span> <span class="o">=</span> <span class="n">vortex</span><span class="p">(</span><span class="n">GRID</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">PlanarPtychography</span><span class="o">.</span><span class="n">from_scan</span><span class="p">(</span><span class="n">intensities</span><span class="p">,</span> <span class="n">STEP</span><span class="p">,</span> <span class="n">DK</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">rotation_deg</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="n">batches</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">batches</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+<span class="n">solve_ptychography</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">batches</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="s2">"secant_gd"</span><span class="p">,</span> <span class="n">optimize_positions</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Stage 2: three modes, 90 % of the power in mode 0.</span>
+<span class="n">model</span><span class="p">,</span> <span class="n">ratio</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">expand_modes</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">mode0_frac</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">constraints</span> <span class="o">=</span> <span class="n">PlanarConstraints</span><span class="p">(</span><span class="n">orthogonalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">callback</span> <span class="o">=</span> <span class="n">PassStopCallback</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">PassStopRule</span><span class="p">(),</span> <span class="n">return_last</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">solve_ptychography</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">batches</span><span class="p">,</span>
+    <span class="n">n_iter</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="n">solver</span><span class="o">=</span><span class="s2">"secant_gd"</span><span class="p">,</span>
+    <span class="n">probe_mode_groups</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>       <span class="c1"># one step size per probe mode</span>
+    <span class="n">optimize_positions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">callback</span><span class="o">.</span><span class="n">restore_last</span><span class="p">()</span>           <span class="c1"># the state of the last accepted pass</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">log</span><span class="o">.</span><span class="n">losses</span><span class="p">)</span><span class="si">}</span><span class="s2"> passes, loss </span><span class="si">{</span><span class="n">log</span><span class="o">.</span><span class="n">losses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">from_scan</span></code> takes the counts <code class="docutils literal notranslate"><span class="pre">(Ny,</span> <span class="pre">Nx,</span> <span class="pre">My,</span> <span class="pre">Mx)</span></code> with the bright-field disk in
+the centre, the scan step in angstroms, the detector pixel in inverse
+angstroms, and the seed probe in real space. It scales the probe to the
+measured intensity and starts from a vacuum object. <code class="docutils literal notranslate"><span class="pre">expand_modes</span></code> keeps the
+product of probe power and object transmission, because the data fix only that
+product.</p>
+</section>
+<section id="read-the-probe">
+<h2>Read the probe<a class="headerlink" href="#read-the-probe" title="Link to this heading">#</a></h2>
+<p>The last mode of a mixed-state solve is free: it takes the part of the data
+that the model cannot describe (detector noise, a background). Leave it out of
+every probe metric. Remove the two gauges of the probe first: the data do not
+fix the probe’s position (translation) or a linear phase ramp in its aperture
+plane.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.diagnostics.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">adjacent_coherence</span><span class="p">,</span>
+    <span class="n">mean_oam</span><span class="p">,</span>
+    <span class="n">oam_density_matrix</span><span class="p">,</span>
+    <span class="n">oam_spectrum</span><span class="p">,</span>
+    <span class="n">remove_probe_gauges</span><span class="p">,</span>
+    <span class="n">to_aperture_plane</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scatterem.reconstruction.ptychography.iterative.second_order.stop_rule</span><span class="w"> </span><span class="kn">import</span> <span class="n">mode_purity</span>
+
+<span class="n">probe</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">probe</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>                             <span class="c1"># (3, 1, N, N)</span>
+<span class="n">modes</span> <span class="o">=</span> <span class="n">remove_probe_gauges</span><span class="p">(</span><span class="n">probe</span><span class="p">,</span> <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>       <span class="c1"># (2, N, N), gauges removed</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"purity </span><span class="si">{</span><span class="n">mode_purity</span><span class="p">(</span><span class="n">probe</span><span class="p">)</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>                <span class="c1"># truth: 0.81; the free mode is left out</span>
+
+<span class="n">aperture</span> <span class="o">=</span> <span class="n">to_aperture_plane</span><span class="p">(</span><span class="n">modes</span><span class="p">)</span>                      <span class="c1"># centred aperture plane</span>
+<span class="n">ls</span><span class="p">,</span> <span class="n">spectrum</span> <span class="o">=</span> <span class="n">oam_spectrum</span><span class="p">(</span><span class="n">aperture</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"mean OAM </span><span class="si">{</span><span class="n">mean_oam</span><span class="p">(</span><span class="n">ls</span><span class="p">,</span><span class="w"> </span><span class="n">spectrum</span><span class="p">)</span><span class="si">:</span><span class="s2">+.2f</span><span class="si">}</span><span class="s2"> hbar"</span><span class="p">)</span>    <span class="c1"># truth: about +1.1</span>
+
+<span class="n">ls</span><span class="p">,</span> <span class="n">rho</span> <span class="o">=</span> <span class="n">oam_density_matrix</span><span class="p">(</span><span class="n">aperture</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">g</span><span class="p">,</span> <span class="n">i0</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">adjacent_coherence</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"coherence of l = </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">ls</span><span class="p">[</span><span class="n">i0</span><span class="p">])</span><span class="si">}</span><span class="s2"> and l = </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">ls</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">g</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>   <span class="c1"># truth: 0 (incoherent)</span>
+</pre></div>
+</div>
+<p>The OAM spectrum <span class="math notranslate nohighlight">\(P_l\)</span> is the power in each charge <span class="math notranslate nohighlight">\(l\)</span>, about the intensity
+centroid of the aperture plane. The density matrix <span class="math notranslate nohighlight">\(\rho_{ll'}\)</span> has this
+spectrum on its diagonal. Its off-diagonal elements show the coherence between
+OAM channels: zero for an incoherent mixture of OAM eigenstates, one for a
+coherent superposition with a common radial profile.</p>
+</section>
+<section id="measured-data">
+<h2>Measured data<a class="headerlink" href="#measured-data" title="Link to this heading">#</a></h2>
+<p>The synthetic example skips the steps that a real scan needs. The paper’s
+reconstructions used these settings, on 512 × 512 positions and native
+192 × 192 detector pixels:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Value in the paper</p></th>
+<th class="head"><p>scatterem call</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Data</p></td>
+<td><p>flat-field corrected counts; bright-field disk centred; descan removed; detector axes point-inverted (k to -k)</p></td>
+<td><p>your preprocessing, then <code class="docutils literal notranslate"><span class="pre">from_scan</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Model grid</p></td>
+<td><p>288 px far field, the 192 px detector in its centre</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">from_scan(...,</span> <span class="pre">model_grid=288)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Detector mask</p></td>
+<td><p>measured pixels only; the needle shadow of the device has zero weight</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">detector_mask=</span></code>, with <code class="docutils literal notranslate"><span class="pre">ray_band_mask</span></code> for the shadow</p></td>
+</tr>
+<tr class="row-odd"><td><p>Seed</p></td>
+<td><p>an aperture from a first estimate on every second scan position, 96 % of the power in mode 0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">probe_stack_from_aperture(aperture,</span> <span class="pre">192,</span> <span class="pre">pmodes,</span> <span class="pre">0.96)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Modes</p></td>
+<td><p>9: 8 physical and 1 free</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">expand_modes(9,</span> <span class="pre">mode0_frac=0.96)</span></code>, or a 9-mode seed</p></td>
+</tr>
+<tr class="row-odd"><td><p>Passes</p></td>
+<td><p>end a: 40 passes with one mode at batch 128, then 150 passes with 9 modes at batch 512; end b: 150 passes with 9 modes at batch 512</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">model.batches(...)</span></code>, <code class="docutils literal notranslate"><span class="pre">n_iter=</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Probe support</p></td>
+<td><p>aperture-plane field set to zero outside the measured detector area and in the needle shadow, power kept</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PlanarConstraints(aperture_support=measured_bbox_support(...))</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Other constraints</p></td>
+<td><p>mode orthogonalisation; radial support; absorption bound 2.5</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PlanarConstraints(orthogonalize=True,</span> <span class="pre">radial_support=(1.2,</span> <span class="pre">8.0),</span> <span class="pre">absorption_width=2.5)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Positions</p></td>
+<td><p>refined, 0.5 px trust bound per pass</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">optimize_positions=True</span></code> (default bound)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Result</p></td>
+<td><p>state of the last accepted pass</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PassStopCallback(...,</span> <span class="pre">return_last=True)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>With these settings, the public code gave the same purity and mean OAM as the
+paper’s production code, within the run-to-run spread of each, on the same
+measured scan. The seed of the paper came from a first-estimate step that is
+not part of scatterem. For a vortex, a flat-phase disk is a poor seed: on
+scan 1074 of the paper, its one-mode solve reached only +12.3 ħ of the
++20 ħ. The notebook <code class="docutils literal notranslate"><span class="pre">notebooks/mems_vortex_scan1074.py</span></code> measures a seed
+from the shifts of the virtual bright-field images
+(<code class="docutils literal notranslate"><span class="pre">pairwise_relative_shifts</span></code>, <code class="docutils literal notranslate"><span class="pre">synchronize_shifts</span></code>) and integrates the
+aperture phase from them. It runs the whole recipe on a crop of that scan
+(see the <a class="reference internal" href="gallery.html"><span class="std std-doc">Example gallery</span></a>).</p>
+<p>Two rules from the paper’s controls with simulated data:</p>
+<ol class="arabic simple">
+<li><p><strong>The mean OAM is a measurement; purity recovery needs a strongly
+scattering object and a large scan.</strong> On simulated states, the
+reconstruction returned the mean OAM within 2 %. The purity is recovered
+only from a strongly scattering object and a large scan (the paper uses
+512 × 512 positions). With a weaker object or a smaller scan, the purity
+comes out too high, and it changes with the batch size, the start state
+and the number of passes. Report the purity with the scan size and these
+settings.</p></li>
+<li><p><strong>Sample the aperture plane finely before you sort a vortex.</strong> For a large
+charge <span class="math notranslate nohighlight">\(l\)</span>, bilinear ring sampling on the reconstruction grid gives a mean
+OAM that is too small (23.4 to 23.8 for <span class="math notranslate nohighlight">\(l = 24\)</span>). Zero-pad the real-space
+modes by a factor of 4 before <code class="docutils literal notranslate"><span class="pre">to_aperture_plane</span></code>, so that the aperture
+plane is sampled 4 times finer. Scale the ring radii (<code class="docutils literal notranslate"><span class="pre">r_min</span></code>, <code class="docutils literal notranslate"><span class="pre">r_max</span></code>) by
+the same factor, and set <code class="docutils literal notranslate"><span class="pre">l_max</span></code> well above the largest charge (the paper
+uses 120). On measured data, the paper also removes the two-fold
+astigmatism common to all modes before the sort, and uses rings over the
+whole aperture (Section V E); the notebook shows both steps.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">up</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">pad</span> <span class="o">=</span> <span class="p">(</span><span class="n">GRID</span> <span class="o">*</span> <span class="n">up</span> <span class="o">-</span> <span class="n">GRID</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+<span class="n">fine</span> <span class="o">=</span> <span class="n">to_aperture_plane</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">modes</span><span class="p">,</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">)))</span>
+<span class="n">ls</span><span class="p">,</span> <span class="n">spectrum</span> <span class="o">=</span> <span class="n">oam_spectrum</span><span class="p">(</span><span class="n">fine</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">r_max</span><span class="o">=</span><span class="n">up</span> <span class="o">*</span> <span class="p">(</span><span class="n">GRID</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"mean OAM, 4x finer aperture plane: </span><span class="si">{</span><span class="n">mean_oam</span><span class="p">(</span><span class="n">ls</span><span class="p">,</span><span class="w"> </span><span class="n">spectrum</span><span class="p">)</span><span class="si">:</span><span class="s2">+.2f</span><span class="si">}</span><span class="s2"> hbar"</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="reading-further">
+<h2>Reading further<a class="headerlink" href="#reading-further" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The paper: S. You <em>et al.</em>, arXiv:2608.05749 (2026),
+<a class="reference external" href="https://doi.org/10.48550/arXiv.2608.05749">doi:10.48550/arXiv.2608.05749</a></p></li>
+<li><p>The solver’s step sizes: Carlsson, Nikitin, Troedsson and Wendt, <em>The bilinear
+Hessian for large scale optimization</em>,
+<a class="reference external" href="https://arxiv.org/abs/2502.03070">arXiv:2502.03070</a></p></li>
+<li><p><a class="reference internal" href="api.html#second-order-ptychography"><span class="std std-ref">API reference</span></a></p></li>
+<li><p><a class="reference internal" href="cite.html"><span class="std std-doc">How to cite</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="figures.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Run the paper’s figure scripts</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="eels.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Simulate STEM-EELS</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-idea-in-one-paragraph">The idea in one paragraph</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-parts">The parts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-first-reconstruction">A first reconstruction</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#read-the-probe">Read the probe</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#measured-data">Measured data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-further">Reading further</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Shengbo You, Nikita Palatkin, Sihan Shao and Philipp Pelz
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, the scatterem authors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

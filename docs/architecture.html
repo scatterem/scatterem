@@ -1,0 +1,618 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="light">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Architecture &#8212; scatterem</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/scatterem.css?v=9b234c1c" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=5790baa0"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'docs/architecture';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://scatterem.github.io/scatterem/docs/architecture.html" />
+    <link rel="icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Cite" href="cite.html" />
+    <link rel="prev" title="API reference" href="api.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.5.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="light">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="scatterem"/>
+    <img src="../_static/logo.png" class="logo__image only-dark pst-js-only" alt="scatterem"/>
+  
+  
+    <p class="title logo__title">scatterem</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="gallery.html">Example gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ffstem.html">FF-STEM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">Figure scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixed-state.html">Mixed-state ptychography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eels.html">Simulate STEM-EELS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bip-prism.html">BiP-PRISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prism.html">Elastic PRISM</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Architecture</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Project</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/scatterem/scatterem">GitHub</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/scatterem/">PyPI</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/scatterem/scatterem/issues/new?title=Issue%20on%20page%20%2Fdocs/architecture.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Architecture</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-layers">The layers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-import-rule">The import rule</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-to-look">Where to look</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="architecture">
+<h1>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">scatterem</span></code> package is a stack of layers. Each layer is one or more
+subpackages. A module imports only from its own subpackage and from lower
+layers. It never imports from a higher layer. Thus the physics does not depend
+on the solvers, and the solvers do not depend on plotting or on the paper
+datasets.</p>
+<p>The core has seven layers, from the forward physics (layer 0) to the
+reconstruction methods (layer 6). Three small base layers sit below the core:
+settings, rotations and crystals. The paper datasets and the root <code class="docutils literal notranslate"><span class="pre">scatterem</span></code>
+namespace sit above it.</p>
+<section id="the-layers">
+<h2>The layers<a class="headerlink" href="#the-layers" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Layer</p></th>
+<th class="head"><p>Subpackages</p></th>
+<th class="head"><p>What they hold</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>8</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem</span></code></p></td>
+<td><p>the root namespace: the FF-STEM entry points, <code class="docutils literal notranslate"><span class="pre">Dataset4DStem</span></code>, the paper datasets and <code class="docutils literal notranslate"><span class="pre">configure</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>7</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.data.public</span></code></p></td>
+<td><p>the paper datasets, downloaded from Zenodo or Hugging Face on first use</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>6</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.reconstruction</span></code></p></td>
+<td><p>the reconstruction methods: direct ptychography, tilt-corrected dark field, their fusion, <code class="docutils literal notranslate"><span class="pre">run</span></code>, and iterative (second-order) ptychography</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>5</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.training</span></code></p></td>
+<td><p>internal: one check for a <code class="docutils literal notranslate"><span class="pre">torch.distributed</span></code> group of several ranks</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>4</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.simulation</span></code></p></td>
+<td><p>forward simulation: PRISM-EELS, BiP-PRISM and the <code class="docutils literal notranslate"><span class="pre">PrismEelsSimulator</span></code> driver</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>3</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.nn</span></code>, <code class="docutils literal notranslate"><span class="pre">scatterem.vis</span></code>, <code class="docutils literal notranslate"><span class="pre">scatterem.diagnostics</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">nn</span></code>: differentiable operators (ptychography kernels, PRISM and multislice scan operators), losses and regularizers. <code class="docutils literal notranslate"><span class="pre">vis</span></code>: plotting. <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>: probe gauges and orbital angular momentum metrics</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>2</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.data</span></code></p></td>
+<td><p>the 4D-STEM containers, metadata, acquisition fields, calibration and storage</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>1</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.utils</span></code>, <code class="docutils literal notranslate"><span class="pre">scatterem.optim</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">utils</span></code>: general helpers (interpolation, sub-pixel shifts, scan indexing, HDF5). <code class="docutils literal notranslate"><span class="pre">optim</span></code>: the generic second-order solvers</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>0</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.physics</span></code></p></td>
+<td><p>constants, electron optics, atom sets, potentials, transmission functions and propagation</p></td>
+</tr>
+<tr class="row-odd"><td><p>−1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.crystal</span></code></p></td>
+<td><p>elements, phases and CIF reading</p></td>
+</tr>
+<tr class="row-even"><td><p>−2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.rotation</span></code></p></td>
+<td><p>rotations: quaternions and axis-angle</p></td>
+</tr>
+<tr class="row-odd"><td><p>−3</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem._configure</span></code></p></td>
+<td><p>process-wide settings, read by <code class="docutils literal notranslate"><span class="pre">scatterem.configure()</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The bold rows are the seven core layers. Two subpackages in the same layer do
+not import each other. For example, <code class="docutils literal notranslate"><span class="pre">nn</span></code> does not import <code class="docutils literal notranslate"><span class="pre">vis</span></code>.</p>
+</section>
+<section id="the-import-rule">
+<h2>The import rule<a class="headerlink" href="#the-import-rule" title="Link to this heading">#</a></h2>
+<p>A module in layer <em>n</em> imports from layers below <em>n</em> only. There is one
+exception: <code class="docutils literal notranslate"><span class="pre">scatterem.reconstruction</span></code> reads <code class="docutils literal notranslate"><span class="pre">scatterem.__version__</span></code> from the
+root namespace, to write it into the run record.</p>
+<p>The rule has these results for users:</p>
+<ol class="arabic simple">
+<li><p>Import from the subpackage that holds a name, for example
+<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">scatterem.physics.optics</span> <span class="pre">import</span> <span class="pre">lens_wavefront</span></code>. The root namespace
+re-exports only the FF-STEM entry points, <code class="docutils literal notranslate"><span class="pre">Dataset4DStem</span></code>, the paper
+datasets and <code class="docutils literal notranslate"><span class="pre">configure</span></code>.</p></li>
+<li><p>A lower layer does not call the higher layers. For example, a potential
+built with <code class="docutils literal notranslate"><span class="pre">scatterem.physics</span></code> runs no reconstruction code. (An import of
+any subpackage still runs the root <code class="docutils literal notranslate"><span class="pre">scatterem/__init__.py</span></code>, which imports
+<code class="docutils literal notranslate"><span class="pre">scatterem.reconstruction</span></code>.)</p></li>
+<li><p>Plotting is optional. Only <code class="docutils literal notranslate"><span class="pre">vis</span></code> imports matplotlib at import time. A
+lower layer loads matplotlib only when one of its plotting functions runs.</p></li>
+</ol>
+</section>
+<section id="where-to-look">
+<h2>Where to look<a class="headerlink" href="#where-to-look" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>To do this</p></th>
+<th class="head"><p>Start in</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Load a paper dataset</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.data.public</span></code>, or <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">scatterem</span> <span class="pre">import</span> <span class="pre">You2026Carbon</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Hold, calibrate or bin your own 4D-STEM data</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.data</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Build atoms, potentials and a probe</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.physics</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Simulate core-loss or elastic STEM data</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.simulation.eels</span></code>, <code class="docutils literal notranslate"><span class="pre">scatterem.nn.scan_exit_wave</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Reconstruct with FF-STEM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.reconstruction.run</span></code>, or <code class="docutils literal notranslate"><span class="pre">scatterem.fused_full_field</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Reconstruct a mixed-state probe</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.reconstruction.ptychography.iterative.second_order</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Measure the probe modes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.diagnostics.metrics</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Plot a result</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scatterem.vis</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The <a class="reference internal" href="api.html"><span class="std std-doc">API reference</span></a> lists every public name by subpackage.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="api.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">API reference</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="cite.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Cite</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-layers">The layers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-import-rule">The import rule</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-to-look">Where to look</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Shengbo You, Nikita Palatkin, Sihan Shao and Philipp Pelz
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, the scatterem authors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
