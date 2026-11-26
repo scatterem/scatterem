@@ -358,7 +358,7 @@ def potential_stack(
     form_spectra : array_like or torch.Tensor, optional
         Real, finite ``(E, Ny, Nx)`` in FFT order [Volt Angstrom^3], rows in
         :func:`~scatterem.physics.beam_partition.species_order`. Default ``potential_spectra`` (Z <= 103).
-        With autograd through it, the graph keeps ``S E`` half-layout grids.
+        With autograd through it, the graph keeps ``S E`` half-layout grids. Build it for this field of view (same ``points`` and ``replicas``); only the shape is checked.
     overrides : RowReplacements, optional
         Per-site replacement tensors.
     jitter : ThermalJitter, optional

@@ -1,8 +1,7 @@
 """File readers of the structure container (private).
 
-:func:`read_structure_arrays` selects one of five readers and returns plain
-arrays. It does not build the container, so this module does not import
-:mod:`scatterem.physics.atom_set`.
+:func:`read_structure_arrays` selects one of five readers and returns arrays; it
+does not build the container, so it does not import :mod:`scatterem.physics.atom_set`.
 
 Readers (name, extension, layout source):
 
@@ -12,9 +11,9 @@ Readers (name, extension, layout source):
   and Izumi 2011).
 - ``"mustem"``, ``.xtl``: muSTEM crystal file (muSTEM manual; Allen et al.
   2015).
-- ``"cif"``, ``.cif``: through :func:`scatterem.crystal.phase.cif_to_arrays`.
-- ``"extxyz"``, ``.extxyz``: through
-  :func:`scatterem.crystal._ase_io.read_frames`.
+- ``"cif"``, ``.cif``: through :func:`scatterem.crystal.phase.cif_to_arrays`;
+  site charges through :func:`scatterem.crystal._cif_sites.cif_site_charges`.
+- ``"extxyz"``, ``.extxyz``: through :func:`scatterem.crystal._ase_io.read_frames`.
 """
 
 from __future__ import annotations
@@ -24,7 +23,7 @@ from pathlib import Path
 
 import numpy as np
 
-from scatterem.crystal import _ase_io, phase
+from scatterem.crystal import _ase_io, _cif_sites, phase
 from scatterem.crystal.elements import atomic_number
 
 __all__ = ["DISPLACEMENT_KINDS", "SUFFIX_STYLE", "FILE_STYLES", "read_structure_arrays"]
@@ -426,6 +425,7 @@ def _cif(source_file, displacement_kind, position_kind):
         "msd": u2,
         "adp": adp_rows,
         "remark": Path(source_file).name,
+        "charge": _cif_sites.cif_site_charges(Path(source_file)),
     }
 
 
@@ -477,9 +477,9 @@ def read_structure_arrays(
     Returns
     -------
     dict
-        ``box_spec`` ((3,) lengths or (3, 3) rows, Å), ``fractional``
-        (N, 3), ``element_z`` (N,), ``site_fraction`` (N,) or None, ``msd``
-        (N,) Å² or None, ``adp`` (N, 3, 3) Å² or None, ``remark`` (str).
+        ``box_spec`` ((3,) or (3, 3), Å), ``fractional`` (N, 3), ``element_z``
+        (N,), ``site_fraction`` (N,) or None, ``msd`` (N,) Å² or None, ``adp``
+        (N, 3, 3) Å² or None, ``remark`` (str); CIF adds ``charge`` (N,) or None.
     """
     source_file = Path(source_file)
     if file_style is None:

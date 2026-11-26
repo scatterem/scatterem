@@ -24,6 +24,7 @@ import torch
 from torch import Tensor
 
 from scatterem.nn._backends import PRISM_TORCH_RAMP_MUL, PRISM_TORCH_RAMP_MUL_GRAD
+from scatterem.physics._forward_ad import carries_tangent
 from scatterem.utils.env import resolve_backend
 
 from ._torch_adjoint import _RampMulKSum
@@ -124,6 +125,7 @@ def _ramp_mul_operands_ok(basis: Tensor, ramp: Tensor) -> bool:
         and basis.shape[0] == 1
         and ramp.ndim == 5
         and not torch.compiler.is_compiling()
+        and not carries_tangent(basis, ramp)  # the kernel would drop the tangent
         and _ramp_mul_tile(int(ramp.shape[2])) is not None
     )
 
@@ -193,7 +195,8 @@ def _block_basis(basis_blk: Tensor, ramp_k: Tensor, crop: _Crop) -> Tensor:
 def _add_block(out, basis_k, crop: _Crop, psl: slice, ksl: slice, shape) -> None:
     """``out[:, ksl] += (basis_k * crop[None]).sum(1)``, fused where exact."""
     nk = shape[1]
-    if out.is_cuda and out.shape[0] == 1 and crop.exact_ok():
+    exact = out.is_cuda and out.shape[0] == 1 and crop.exact_ok()
+    if exact and not carries_tangent(basis_k, crop.flat):  # Triton drops tangents
         fn = _crop_contract_exact()
         if fn is not None:
             sdt = crop.flat[psl]

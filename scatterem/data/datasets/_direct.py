@@ -47,8 +47,6 @@ class _DirectStats:
 
     #: Where the streaming vBF keeps G (``DatasetVirtualBrightFieldStreaming``).
     g_residency: str = "auto"
-    #: Set by ``frame_view``: the deferred dose is the crop's (``_fill_frame_dose``).
-    _frame_view: bool = False
 
     def iter_scan_blocks(
         self: Any,
@@ -89,19 +87,6 @@ class _DirectStats:
                                      block_rows=self._row_block, c=tr.c)  # fmt: skip
             self._stats = st
         return st
-
-    def _fill_frame_dose(self: Any) -> None:
-        """A frame view's dose: the eager crop's sum of the cropped reads (``c`` divided).
-
-        ``Dataset4DStem.__init__`` sums each scan row in float64 into a Python float,
-        in row order, on the cube's device; this reads the same values the same way.
-        """
-        total = 0.0
-        for _, _, block in self.iter_scan_blocks(device=self.device):
-            for row in block:
-                total += float(row.to(torch.float64).sum())
-        self._dose = total / (self.shape[0] * self.shape[1])
-        self._total_intensity, self._dose_deferred = total, False
 
     @property
     def mean_diffraction_pattern(self: Any) -> Tensor:
@@ -208,8 +193,11 @@ def frame_view(ds: Any, frame: tuple[slice, slice]) -> Any:
 
     The view keeps the transform, and gets its own ``meta`` (with the crop's shape, as
     ``crop`` gives it) and its own ``origin`` (shifted by the frame start). It has no
-    statistics and no cached vBF. Its dose and total are the crop's, computed on first
-    use as the eager crop computes them (``_DirectStats._fill_frame_dose``).
+    statistics and no cached vBF. Its dose and total are the parent's: the
+    probe's full-frame electrons, as the eager crop keeps them. A deferred parent dose
+    stays deferred; the view then computes it over the parent's whole frames
+    (``_dose_source``). The view sums its own frames for ``_array_total`` on first
+    use, as the eager crop records its own sum.
 
     Raises
     ------
@@ -222,10 +210,12 @@ def frame_view(ds: Any, frame: tuple[slice, slice]) -> Any:
     child = copy.copy(ds)  # __getstate__/__setstate__ reset the placed transforms
     for key in _DROP:
         child.__dict__.pop(key, None)
-    # The dose is the crop's, as the eager crop computes it, on first use.
-    child._frame_view = True
-    child._dose, child._total_intensity, child._dose_deferred = None, None, True
+    # The dose is the parent's. copy.copy keeps a filled dose and total; a
+    # deferred one is computed later over the parent's whole frames.
+    if ds._dose_deferred:
+        child._dose_source = ds.__dict__.get("_dose_source", ds.source)
     child._source = ds.source.view((slice(0, ny), slice(0, nx)), frame=frame)
+    child._own_total, child._own_total_deferred = None, True  # its own frames' sum
     child._shape = torch.Size(child._source.shape)
     child._stats = None
     child._measurement_norm = None
@@ -261,7 +251,7 @@ def crop_brightfield(ds: Any, estimator: str, normalize: bool = True,
     An eager dataset crops its cube with ``crop_`` (``normalize`` and
     ``clip_neg_values`` are forwarded), as before. A dataset that reads in blocks
     gets a lazy detector crop: the child keeps the parent's ``c`` (the eager path crops
-    the already-normalised cube), its dose is the crop's (as the eager crop's), and its
+    the already-normalised cube), its dose is the parent's (as the eager crop's), and its
     mean patterns are the parent's, cropped; ``normalize`` and ``clip_neg_values`` are inert there. The
     origin moves as in the eager crop.
 

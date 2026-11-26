@@ -12,8 +12,8 @@ from torch import Tensor
 
 from scatterem.nn.modules.propagator import Propagator
 from scatterem.nn._backends import CONJ_MUL_REDUCE_BCAST, SEPARABLE_GATHER
-from scatterem.nn.functional._forward_ad import carries_tangent
 from scatterem.nn.functional.warp.transmit import fused_transmit
+from scatterem.physics._forward_ad import carries_tangent
 from scatterem.utils.env import switched_on
 
 from ._gather_per_slice import fused_gather_transmit

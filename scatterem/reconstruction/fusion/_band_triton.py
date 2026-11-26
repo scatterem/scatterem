@@ -49,6 +49,7 @@ import torch
 import triton
 import triton.language as tl
 
+from scatterem.physics._forward_ad import carries_tangent
 from scatterem.utils._backends import FUSE_HALF
 from scatterem.utils.env import resolve_backend
 
@@ -126,6 +127,9 @@ def fuse_half(
         CALLS[1] += 1
         return None
     if torch.is_grad_enabled() and any(t.requires_grad for t in ts):
+        CALLS[1] += 1
+        return None
+    if carries_tangent(*ts):  # the kernel would drop a forward-mode tangent
         CALLS[1] += 1
         return None
     h, w = a.shape

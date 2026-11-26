@@ -386,6 +386,372 @@ fails when a public module exports a name that this page does not show.
 
 ```
 
+## Second-order ptychography
+
+```{eval-rst}
+.. currentmodule:: scatterem.reconstruction.ptychography.iterative.second_order
+
+.. autosummary::
+   :nosignatures:
+
+   solve_ptychography
+   PlanarPtychography
+   PlanarConstraints
+   PassStopRule
+   PassStopCallback
+   SolveTarget
+
+.. raw:: html
+
+   <span id="solve_ptychography"></span>
+
+.. autofunction:: solve_ptychography
+
+.. raw:: html
+
+   <span id="planarptychography"></span>
+
+.. autoclass:: PlanarPtychography
+   :no-members:
+
+.. raw:: html
+
+   <span id="planarconstraints"></span>
+
+.. autoclass:: PlanarConstraints
+   :no-members:
+
+.. raw:: html
+
+   <span id="passstoprule"></span>
+
+.. autoclass:: PassStopRule
+   :no-members:
+
+.. raw:: html
+
+   <span id="passstopcallback"></span>
+
+.. autoclass:: PassStopCallback
+   :no-members:
+
+.. raw:: html
+
+   <span id="solvetarget"></span>
+
+.. autoclass:: SolveTarget
+   :no-members:
+
+.. currentmodule:: scatterem.reconstruction.ptychography.iterative.second_order.planar_constraints
+
+.. autosummary::
+   :nosignatures:
+
+   radial_support
+
+.. raw:: html
+
+   <span id="radial_support"></span>
+
+.. autofunction:: radial_support
+
+.. currentmodule:: scatterem.reconstruction.ptychography.iterative.second_order.stop_rule
+
+.. autosummary::
+   :nosignatures:
+
+   mode_purity
+   state_change
+
+.. raw:: html
+
+   <span id="mode_purity"></span>
+
+.. autofunction:: mode_purity
+
+.. raw:: html
+
+   <span id="state_change"></span>
+
+.. autofunction:: state_change
+
+.. currentmodule:: scatterem.reconstruction.ptychography.iterative.second_order.target
+
+.. autosummary::
+   :nosignatures:
+
+   as_solve_target
+   register_solve_target
+
+.. raw:: html
+
+   <span id="as_solve_target"></span>
+
+.. autofunction:: as_solve_target
+
+.. raw:: html
+
+   <span id="register_solve_target"></span>
+
+.. autofunction:: register_solve_target
+
+```
+
+## Second-order optimisers
+
+```{eval-rst}
+.. currentmodule:: scatterem.optim.second_order
+
+.. autosummary::
+   :nosignatures:
+
+   bh_gd
+   bh_gd_incremental
+   bh_cg
+   bh_qn
+   BHLog
+   AutogradOracle
+   ChunkedAutogradOracle
+   LinearLeastSquaresOracle
+   rdot
+
+.. raw:: html
+
+   <span id="bh_gd"></span>
+
+.. autofunction:: bh_gd
+
+.. raw:: html
+
+   <span id="bh_gd_incremental"></span>
+
+.. autofunction:: bh_gd_incremental
+
+.. raw:: html
+
+   <span id="bh_cg"></span>
+
+.. autofunction:: bh_cg
+
+.. raw:: html
+
+   <span id="bh_qn"></span>
+
+.. autofunction:: bh_qn
+
+.. raw:: html
+
+   <span id="bhlog"></span>
+
+.. autoclass:: BHLog
+   :no-members:
+
+.. raw:: html
+
+   <span id="autogradoracle"></span>
+
+.. autoclass:: AutogradOracle
+   :no-members:
+
+.. raw:: html
+
+   <span id="chunkedautogradoracle"></span>
+
+.. autoclass:: ChunkedAutogradOracle
+   :no-members:
+
+.. raw:: html
+
+   <span id="linearleastsquaresoracle"></span>
+
+.. autoclass:: LinearLeastSquaresOracle
+   :no-members:
+
+.. raw:: html
+
+   <span id="rdot"></span>
+
+.. autofunction:: rdot
+
+```
+
+## Probe and object constraints
+
+```{eval-rst}
+.. currentmodule:: scatterem.reconstruction.ptychography.iterative.regularization.aperture_support
+
+.. autosummary::
+   :nosignatures:
+
+   probe_aperture_support
+   measured_bbox_support
+   ray_band_mask
+   embed_centred
+
+.. raw:: html
+
+   <span id="probe_aperture_support"></span>
+
+.. autofunction:: probe_aperture_support
+
+.. raw:: html
+
+   <span id="measured_bbox_support"></span>
+
+.. autofunction:: measured_bbox_support
+
+.. raw:: html
+
+   <span id="ray_band_mask"></span>
+
+.. autofunction:: ray_band_mask
+
+.. raw:: html
+
+   <span id="embed_centred"></span>
+
+.. autofunction:: embed_centred
+
+.. currentmodule:: scatterem.reconstruction.ptychography.iterative.regularization.absorption_bound
+
+.. autosummary::
+   :nosignatures:
+
+   absorption_bound
+   bound_absorption
+   median5
+
+.. raw:: html
+
+   <span id="absorption_bound"></span>
+
+.. autofunction:: absorption_bound
+
+.. raw:: html
+
+   <span id="bound_absorption"></span>
+
+.. autofunction:: bound_absorption
+
+.. raw:: html
+
+   <span id="median5"></span>
+
+.. autofunction:: median5
+
+.. currentmodule:: scatterem.reconstruction.ptychography.iterative.regularization.probe_modes
+
+.. autosummary::
+   :nosignatures:
+
+   orthogonalize_probe
+
+.. raw:: html
+
+   <span id="orthogonalize_probe"></span>
+
+.. autofunction:: orthogonalize_probe
+
+```
+
+## Ptychography losses
+
+```{eval-rst}
+.. currentmodule:: scatterem.nn.losses
+
+.. autosummary::
+   :nosignatures:
+
+   normalized_amplitude_rmse_loss
+   masked_normalized_amplitude_rmse_loss
+   masked_mean
+
+.. raw:: html
+
+   <span id="normalized_amplitude_rmse_loss"></span>
+
+.. autofunction:: normalized_amplitude_rmse_loss
+
+.. raw:: html
+
+   <span id="masked_normalized_amplitude_rmse_loss"></span>
+
+.. autofunction:: masked_normalized_amplitude_rmse_loss
+
+.. raw:: html
+
+   <span id="masked_mean"></span>
+
+.. autofunction:: masked_mean
+
+```
+
+## Probe gauges and orbital angular momentum
+
+```{eval-rst}
+.. currentmodule:: scatterem.diagnostics.metrics
+
+.. autosummary::
+   :nosignatures:
+
+   remove_probe_gauges
+   remove_translation_gauge
+   remove_phase_ramp_gauge
+   to_aperture_plane
+   oam_spectrum
+   mean_oam
+   oam_density_matrix
+   adjacent_coherence
+
+.. raw:: html
+
+   <span id="remove_probe_gauges"></span>
+
+.. autofunction:: remove_probe_gauges
+
+.. raw:: html
+
+   <span id="remove_translation_gauge"></span>
+
+.. autofunction:: remove_translation_gauge
+
+.. raw:: html
+
+   <span id="remove_phase_ramp_gauge"></span>
+
+.. autofunction:: remove_phase_ramp_gauge
+
+.. raw:: html
+
+   <span id="to_aperture_plane"></span>
+
+.. autofunction:: to_aperture_plane
+
+.. raw:: html
+
+   <span id="oam_spectrum"></span>
+
+.. autofunction:: oam_spectrum
+
+.. raw:: html
+
+   <span id="mean_oam"></span>
+
+.. autofunction:: mean_oam
+
+.. raw:: html
+
+   <span id="oam_density_matrix"></span>
+
+.. autofunction:: oam_density_matrix
+
+.. raw:: html
+
+   <span id="adjacent_coherence"></span>
+
+.. autofunction:: adjacent_coherence
+
+```
 ## Named datasets
 
 ```{eval-rst}

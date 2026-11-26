@@ -8,6 +8,7 @@ isotropic thermal values of the site lines, the anisotropic tensors
 from __future__ import annotations
 
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
@@ -86,6 +87,116 @@ def cif_site_arrays(
         np.asarray(u2s, dtype=np.float64),
         None if site_u is None else np.stack(tensors),
     )
+
+
+def cif_site_charges(path: Path) -> np.ndarray | None:
+    """Net charge per row of :func:`cif_site_arrays`, or None if the file has none.
+
+    The charge of a site line is ``_atom_type_oxidation_number`` of its
+    ``_atom_site_type_symbol`` when the file has that loop, else the sign
+    suffix of the type symbol (``Mg2+`` gives +2, ``O2-`` gives -2, ``Cl-``
+    gives -1; CIF core dictionary). A line without either gets 0. A mixed
+    site takes the charge of the line of each species, by the rule of
+    :func:`_site_u2`. ASE merges two lines of one element on one site into
+    one row, so a site with one element in two charges (Fe2+ and Fe3+) has
+    no single charge.
+
+    Returns
+    -------
+    numpy.ndarray or None
+        Shape ``(N,)``, int64, in the row order of :func:`cif_site_arrays`.
+        None when no line has a charge, when an oxidation number or a
+        symbol suffix is not an integer, or when one site holds one element
+        in two charges (a warning names the file); the reader then reports
+        no charges, as before charges were read.
+    """
+    block, atoms = _read_cif_block(path)
+    line_q = _line_charges(block, path)
+    if line_q is None:
+        return None
+    if _has_mixed_valence_site(block, line_q):
+        logger.warning(
+            "%s: a site holds one element in two charges; ASE merges them into "
+            "one row, so the site charges are not read",
+            path,
+        )
+        return None
+    site_q = _site_u2(block, atoms, line_q)
+    site_occ = _site_occupancies(atoms)
+    out: list[float] = []
+    for a in range(len(atoms)):
+        occ_map = site_occ[a]
+        if not occ_map:
+            out.append(site_q[a][None])
+            continue
+        out.extend(site_q[a][sym] for sym in occ_map)
+    return np.asarray(out, dtype=np.int64)
+
+
+def _has_mixed_valence_site(block: Any, line_q: np.ndarray) -> bool:
+    """True if two lines within ``_ASE_SYMPREC`` share an element but not a charge."""
+    symbols = np.asarray(block.get_symbols())
+    coords = block.get_unsymmetrized_structure().get_scaled_positions()
+    for k in range(len(symbols)):
+        near = np.linalg.norm(coords - coords[k], axis=1) < _ASE_SYMPREC
+        if np.unique(line_q[near & (symbols == symbols[k])]).size > 1:
+            return True
+    return False
+
+
+def _suffix_charge(symbol: str) -> float:
+    """Charge of a type symbol such as ``Fe3+``, ``O2-``, ``Cl-`` or ``Fe+3``; 0 if none.
+
+    NaN if the suffix is not an integer, such as ``Mn3.3+``.
+    """
+    number = r"(\d+(?:\.\d*)?)?"
+    m = re.fullmatch(rf"[A-Za-z]+(?:{number}([+-])|([+-]){number})", symbol)
+    if m is None:
+        return 0.0
+    value = float((m.group(1) if m.group(2) else m.group(4)) or 1)
+    sign = 1.0 if (m.group(2) or m.group(3)) == "+" else -1.0
+    return sign * value if value == round(value) else float("nan")
+
+
+def _line_charges(block: Any, path: Path) -> np.ndarray | None:
+    """Charge per CIF site line as floats, or None (see :func:`cif_site_charges`)."""
+    raw = block.get("_atom_site_type_symbol")
+    if raw is None:
+        return None
+    types = [str(v) for v in (raw if isinstance(raw, list) else [raw])]
+    table: dict[str, float] = {}
+    if "_atom_type_oxidation_number" in block and "_atom_type_symbol" in block:
+        keys = block["_atom_type_symbol"]
+        values = block["_atom_type_oxidation_number"]
+        keys = keys if isinstance(keys, list) else [keys]
+        values = values if isinstance(values, list) else [values]
+        for key, value in zip(keys, values, strict=True):
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                continue
+            if float(value) != round(float(value)):
+                logger.warning(
+                    "%s: oxidation number %r of %r is not an integer; "
+                    "the site charges are not read",
+                    path,
+                    value,
+                    key,
+                )
+                return None
+            table[str(key)] = float(value)
+    charges = np.array(
+        [table[t] if t in table else _suffix_charge(t) for t in types],
+        dtype=np.float64,
+    )
+    if np.isnan(charges).any():
+        logger.warning(
+            "%s: a type symbol has a charge suffix that is not an integer; "
+            "the site charges are not read",
+            path,
+        )
+        return None
+    if not charges.any():
+        return None
+    return charges
 
 
 def _read_cif_block(path: Path) -> tuple[Any, Any]:

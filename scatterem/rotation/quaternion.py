@@ -52,12 +52,13 @@ def _q2m_consts(device, dtype):
     if c is None:
         if len(_Q2M_CACHE) >= _Q2M_CACHE_MAX:
             _Q2M_CACHE.clear()
-        c = (
-            torch.tensor(_Q2M_IABCD, dtype=torch.long, device=device),
-            torch.tensor(_Q2M_S, dtype=dtype, device=device).unsqueeze(0),
-            torch.tensor(_Q2M_ALPHA, dtype=dtype, device=device).unsqueeze(0),
-            torch.tensor(_Q2M_BETA, dtype=dtype, device=device).unsqueeze(0),
-        )
+        with torch.inference_mode(False):  # never cache an inference tensor
+            c = (
+                torch.tensor(_Q2M_IABCD, dtype=torch.long, device=device),
+                torch.tensor(_Q2M_S, dtype=dtype, device=device).unsqueeze(0),
+                torch.tensor(_Q2M_ALPHA, dtype=dtype, device=device).unsqueeze(0),
+                torch.tensor(_Q2M_BETA, dtype=dtype, device=device).unsqueeze(0),
+            )
         _Q2M_CACHE[key] = c
     return c
 

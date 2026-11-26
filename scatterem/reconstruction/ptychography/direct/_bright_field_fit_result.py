@@ -53,6 +53,31 @@ class BrightFieldShiftFit:
         ``False`` when the rotation is free and the closed-form seed found the
         defocus too small to fix it (the rotation is then the prior, not a
         fit). A held rotation (``fit_rotation=False``) is always well posed.
+    covariance : torch.Tensor or None
+        Formal covariance of ``covariance_parameters``, float64, Angstrom²
+        and degrees², in the frame of ``aberrations``: the covariance of the
+        closed-form fit on the same shifts (``info["covariance"]`` of
+        ``fit_low_order_aberrations_and_rotation_closed_form``). Set only
+        when the fit refines C1 and C12 (``correct_order=1``) from the
+        closed-form seed and the rotation is held or well posed; ``None``
+        otherwise. It assumes independent shift errors per pixel and is not
+        calibrated when they are correlated, as on dynamical data (there it
+        is usually much too small). It is the covariance of the least-squares
+        seed: the refinement uses a Huber loss with a 1 Angstrom threshold
+        per shift component, so when residuals pass that threshold the
+        returned values differ from the seed and this covariance is only
+        approximate. For a multi-level result it is the last level's
+        covariance, also when an earlier level was not well posed; check
+        ``reliable``.
+    covariance_parameters : tuple of str
+        Names of the ``covariance`` rows: ``("C1", "C12a", "C12b",
+        "rotation")``, or the first three at a held rotation. Empty when
+        ``covariance`` is ``None``.
+    covariance_bootstrap : torch.Tensor or None
+        Block-bootstrap covariance over bright-field pixels, same rows and
+        frame as ``covariance``, when the fit was asked for one
+        (``covariance_block_px``); ``None`` otherwise. It keeps shift errors
+        that are correlated between neighbouring pixels.
 
     Notes
     -----
@@ -73,6 +98,9 @@ class BrightFieldShiftFit:
     relative_residual: float
     residual_rtol: float = DEFAULT_RESIDUAL_RTOL
     well_posed: bool = True
+    covariance: torch.Tensor | None = None
+    covariance_parameters: tuple[str, ...] = ()
+    covariance_bootstrap: torch.Tensor | None = None
 
     @property
     def reliable(self) -> bool:
@@ -107,11 +135,13 @@ def _shift_fit_result(
     include: torch.Tensor,
     residual_rtol: float,
     well_posed: bool,
+    **covariance,
 ) -> BrightFieldShiftFit:
     """Measure the relative residual, warn when it or the seed fails, and wrap.
 
     The two warnings are those the fit always gave; ``reliable`` is ``False``
-    exactly when one of them is emitted.
+    exactly when one of them is emitted. ``covariance`` holds the optional
+    covariance fields of :class:`BrightFieldShiftFit`.
     """
     with torch.no_grad():
         masked_target = target_shifts[include]
@@ -141,15 +171,17 @@ def _shift_fit_result(
         relative_residual=rel,
         residual_rtol=float(residual_rtol),
         well_posed=bool(well_posed),
+        **covariance,
     )
 
 
 def _worst_of_levels(fits: list[BrightFieldShiftFit]) -> BrightFieldShiftFit:
     """The last level's values with the worst quality over all levels.
 
-    A bin level fits the previous level's model plus the new measured
-    increment, so a misfit at an earlier level is not in the last level's
-    residual. The result is ``reliable`` only when every level was: its
+    Every bin level fits the shifts measured up to that level, and the last
+    level's covariance is that of the last fit. A level can fail (for
+    example a bad cross-correlation pick at a coarse binning) where the last
+    level does not. The result is ``reliable`` only when every level was: its
     residual is the largest (``nan`` if any is ``nan``) and it is well posed
     only when every level was.
     """

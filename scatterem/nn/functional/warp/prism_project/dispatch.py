@@ -8,6 +8,7 @@ import torch
 from torch import Tensor
 
 from scatterem.nn._backends import PRISM_PROJECT
+from scatterem.physics._forward_ad import carries_tangent, refuse_forward_ad
 from scatterem.utils.env import resolve_use_warp
 
 # Imported for its REGISTRATION side effect as much as for reading: defining
@@ -61,6 +62,7 @@ def _prism_project_warp(
     """
     if isinstance(basis_fft, BeamletBasis):  # the kernels take ONE tensor
         basis_fft = basis_fft.dense()
+    refuse_forward_ad("prism_project", Sdt, basis_fft, dr)
     # Backward stays fp32: the bwd kernels are fp32-only. If a half-precision
     # route is requested while grad is enabled, fall back to fp32 inputs so
     # autograd is exact. Forward simulation runs under no_grad, so this only
@@ -292,10 +294,10 @@ def prism_project(
     # be cheaper still and is WRONG -- a mixed ``dr`` has all-zero chunks that must
     # keep folding.  ``dr != 0`` matches ``dr.any()`` element for element (both
     # treat -0.0 as zero and NaN as nonzero).
-    if torch.is_grad_enabled() and dr.requires_grad:
+    if (torch.is_grad_enabled() and dr.requires_grad) or carries_tangent(dr):
         # The fold is refused for every chunk (it drops the ramp from the graph, so
-        # a differentiable dr would silently get no gradient -- see
-        # _ramp_is_identity).  No mask needed, so no sync at all.
+        # a differentiable dr would silently get no gradient, and a dual dr no
+        # tangent -- see _ramp_is_identity).  No mask needed, so no sync at all.
         dr_nonzero = None
     else:
         dr_nonzero = (dr != 0).any(dim=1).tolist()

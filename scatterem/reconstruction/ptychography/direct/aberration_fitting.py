@@ -9,6 +9,7 @@ import numpy as np
 import torch
 
 from scatterem.data.datasets import Dataset4DStem, DatasetVirtualBrightField4DStem
+from scatterem.nn.functional.ptychography._release import releases_launch_operands
 from scatterem.reconstruction._sampling import _fold_defocus_guess
 
 from ._aberration_finalize import _log_and_finalize_aberration_fit
@@ -33,9 +34,7 @@ from ._common import (
     _resolve_vbf,
 )
 from ._defocus_sign import clear_defocus_sign_check, resolve_defocus_sign
-from .bright_field import (
-    aberrations_and_rotation_from_bright_field_shifts,
-)
+from .bright_field import aberrations_and_rotation_from_bright_field_shifts
 
 logger = logging.getLogger(__name__)
 
@@ -286,6 +285,7 @@ def _autofocus_seed_from_meta(
     return seed_aberr, float(rotation)
 
 
+@releases_launch_operands
 def determine_aberrations(
     dataset: Dataset4DStem | DatasetVirtualBrightField4DStem,
     correction_method: str = "combined",

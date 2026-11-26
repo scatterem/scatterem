@@ -199,6 +199,20 @@ def _low_order_at_fixed_rotation(
     return aberrations, rotation, info
 
 
+def _bright_field_frequencies(
+    k_sampling: np.ndarray | torch.Tensor, bright_field_mask: torch.Tensor
+) -> torch.Tensor:
+    """The ``(N, 2)`` frequencies ``[k0, k1]`` of the bright-field pixels, row-major."""
+    sampling = (
+        k_sampling.tolist() if isinstance(k_sampling, torch.Tensor) else k_sampling
+    )
+    shape, device = tuple(bright_field_mask.shape), bright_field_mask.device
+    q = torch.fft.fftshift(
+        dual_mesh(shape, sampling, staggered=False, device=device), dim=(-2, -1)
+    )  # (2, H, W) = [k0, k1]
+    return q[:, bright_field_mask].T
+
+
 def _covariance_info(
     covariance: torch.Tensor,
     shift_cov: torch.Tensor,
@@ -388,6 +402,16 @@ def fit_low_order_aberrations_and_rotation_closed_form(
         the held rotation is not in it. When `well_posed` is False and the
         rotation is free, the covariance is not meaningful.
 
+        The covariance is NOT CALIBRATED when the shift errors are
+        correlated between neighbouring pixels. The size and sign of the
+        error depend on the spatial structure of the correlation and on the
+        design. On dynamical data (thick crystals, lattice-locked correlation
+        peaks) the errors are correlated, and the formal standard errors can
+        be 20-50 times smaller than the scatter between scan patches. ``dof`` then overstates the number of independent
+        measurements. For an estimate that keeps the correlation, use
+        :func:`._bright_field_bootstrap.closed_form_bootstrap_covariance` (a
+        block bootstrap over bright-field pixels).
+
     Raises
     ------
     ValueError
@@ -396,17 +420,10 @@ def fit_low_order_aberrations_and_rotation_closed_form(
     if rotation_fixed and rotation_prior is None:
         raise ValueError("rotation_fixed=True needs a rotation_prior")
     device = target_shifts.device
-    shape = tuple(bright_field_mask.shape)
     if bright_field_mask.device != device:
         bright_field_mask = bright_field_mask.to(device)
 
-    sampling = (
-        k_sampling.tolist() if isinstance(k_sampling, torch.Tensor) else k_sampling
-    )
-    q = torch.fft.fftshift(
-        dual_mesh(shape, sampling, staggered=False, device=device), dim=(-2, -1)
-    )  # (2, H, W) = [k0, k1]
-    K = q[:, bright_field_mask].T  # (N, 2)
+    K = _bright_field_frequencies(k_sampling, bright_field_mask)  # (N, 2)
     S = target_shifts
     if include_in_fit_mask is not None:
         # Accept a (N,) per-pixel mask or the existing (N, 2) per-component default; reduce to

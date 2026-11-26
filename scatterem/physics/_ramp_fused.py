@@ -88,6 +88,7 @@ import warp as wp
 from torch import Tensor
 
 from scatterem.physics import _warp_interop as wi
+from scatterem.physics._forward_ad import carries_tangent
 from scatterem.physics._warp_init import (
     ensure_warp_initialized as _ensure_warp_initialized,
 )
@@ -150,12 +151,14 @@ def ramp_phase_fused_supported(waves: Tensor, shifts: Tensor) -> bool:
     excluded cases are the ones this kernel does not carry: a CPU device (Warp
     runs one scalar thread there), a non-complex64 phase dtype, and a caller
     differentiating w.r.t. the scan positions -- ``shifts`` is the only operand
-    of the ramp, and the kernel has no adjoint.
+    of the ramp, and the kernel has no adjoint. A forward-mode dual ``shifts``
+    is excluded for the same reason: the kernel would drop its tangent.
     """
     return (
         waves.device.type == "cuda"
         and waves.dtype == torch.complex64
         and not (torch.is_grad_enabled() and shifts.requires_grad)
+        and not carries_tangent(shifts)
     )
 
 

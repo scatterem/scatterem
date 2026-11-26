@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#     "scatterem==0.4.2",
+#     "scatterem==0.5.0",
 #     "marimo==0.25.2",
 #     "matplotlib>=3.10",
 #     "torch>=2.5.0",
@@ -57,7 +57,7 @@ def _(mo):
     2. Run all cells.
 
     The code and the data are public, so you need no token or account.
-    The header of this file pins `scatterem==0.4.2`, and molab installs
+    The header of this file pins `scatterem==0.5.0`, and molab installs
     it. The dataset (about 500 MB) downloads on first use from the
     Hugging Face mirror of the Zenodo record (Zenodo is the fallback), and
     its md5 checksums are verified. Cite the Zenodo DOI. Set `FFSTEM_DATA_ROOT` to keep the data in a

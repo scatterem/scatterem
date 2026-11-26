@@ -43,6 +43,7 @@ class MultisliceScanOp(ScanExitWaveOperator):
     of that many slices when a gradient is recorded
     (``checkpointed_slice_loop`` in ``_slice_checkpoint``): ``O(N_sl / s + s)``
     activation memory for one extra forward, with the same output and gradients.
+
     """
 
     #: Slices per checkpointed segment under autograd; 0 runs the plain loop.

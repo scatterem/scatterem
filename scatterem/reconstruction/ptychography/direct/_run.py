@@ -108,6 +108,10 @@ class DirectPtychographyConfig(ReconstructionConfig[DirectPtychographyResult]):
     a vBF built at this config's ``bright_field_mask_threshold`` from the same
     dataset, instead of building one; it is not checked against the threshold.
 
+    Memory: the run frees its virtual bright field and the bright-field
+    Fourier stack ``G`` when it returns, so repeated runs on one dataset (a
+    defocus sweep, say) all peak at the first run's level.
+
     Parameters
     ----------
     upsample : float or str

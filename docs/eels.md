@@ -263,10 +263,10 @@ The `wavefunctions` option selects the source. Pass it through
 GPAW is an optional extra, because it is GPL-licensed and a large install. The
 `eels` extra installs it. pip builds GPAW from source, and the build needs a
 C++ compiler (see [Installation](install.md)). The line below pins
-scatterem 0.4.2, a release that gives the numbers on this page:
+scatterem 0.5.0, a release that gives the numbers on this page:
 
 ```bash
-CC=g++ pip install "scatterem[eels]==0.4.2" gpaw-data
+CC=g++ pip install "scatterem[eels]==0.5.0" gpaw-data
 ```
 
 :::{admonition} Without GPAW, the numbers change
@@ -311,8 +311,7 @@ you build the specimen with v0.4, through the new physics base layer
   of the interaction constant and the occupancy $N/(2l+1) = 2$ of each orbital
   of a closed subshell, and the flux factor $k_0/k_n$. v0.3 had no absolute
   scale. So no single factor converts v0.3 values to v0.4 values: the ratio
-  depends on the edge and on the beam energy (see
-  [Migrating from v0.3](migrating.md)).
+  depends on the edge and on the beam energy.
 - **Output scale.** A map value, a qEELS bin, a cube pixel and a multislice
   pattern pixel are now probabilities per incident electron (per eV). v0.3
   summed the raw squared FFT amplitudes at the detector, so its maps were

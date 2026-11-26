@@ -63,6 +63,53 @@ def rot_from_axis_angle(turn_axis, turn_angle) -> np.ndarray:
     return R.numpy().astype(np.float64)
 
 
+def check_charge(charge, n: int) -> np.ndarray | None:
+    """Return the charges as a new (n,) int64 array, or None for None."""
+    if charge is None:
+        return None
+    a = np.asarray(charge)
+    if a.dtype.kind not in "iuf" or a.shape != (n,):
+        raise ValueError(
+            f"charge: must be ({n},) integers; got dtype {a.dtype}, shape {a.shape}"
+        )
+    if a.dtype.kind == "f" and not (np.isfinite(a).all() and (a == np.round(a)).all()):
+        raise ValueError("charge: values must be finite integers")
+    return a.astype(np.int64)
+
+
+def check_rotation_args(
+    axis_vec, turn_radians, fixed_point, as_crystal, padding, centroid
+):
+    """Checked ``(axis, angle, fixed point, padding)`` of ``AtomSet.with_rotation``.
+
+    ``centroid`` is called for the default fixed point (``fixed_point`` None).
+    """
+    a = real(turn_radians, "turn_radians")
+    if a.ndim != 0 or not np.isfinite(a):
+        raise ValueError(
+            f"turn_radians: must be a finite real scalar; got {turn_radians!r}"
+        )
+    ax = np.array(real(axis_vec, "axis_vec"), dtype=np.float64)
+    if ax.shape != (3,) or not np.isfinite(ax).all() or not np.any(ax):
+        raise ValueError(
+            f"axis_vec: must be a finite, non-zero (3,) vector; got {axis_vec!r}"
+        )
+    if fixed_point is None:
+        p = centroid()
+    else:
+        p = np.array(real(fixed_point, "fixed_point"), dtype=np.float64)
+        if p.shape != (3,) or not np.isfinite(p).all():
+            raise ValueError(
+                f"fixed_point: must be a finite (3,) vector, Å; got {fixed_point!r}"
+            )
+    if not isinstance(as_crystal, (bool, np.bool_)):
+        raise ValueError(f"as_crystal: must be a bool; got {as_crystal!r}")
+    pad = real(padding, "padding")
+    if pad.ndim != 0 or not np.isfinite(pad) or pad < 0:
+        raise ValueError(f"padding: must be a finite number >= 0 (Å); got {padding!r}")
+    return ax, float(a), p, float(pad)
+
+
 def check_atom_data(n, element_z, site_fraction, msd, adp, full_tolerance):
     """Check and convert the per-atom data of N atoms.
 

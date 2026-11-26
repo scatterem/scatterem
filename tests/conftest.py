@@ -85,6 +85,23 @@ def _set_num_threads_guarded(n: int) -> None:
 
 torch.set_num_threads = _set_num_threads_guarded
 
+# torch.compile tests do not read the FX graph cache or the AOTAutograd cache.
+# The cache key of a graph does not hold the schema of a custom op that the
+# graph calls. Inductor writes every argument of a call, also the defaulted
+# ones, into the cached code. So when another checkout added a trailing
+# defaulted argument to an op (``scatterem::ray_transform_bwd`` with 22
+# arguments instead of 21), a cache hit runs that code against this
+# checkout's op and fails with "expected at most 21 argument(s) but received
+# 22". The self-hosted runners share /tmp, so the default cache dir
+# (/tmp/torchinductor_<user>) holds graphs from other branches. The C++ code
+# cache, keyed by the generated source, stays on. ``torch._inductor.config``
+# reads TORCHINDUCTOR_FX_GRAPH_CACHE and ``torch._functorch.config`` reads
+# TORCHINDUCTOR_AUTOGRAD_CACHE once, at import, so nothing above this line may
+# import them. tests/test_inductor_cache_off.py checks that. An explicit setting
+# in the environment wins.
+os.environ.setdefault("TORCHINDUCTOR_FX_GRAPH_CACHE", "0")
+os.environ.setdefault("TORCHINDUCTOR_AUTOGRAD_CACHE", "0")
+
 _CUDA_SKIP_REASON = "requires a CUDA-capable GPU (CPU lane skips the GPU lane's tests)"
 
 

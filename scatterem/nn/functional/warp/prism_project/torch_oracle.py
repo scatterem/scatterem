@@ -11,6 +11,7 @@ from __future__ import annotations
 import torch
 from torch import Tensor
 
+from scatterem.physics._forward_ad import carries_tangent
 from scatterem.physics._frequency_grid import fft_frequency_grid
 
 from ._basis import BeamletBasis
@@ -45,8 +46,12 @@ def _ramp_is_identity(basis_fft: Tensor | BeamletBasis, dr: Tensor) -> bool:
     ``dr.requires_grad`` still refuses, and that one is not a tolerance question:
     the fold drops the ramp from the graph entirely, so ``dr`` would silently get no
     gradient rather than a slightly reassociated one.  Do not widen it further.
+    A forward-mode dual ``dr`` refuses for the same reason: it does not
+    ``requires_grad``, and the fold would drop its tangent.
     """
     if torch.is_grad_enabled() and dr.requires_grad:
+        return False
+    if carries_tangent(dr):  # forward mode: the fold would drop the dr tangent
         return False
     return not bool(dr.any())
 

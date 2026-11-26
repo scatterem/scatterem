@@ -13,6 +13,7 @@ from __future__ import annotations
 from scatterem.utils.env import Backend, register_backend
 
 
+_F = "scatterem.nn.functional"
 _PP = "scatterem.nn.functional.warp.prism_project"
 
 
@@ -43,3 +44,20 @@ PRISM_FWD_EAGER = register_backend(
 )
 
 
+
+# -- fused transmit recorded launch ------------------------------------------
+
+#: How ``fused_transmit`` issues its forward and backward Warp kernels: replay a
+#: ``wp.Launch`` recorded once per (kernel, value type, dim, device, thread),
+#: every argument rebound per call, on torch's current stream (``"recorded"``,
+#: 1.315x on a slab-kernel step), or a plain
+#: ``wp.launch`` (``"launch"``).  Same kernel, operands and scalars; the outputs
+#: are bit-identical.  The predicate takes the Warp device and declines the CPU,
+#: a Warp without its array descriptor, and a graph capture.
+TRANSMIT_LAUNCH_MEMO = register_backend(
+    Backend(
+        name="transmit_launch_memo",
+        impls=("recorded", "launch"),
+        accepts={"recorded": (f"{_F}.warp.transmit:transmit_launch_memo_supported",)},
+    )
+)

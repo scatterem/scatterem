@@ -3,12 +3,15 @@
 The folder `notebooks/` of the repository holds marimo notebooks. molab, the
 free hosted notebook service of marimo, opens each one from GitHub and runs it
 on a GPU. Click a badge, switch on the GPU in the notebook specs, and run all
-cells. Each notebook installs `scatterem==0.4.2` from PyPI (the PEP 723 header
+cells. Each notebook installs `scatterem==0.5.0` from PyPI (the PEP 723 header
 of the file), so you need no account, token or local install.
 
-The FF-STEM figure notebooks download their dataset from the
-[Hugging Face mirror](https://huggingface.co/datasets/philipp-pelz/public-4dstem)
-of the Zenodo record, with Zenodo as fallback, and check it by md5. The BiP-PRISM
+The FF-STEM figure notebooks download their dataset from a byte-identical copy
+of the Zenodo record in the Hugging Face dataset
+[philipp-pelz/public-4dstem](https://huggingface.co/datasets/philipp-pelz/public-4dstem),
+with Zenodo as fallback, and check it by md5. The mixed-state notebook downloads
+a lossless HDF5 copy of one scan from the same dataset and checks it by sha256.
+The BiP-PRISM
 notebooks build their specimens in the notebook; the FePt notebook downloads
 the atomic model from the data page of its authors. Each notebook explains what
 the figure shows, what to look at and how its numbers differ from the paper.
@@ -20,7 +23,7 @@ Paper: S. You *et al.*, *Advanced Science* **13**, e76620 (2026),
 [doi:10.1002/advs.76620](https://doi.org/10.1002/advs.76620). Data: Zenodo record
 [18008901](https://zenodo.org/records/18008901), CC-BY-4.0 (cite
 [10.5281/zenodo.18008901](https://doi.org/10.5281/zenodo.18008901)); the
-notebooks download it from the Hugging Face mirror.
+notebooks download it from the Hugging Face copy.
 
 | Notebook | What it shows | Runtime | Peak GPU memory | Data |
 |---|---|---|---|---|
@@ -29,6 +32,20 @@ notebooks download it from the Hugging Face mirror.
 | `fig2_carbon.py` [![Open in molab](https://marimo.io/molab-shield.svg)](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig2_carbon.py) | Figure 2, amorphous carbon at 300 kV: the three images and the SSNR of each channel | 6 s | 0.8 GiB | Zenodo 18008901 (0.34 GB) |
 | `fig2_co3o4.py` [![Open in molab](https://marimo.io/molab-shield.svg)](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig2_co3o4.py) | Figure 2, Co₃O₄ at 200 kV | 6 s | 1.2 GiB | Zenodo 18008901 (0.56 GB) |
 | `fig4_diffraction.py` [![Open in molab](https://marimo.io/molab-shield.svg)](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig4_diffraction.py) | Figure 4, Au nanoparticle at low dose | 17 s | 5.5 GiB | Zenodo 18008901 (0.50 GB) |
+
+## Mixed-state ptychography
+
+Paper: S. You *et al.*, *Transverse quantum-state characterization of
+programmable electron optics*, arXiv:2608.05749 (2026),
+[doi:10.48550/arXiv.2608.05749](https://doi.org/10.48550/arXiv.2608.05749).
+Data: Zenodo record [24444109](https://doi.org/10.5281/zenodo.24444109),
+CC-BY-4.0; the notebook downloads a lossless HDF5 copy of scan 1074 from the
+Hugging Face dataset. The page [Mixed-state ptychography](mixed-state.md)
+explains the method.
+
+| Notebook | What it shows | Runtime | Peak GPU memory | Data |
+|---|---|---|---|---|
+| `mems_vortex_scan1074.py` [![Open in molab](https://marimo.io/molab-shield.svg)](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/mems_vortex_scan1074.py) | A measured vortex probe (MEMS phase plate at +1.0 V) on a central crop of the scan: preprocessing, a seed from bright-field shifts, a one-mode then a nine-mode solve, the purity, the OAM spectrum and the OAM density matrix | 12.4 min | 19.5 GiB | scan 1074 of Zenodo 24444109 (4.7 GB) |
 
 ## BiP-PRISM
 
@@ -47,7 +64,8 @@ Paper: P. Pelz, *J. Phys. Mater.* (2026),
 ## About the numbers
 
 We measured the runtime and the peak GPU memory on an NVIDIA RTX PRO 6000 (96 GB), the GPU of molab, with `scatterem` 0.4.1 (2026-11-10). The runtime is the wall time of the whole notebook, with the
-default controls, from the Python start to the last cell. It includes the
+default controls, from the Python start to the last cell (the mixed-state
+notebook: from its GPU check to the last cell, with `scatterem` 0.5.0). It includes the
 imports and the first-use compilation of the GPU kernels. It does not include
 the installation on molab or the dataset download (the data were already on
 disk). The peak memory is `torch.cuda.max_memory_allocated` at the end of the

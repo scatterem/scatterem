@@ -79,24 +79,44 @@ def aberrations_to_image_shifts(
         Shape ``(H, W, 2)``, the ``(y, x)`` shift of every detector pixel in
         Angstrom, zero frequency at ``(H // 2, W // 2)``.
     """
-    device = aberrations_array.device
+    if not aberrations_array.is_floating_point():
+        # lens_wavefront_slope takes a floating lens vector; an integer one is
+        # read in the grid dtype (dual_mesh's default).
+        aberrations_array = aberrations_array.to(torch.get_default_dtype())
+    qy_rot, qx_rot = _shift_model_frequencies(
+        rotation,
+        sampling,
+        shape,
+        dtype=aberrations_array.dtype,
+        device=aberrations_array.device,
+    )
+    return _shifts_at_frequencies(aberrations_array, qy_rot, qx_rot, wavelength)
+
+
+def _shift_model_frequencies(
+    rotation: torch.Tensor,
+    sampling: np.ndarray,
+    shape: Sequence[int] | torch.Size,
+    *,
+    dtype: torch.dtype,
+    device: torch.device,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """The rotated detector frequencies ``(qy, qx)`` of the shift model.
+
+    The grid part of :func:`aberrations_to_image_shifts`; it depends on no
+    aberration. It builds the grid on the host and copies it to ``device``,
+    so a CUDA-graph capture must call it outside the capture. A trial that
+    is captured calls :func:`_shifts_at_frequencies` on a grid made before.
+    """
     if rotation.device != device:
         rotation = rotation.to(device)
-    if isinstance(shape, torch.Size):
-        shape = tuple(shape)
-    else:
-        shape = tuple(shape)
     q = torch.fft.fftshift(
-        dual_mesh(shape, sampling, staggered=False, device=device), dim=(-2, -1)
+        dual_mesh(tuple(shape), sampling, staggered=False, device=device),
+        dim=(-2, -1),
     )
     # dual_mesh is float32 by default; honour the caller's precision instead, so a
     # float64 fit is not silently truncated to float32 by its own forward model.
-    if aberrations_array.is_floating_point():
-        q = q.to(aberrations_array.dtype)
-    else:
-        # lens_wavefront_slope takes a floating lens vector; an integer one is
-        # read in the grid dtype.
-        aberrations_array = aberrations_array.to(q.dtype)
+    q = q.to(dtype)
 
     # The shift field is the gradient of chi, evaluated in the rotated detector
     # frame. Negative rotation because this is the detector plane while the
@@ -115,7 +135,20 @@ def aberrations_to_image_shifts(
     cos_rot, sin_rot = torch.cos(angle), torch.sin(angle)
     qy_rot = sin_rot * q[1] + cos_rot * q[0]
     qx_rot = cos_rot * q[1] - sin_rot * q[0]
+    return qy_rot, qx_rot
 
+
+def _shifts_at_frequencies(
+    aberrations_array: torch.Tensor,
+    qy_rot: torch.Tensor,
+    qx_rot: torch.Tensor,
+    wavelength: float,
+) -> torch.Tensor:
+    """The shifts of :func:`aberrations_to_image_shifts` on a ready grid.
+
+    ``(qy_rot, qx_rot)`` comes from :func:`_shift_model_frequencies`. The
+    call does not synchronise the host, so a CUDA graph can capture it.
+    """
     slope = lens_wavefront_slope(aberrations_array, qy_rot, qx_rot, lambda_a=wavelength)
     return slope / (2 * np.pi)
 

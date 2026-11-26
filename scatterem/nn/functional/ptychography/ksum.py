@@ -11,6 +11,7 @@ from scatterem.nn.functional.warp.ptychography import (
     _direct_ptychography_forward_ksum_planes_defocus_only,
 )
 from scatterem.physics import _warp_interop as wi
+from scatterem.physics._forward_ad import refuse_forward_ad
 
 from ._caches import (
     _contiguous_memo,
@@ -176,12 +177,11 @@ def _ksum_fwd_body(
         device=Gprime_real.device,
     )
     # ``A`` is the ``ik``-only aperture-times-aberration factor, the same one
-    # ``_correct_aberrations_inplace_fwd`` takes; an empty tensor is the sentinel
-    # for "not hoisted", in which case it is built here, one launch per chunk.
-    # Callers that drive this in a loop over bright-field chunks should build it
-    # ONCE above the loop and pass a slice, which is what makes the hoist pay --
-    # per chunk the ~0.042 ms launch gives back 60 % of the 0.070 ms saving. See
-    # ``build_aberration_bf_factor``.
+    # ``_correct_aberrations_inplace_fwd`` takes; an empty tensor is the sentinel for
+    # "not hoisted", in which case it is built here, one launch per chunk. Callers that
+    # drive this in a loop over bright-field chunks should build it ONCE above the loop
+    # and pass a slice, which is what makes the hoist pay -- per chunk the ~0.042 ms
+    # launch gives back 60 % of the 0.070 ms saving. See ``build_aberration_bf_factor``.
     if A.numel() == 0:
         A = torch.empty(
             (Kx.shape[0], 2),
@@ -189,8 +189,7 @@ def _ksum_fwd_body(
             device=Gprime_real.device,
         )
         # ``_direct_ptychography_build_A`` declares ``kx``/``ky`` as untyped
-        # ``wp.array(ndim=1)``, so Warp must infer
-        # their element type at launch.
+        # ``wp.array(ndim=1)``, so Warp must infer their element type at launch.
         wp.launch(
             kernel=_direct_ptychography_build_A,
             dim=(Kx.shape[0],),
@@ -570,19 +569,19 @@ def correct_aberrations_ksum(
     breaks the chain; see :func:`_direct_ptychography_chi_is_zero`, and use
     :func:`chi_is_zero_host` rather than writing the test again.
     """
+    refuse_forward_ad("correct_aberrations_ksum", Gprime, aberrations, Qx, Qy, Kx, Ky)
     sin_cos_rot = _sin_cos_rot(rotation, Gprime.device)
-    # ``Gprime`` may be STRIDED.  Warp only requires the INNER stride to be
-    # dense, and ``view_as_real`` of any complex tensor has last stride 1 by
-    # construction, so ``wi.from_torch(..., dtype=wp.vec2)`` takes an arbitrary
-    # outer layout; a ``.contiguous()`` here would be a full read+write pass to
-    # buy nothing.  It matters because the one hot caller -- the chunk-sum-first
-    # branch of ``_iter_chunk_images`` -- reads ``vBF.G[..., s:e]``, and ``G`` is
-    # an ``fft2`` output, i.e. bright-field-OUTERMOST in memory: compacting that
-    # slice is a TRANSPOSE, measured at 1.116 ms against a 3.40 ms row --
-    # 32.6 % of it.  The strided read costs the kernel nothing measurable in situ
-    # (1.5376 -> 1.5213 ms), so the copy is pure loss: 1.59x on that loop and
-    # 1.1235x on the whole row, plus 82 MiB off its peak.  Bit-exact:
-    # the kernel reads the same values in the same ``ik``-ascending order and
+    # ``Gprime`` may be STRIDED.  Warp only requires the INNER stride to be dense, and
+    # ``view_as_real`` of any complex tensor has last stride 1 by construction, so
+    # ``wi.from_torch(..., dtype=wp.vec2)`` takes an arbitrary outer layout; a
+    # ``.contiguous()`` here would be a full read+write pass to buy nothing.  It matters
+    # because the one hot caller -- the chunk-sum-first branch of ``_iter_chunk_images``
+    # -- reads ``vBF.G[..., s:e]``, and ``G`` is an ``fft2`` output, i.e.
+    # bright-field-OUTERMOST in memory: compacting that slice is a TRANSPOSE, measured
+    # at 1.116 ms against a 3.40 ms row -- 32.6 % of it.  The strided read costs the
+    # kernel nothing measurable in situ (1.5376 -> 1.5213 ms), so the copy is pure loss:
+    # 1.59x on that loop and 1.1235x on the whole row, plus 82 MiB off its peak.
+    # Bit-exact: the kernel reads the same values in the same ``ik``-ascending order and
     # accumulates in one register, so only the ADDRESSES move.
     Gprime_real = torch.view_as_real(Gprime)
     aberrations_c = aberrations.contiguous()
@@ -601,23 +600,21 @@ def correct_aberrations_ksum(
         float(wavelength),
         -1 if n_grad_coeffs is None else int(n_grad_coeffs),
     )
-    # THE DISPATCHER IS HALF THE PRICE OF THIS CALL.  Measured per call on one
-    # captured real argument set from ``r15_direct_ptychography/medium/
-    # direct_ptycho_sumfirst`` (host-issue time, no sync inside the timed
-    # region): this wrapper 62.2 us, ``torch.ops...ksum_fwd`` 47.6 us,
-    # ``_ksum_fwd_body`` 19.6 us.  28.0 us -- 45 % -- is the ``custom_op``
-    # machinery: the autograd key, the output-aliases-input storage check, the
-    # schema coercion and the redispatch.  That machinery buys exactly one
-    # thing, the analytic ``aberrations`` adjoint registered above, and the
-    # hottest caller never asks for it: ``_direct_ptychography``'s
-    # ``_CHUNK_SUM_FIRST`` chunk loop is a reconstruction and differentiates
-    # nothing, so on
-    # ``r15_direct_ptychography/medium/direct_ptycho_sumfirst`` the gate is
-    # taken 8 of 8 times per row and the row goes 2.561 -> 2.1945 ms (1.1670x,
-    # disjoint, bit-exact, peak identical).  ``determine_aberrations``' TV loop
-    # is the OPPOSITE case and is why the gate exists rather than the branch
-    # being deleted: 27 taken / 45 refused per fit, the 45 being the LBFGS
-    # objective, where this op's whole point is the adjoint.
+    # THE DISPATCHER IS HALF THE PRICE OF THIS CALL.  Measured per call on one captured
+    # real argument set from ``r15_direct_ptychography/medium/direct_ptycho_sumfirst``
+    # (host-issue time, no sync inside the timed region): this wrapper 62.2 us,
+    # ``torch.ops...ksum_fwd`` 47.6 us, ``_ksum_fwd_body`` 19.6 us.  28.0 us -- 45 % --
+    # is the ``custom_op`` machinery: the autograd key, the output-aliases-input storage
+    # check, the schema coercion and the redispatch.  That machinery buys exactly one
+    # thing, the analytic ``aberrations`` adjoint registered above, and the hottest
+    # caller never asks for it: ``_direct_ptychography``'s ``_CHUNK_SUM_FIRST`` chunk
+    # loop is a reconstruction and differentiates nothing, so on
+    # ``r15_direct_ptychography/medium/direct_ptycho_sumfirst`` the gate is taken 8 of 8
+    # times per row and the row goes 2.561 -> 2.1945 ms (1.1670x, disjoint, bit-exact,
+    # peak identical).  ``determine_aberrations``' TV loop is the OPPOSITE case and is
+    # why the gate exists rather than the branch being deleted: 27 taken / 45 refused
+    # per fit, the 45 being the LBFGS objective, where this op's whole point is the
+    # adjoint.
     #
     # The gate is deliberately narrow, and refuses rather than guesses:
     #   * ``is_compiling`` -- Dynamo/AOTAutograd must see the op, not the body,
@@ -854,6 +851,9 @@ def correct_aberrations_ksum_planes(
     Returns:
         torch.Tensor - ``out``.
     """
+    refuse_forward_ad(
+        "correct_aberrations_ksum_planes", Gprime, aberrations, Qx, Qy, Kx, Ky
+    )
     n_planes = int(aberrations.shape[0])
     want = (n_planes, int(Gprime.shape[0]), int(Gprime.shape[1]))
     if tuple(out.shape) != want or out.dtype != Gprime.dtype:

@@ -25,6 +25,18 @@ in:
 The journal has not yet given the BiP-PRISM paper a volume or an article
 number.
 
+The mixed-state ptychography (the second-order solvers, the 2D mixed-state
+model, and the probe gauges and orbital angular momentum diagnostics) is
+described in:
+
+> S. You, P. Rosi, E. Rotunno, A. Roncaglia, L. Belsito, A. H. Tavabi,
+> R. E. Dunin-Borkowski, V. Grillo, P. M. Pelz.
+> *Transverse quantum-state characterization of programmable electron
+> optics.* arXiv:2608.05749 (2026).
+> [doi:10.48550/arXiv.2608.05749](https://doi.org/10.48550/arXiv.2608.05749)
+
+This paper is a preprint. Cite the journal version when it is published.
+
 ## BibTeX
 
 The entries below hold the metadata of `CITATION.cff` in the repository.
@@ -55,6 +67,18 @@ The entries below hold the metadata of `CITATION.cff` in the repository.
   year    = {2026},
   doi     = {10.1088/2515-7639/aebdd0}
 }
+
+@article{you2026transverse,
+  author  = {You, Shengbo and Rosi, Paolo and Rotunno, Enzo and
+             Roncaglia, Alberto and Belsito, Luca and Tavabi, Amir H. and
+             Dunin-Borkowski, Rafal E. and Grillo, Vincenzo and
+             Pelz, Philipp M.},
+  title   = {Transverse quantum-state characterization of programmable
+             electron optics},
+  journal = {arXiv preprint arXiv:2608.05749},
+  year    = {2026},
+  doi     = {10.48550/arXiv.2608.05749}
+}
 ```
 
 ## The software
@@ -76,12 +100,14 @@ licence CC-BY-4.0. If you use them, cite the record as well as the paper.
 
 ## Scope
 
-Three things live here, and each comes with its own paper:
+Four things live here, and each comes with its own paper:
 
 - the FF-STEM reconstruction pipeline: direct ptychography, tilt-corrected dark
   field, their fusion, and the calibration and I/O they need;
 - the core-loss STEM-EELS forward simulation (BiP-PRISM);
-- elastic PRISM simulation of 4D-STEM.
+- elastic PRISM simulation of 4D-STEM;
+- mixed-state ptychography with second-order solvers, and the probe and
+  orbital angular momentum diagnostics.
 
 The wider `scatterem` codebase covers more. Those parts come with their own
 publications and are released with them.

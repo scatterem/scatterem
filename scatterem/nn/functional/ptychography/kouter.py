@@ -10,6 +10,7 @@ from torch import Tensor
 
 from scatterem.nn.functional.warp.ptychography import _direct_ptychography_build_A
 from scatterem.physics import _warp_interop as wi
+from scatterem.physics._forward_ad import refuse_forward_ad
 
 from ._caches import (
     _chi_is_zero_flag,
@@ -40,6 +41,12 @@ from ._sq_aperture import _half_mode, _kouter_kernel, _launch_dim
 # die produced a different image digest in one probe arm ordering and the correct
 # one in another.)  So the entry keeps a strong reference to every bound tensor,
 # which both keeps the pointer valid and makes ``is``-identity a sound cheap test.
+#
+# The large operands, ``G`` (slot 0, a view of the whole stack) and the output
+# (slot 13), must not outlive the reconstruction that bound them.  So the
+# chunk loop calls ``_release.release_launch_operands`` when it ends: it writes a
+# NULL descriptor into those slots and a sentinel record that no tensor matches.
+# The command stays; the next replay rebinds both slots before it launches.
 _KOUTER_CMD: dict = {}
 _KOUTER_CMD_MAX = 4
 
@@ -335,6 +342,7 @@ def correct_aberrations_kouter(
     Returns:
         torch.Tensor - ``out``, as a complex view.
     """
+    refuse_forward_ad("correct_aberrations_kouter", Gprime, aberrations, Qx, Qy, Kx, Ky)
     # ``out`` may be an integer TILE of ``Gprime`` on the two Q axes: the kernel
     # reads ``G`` modulo its own Q extents, so an upsampling caller passes the
     # un-tiled chunk and the corrected output at the upsampled grid, and the 4x

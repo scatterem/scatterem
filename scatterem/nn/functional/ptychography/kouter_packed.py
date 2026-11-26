@@ -22,6 +22,8 @@ the ``kouter_half`` row declined.
 
 import torch
 
+from scatterem.physics._forward_ad import refuse_forward_ad
+
 from ._caches import _contiguous_memo, _sin_cos_rot
 from ._sq_aperture import HALF_PACKED, _pctf_sq_threshold
 from .kouter import _correct_aberrations_kouter_impl
@@ -123,6 +125,9 @@ def correct_aberrations_kouter_packed(
     ValueError
         If ``out`` is not contiguous or does not have ``ceil(Nk/2)`` planes.
     """
+    refuse_forward_ad(
+        "correct_aberrations_kouter_packed", Gprime, aberrations, Qx, Qy, Kx, Ky
+    )
     out_real = torch.view_as_real(out)
     if not out_real.is_contiguous() or out.shape[0] != (Gprime.shape[0] + 1) // 2:
         raise ValueError("out must be a contiguous (ceil(Nk/2), Hq, W) complex tensor")

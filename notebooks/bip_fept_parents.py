@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#     "scatterem==0.4.2",
+#     "scatterem==0.5.0",
 #     "marimo==0.25.2",
 #     "matplotlib>=3.10",
 #     "numpy>=2.1.0",
@@ -77,7 +77,9 @@ def _(mo):
 def _():
     import hashlib
     import os
+    import ssl
     import time
+    import urllib.error
     import urllib.request
     import warnings
     import zipfile
@@ -93,7 +95,7 @@ def _():
             "and restart the notebook."
         )
     print(f"GPU: {torch.cuda.get_device_name(0)}")
-    return Path, hashlib, np, os, plt, time, torch, urllib, warnings, zipfile
+    return Path, hashlib, np, os, plt, ssl, time, torch, urllib, warnings, zipfile
 
 
 @app.cell
@@ -105,21 +107,50 @@ def _(mo):
     and checks the SHA-256 of the archive and of the model file in it. A
     different file stops the notebook: the numbers below are only valid for
     this model.
+
+    The server of the data page sends the wrong intermediate certificate, so
+    Python cannot verify it. Browsers get the missing certificate themselves.
+    When the verification fails, the cell does the same: it downloads the
+    issuer of the server's certificate (SSL.com TLS Issuing RSA CA R1) from
+    SSL.com and verifies the server again, up to a trusted root. The SHA-256
+    check of the file stays.
     """)
     return
 
 
 @app.cell
-def _(Path, hashlib, os, urllib, zipfile):
+def _(Path, hashlib, os, ssl, urllib, zipfile):
     MODEL_URL = (
         "https://www.physics.ucla.edu/research/imaging/FePt/Data/Final_Model.zip"
     )
     ZIP_SHA256 = "0726ce9393b16fab0e111cbbeb07795a41edde375753fea2f0bbdfcced442a66"
     XYZ_NAME = "FePt_FullParticleModel_FinalModel.xyz"
     XYZ_SHA256 = "5c7a6e462f15cfdb66db88059b6202a9f2b55fc93d0dc4129fc33d8945578dd1"
+    # The issuer of the server's certificate, from its "CA Issuers" field.
+    ISSUER_URL = "http://cert.ssl.com/SSL.com-TLS-I-RSA-R1.cer"
 
     def _sha256(path):
         return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+    def _fetch(url):
+        request = urllib.request.Request(
+            url, headers={"User-Agent": "scatterem-notebook"}
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=120) as response:
+                return response.read()
+        except urllib.error.URLError as err:
+            if not isinstance(err.reason, ssl.SSLCertVerificationError):
+                raise
+        print("certificate chain incomplete: adding the issuer and verifying again")
+        with urllib.request.urlopen(ISSUER_URL, timeout=60) as response:
+            issuer = ssl.DER_cert_to_PEM_cert(response.read())
+        context = ssl.create_default_context()
+        context.load_verify_locations(cadata=issuer)
+        # The issuer is not a trust anchor: the chain must reach a trusted root.
+        context.verify_flags &= ~ssl.VERIFY_X509_PARTIAL_CHAIN
+        with urllib.request.urlopen(request, timeout=120, context=context) as response:
+            return response.read()
 
     data_root = Path(os.environ.get("FEPT_DATA_ROOT", "data")).resolve()
     data_root.mkdir(parents=True, exist_ok=True)
@@ -128,11 +159,7 @@ def _(Path, hashlib, os, urllib, zipfile):
         _zip_path = data_root / "Final_Model.zip"
         if not (_zip_path.is_file() and _sha256(_zip_path) == ZIP_SHA256):
             print(f"download: {MODEL_URL}")
-            _request = urllib.request.Request(
-                MODEL_URL, headers={"User-Agent": "scatterem-notebook"}
-            )
-            with urllib.request.urlopen(_request, timeout=120) as _response:
-                _zip_path.write_bytes(_response.read())
+            _zip_path.write_bytes(_fetch(MODEL_URL))
         if _sha256(_zip_path) != ZIP_SHA256:
             raise RuntimeError(
                 f"{_zip_path} does not have the expected SHA-256. The file on "

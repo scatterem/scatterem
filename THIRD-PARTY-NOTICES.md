@@ -12,7 +12,7 @@ The dataset container and display API of scatterem follow quantem
 remains; signatures and trivial accessors that match quantem's interface are
 listed below.
 
-The line numbers are those of the v0.4.1 files. Each item is a run of 5 or
+The line numbers are those of the files in this release. Each item is a run of 5 or
 more identical lines (comments and blank lines not counted). The release gate
 recomputes these runs and fails when the list is wrong.
 
@@ -25,8 +25,8 @@ recomputes these runs and fails when the list is wrong.
   211-218: the `name` and `signal_units` properties (a getter and a setter
   that converts to `str`).
 - `scatterem/data/datasets/dataset_4dstem.py` 168-172: the `__init__`
-  signature of `Dataset4DStem`; 743-747: the signature of
-  `Dataset4DStem.from_array`; 965-972: the `origin` property (a getter and a
+  signature of `Dataset4DStem`; 741-745: the signature of
+  `Dataset4DStem.from_array`; 964-971: the `origin` property (a getter and a
   setter that calls `validate_ndinfo`).
 
 ## torchvision (BSD-3-Clause)

@@ -1,4 +1,4 @@
-# The method
+# FF-STEM
 
 A 4D-STEM dataset holds more information than any single reconstruction recovers.
 Direct ptychography reads the phase gradient encoded in the bright-field disk and

@@ -9,6 +9,7 @@ from scatterem.nn.functional.warp.ptychography import (
     _direct_ptychography_forward_precomputed_A,
 )
 from scatterem.physics import _warp_interop as wi
+from scatterem.physics._forward_ad import refuse_forward_ad
 
 from ._caches import (
     _sin_cos_floats,
@@ -169,6 +170,9 @@ def correct_aberrations_inplace(
     torch.Tensor
         Corrected G tensor.
     """
+    refuse_forward_ad(
+        "correct_aberrations_inplace", Gprime, aberrations, Qx, Qy, Kx, Ky
+    )
     sin_cos_rot = _sin_cos_rot(rotation, Gprime.device)
     # In eager mode, alias ``Gprime``'s storage so the kernel mutates the
     # caller's complex tensor in place (preserved API behavior).

@@ -35,6 +35,7 @@ from scatterem.physics._aten_cmul_order import (
     aten_cmul_swap_flag,
 )
 from scatterem.physics._cmul_warp import cmul_aten
+from scatterem.physics._forward_ad import carries_tangent
 from scatterem.physics._ramp_fused import (
     _dadd,
     _dmul,
@@ -226,12 +227,14 @@ def ramp_wq_fold_supported(waves: Tensor, shifts: Tensor, fold: bool) -> bool:
     leading wave axes the broadcast product has a different shape.  ``wq`` (the
     FFT of ``waves``) is an operand of the kernel, and the kernel has no adjoint.
     So the route is also closed when a caller differentiates with respect to
-    ``waves``.  Off this route, the caller keeps the separate torch multiply.
+    ``waves``, in reverse or in forward mode.  Off this route, the caller keeps
+    the separate torch multiply.
     """
     return (
         fold
         and waves.ndim == 2
         and not (torch.is_grad_enabled() and waves.requires_grad)
+        and not carries_tangent(waves)
         and ramp_phase_df_supported(waves, shifts)
         and aten_cmul_imag_swapped(waves.device) is not None
     )

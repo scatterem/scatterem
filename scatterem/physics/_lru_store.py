@@ -82,7 +82,8 @@ class _LruStore:
                 self._hits += 1
                 return found
             self._misses += 1
-            value = build()
+            with torch.inference_mode(False):  # never cache an inference tensor
+                value = build()
             size = value.element_size() * value.nelement()
             if size > self._max_bytes:
                 _log.debug("mask of %d bytes is above the budget; not stored", size)

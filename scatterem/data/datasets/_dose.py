@@ -5,10 +5,12 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import torch
 from torch import Tensor
 
-__all__ = ["float64_slice_total", "host_total"]
+__all__ = ["array_total", "float64_slice_total", "host_total"]
 
 
 def float64_slice_total(array: Tensor) -> float:
@@ -54,3 +56,28 @@ def host_total(partial: Tensor) -> float:
     for value in partial.tolist():
         total += value
     return total
+
+
+def array_total(dataset: Any) -> float:
+    """The constructor's sum of the stored array, before its division by ``c``.
+
+    The callers that turn the array back into counts use it:
+    ``c = array_total(dataset) / sum(dataset.array)``. It is ``total_intensity``,
+    except on a crop. A crop keeps the parent's dose and total, but its
+    array holds only the cropped counts. The crop keeps its own sum in
+    ``_array_total`` (``DetectorOps._carry_record``), in the units of the
+    parent's total, also when the parent was normalised. A frame view
+    of a source-backed dataset sums its own frames on first use.
+
+    Parameters
+    ----------
+    dataset : Dataset4DStem
+        The dataset.
+
+    Returns
+    -------
+    float
+        The sum, in the units of the array given to ``from_array``.
+    """
+    own = getattr(dataset, "_array_total", None)
+    return float(dataset.total_intensity if own is None else own)

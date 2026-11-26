@@ -23,7 +23,9 @@ import numpy as np
 
 from scatterem.physics._atom_set_checks import (
     check_atom_data,
+    check_charge,
     check_fractional,
+    check_rotation_args,
     real,
     rot_from_axis_angle,
 )
@@ -108,6 +110,11 @@ class AtomSet:
         2002).
     remark : str, optional
         Free text.
+    charge : None or array_like, optional
+        (N,), integers or integer-valued floats. Net charge (oxidation state)
+        of each atom, positive for a cation. None (default) means no charges
+        are known. The potential builders ignore it unless a caller asks for
+        ion potentials.
     tilt_sine : float, optional
         Largest sine of the tilt of a new box edge from its lattice vector in
         the reduction of (3, 3) rows, in (0, 0.1]. Always validated.
@@ -126,6 +133,7 @@ class AtomSet:
         "_msd",
         "_adp",
         "_remark",
+        "_charge",
     )
 
     def __init__(
@@ -138,6 +146,7 @@ class AtomSet:
         msd=None,
         adp=None,
         remark: str = "",
+        charge=None,
         tilt_sine: float = DEFAULT_TILT_SINE,
     ):
         raw_box = real(box_spec, "box_spec")
@@ -162,6 +171,7 @@ class AtomSet:
         )
         if not isinstance(remark, str):
             raise ValueError(f"remark: must be a str; got {type(remark).__name__}")
+        q = check_charge(charge, n)
         if edge_rows is not None:
             plan = plan_orthobox(edge_rows, sine)
             f, source = plan.apply(f)
@@ -170,9 +180,11 @@ class AtomSet:
             if adp is not None:
                 Q = plan.frame
                 adp = (Q @ adp @ Q.T)[source]
-        self._store(sides, f, z, fill, u2, adp, remark)  # pyright: ignore[reportPossiblyUnboundVariable]
+            if q is not None:
+                q = q[source]
+        self._store(sides, f, z, fill, u2, adp, remark, q)  # pyright: ignore[reportPossiblyUnboundVariable]
 
-    def _store(self, sides, f, z, fill, u2, adp, remark):
+    def _store(self, sides, f, z, fill, u2, adp, remark, charge=None):
         for name, value in (
             ("_sides", sides),
             ("_fractional", f),
@@ -180,6 +192,7 @@ class AtomSet:
             ("_site_fraction", fill),
             ("_msd", u2),
             ("_adp", adp),
+            ("_charge", charge),
         ):
             if value is not None:
                 value.setflags(write=False)
@@ -187,10 +200,10 @@ class AtomSet:
         object.__setattr__(self, "_remark", remark)
 
     @classmethod
-    def _from_validated(cls, sides, fractional, z, fill, msd, adp, remark) -> AtomSet:
+    def _from_validated(cls, sides, f, z, fill, msd, adp, remark, q=None) -> AtomSet:
         """Store arrays that the class made itself, without validation."""
         obj = cls.__new__(cls)
-        obj._store(sides, fractional, z, fill, msd, adp, remark)
+        obj._store(sides, f, z, fill, msd, adp, remark, q)
         return obj
 
     def __setattr__(self, name, value):
@@ -205,7 +218,7 @@ class AtomSet:
         """Pickle and copy through ``_from_validated``; it freezes the arrays."""
         return type(self)._from_validated, (
             self._sides, self._fractional, self._z, self._site_fraction,
-            self._msd, self._adp, self._remark,
+            self._msd, self._adp, self._remark, self._charge,
         )  # fmt: skip
 
     # ----------------------------------------------------------- read access
@@ -238,6 +251,11 @@ class AtomSet:
     def adp(self) -> np.ndarray | None:
         """(N, 3, 3) float64, Å², box frame, or None (read-only)."""
         return self._adp
+
+    @property
+    def charge(self) -> np.ndarray | None:
+        """(N,) int64 net charge per atom, positive for a cation, or None (read-only)."""
+        return self._charge
 
     @property
     def remark(self) -> str:
@@ -278,7 +296,7 @@ class AtomSet:
         Returns
         -------
         AtomSet
-            Shares sides, Z, site fractions, msd, adp and remark with this
+            Shares sides, Z, site fractions, msd, adp, charge and remark with this
             structure. This structure does not change.
         """
         f = check_fractional(fractional)
@@ -294,6 +312,7 @@ class AtomSet:
             self._msd,
             self._adp,
             self._remark,
+            self._charge,
         )
 
     def _centroid(self) -> np.ndarray:
@@ -316,7 +335,7 @@ class AtomSet:
         A point at Cartesian ``r`` (box frame, Å) moves to
         ``fixed_point + R @ (r - fixed_point)``, with ``R`` the active,
         right-handed turn of :func:`scatterem.rotation.axis_angle.to_matrix`.
-        Z, site fractions, <u²> and the atom order are kept; tensors become
+        Z, site fractions, <u²>, charges and the atom order are kept; tensors become
         ``R U R^T``. This structure does not change. All parameters are
         keyword-only, so an axis and an angle cannot be swapped by mistake.
 
@@ -371,33 +390,10 @@ class AtomSet:
         box axis. Each box edge is the shortest such vector. For any other
         rotation it raises ``ValueError``; use ``as_crystal=False`` then.
         """
-        a = real(turn_radians, "turn_radians")
-        if a.ndim != 0 or not np.isfinite(a):
-            raise ValueError(
-                f"turn_radians: must be a finite real scalar; got {turn_radians!r}"
-            )
-        ax = np.array(real(axis_vec, "axis_vec"), dtype=np.float64)
-        if ax.shape != (3,) or not np.isfinite(ax).all() or not np.any(ax):
-            raise ValueError(
-                f"axis_vec: must be a finite, non-zero (3,) vector; got {axis_vec!r}"
-            )
-        if fixed_point is None:
-            p = self._centroid()
-        else:
-            p = np.array(real(fixed_point, "fixed_point"), dtype=np.float64)
-            if p.shape != (3,) or not np.isfinite(p).all():
-                raise ValueError(
-                    f"fixed_point: must be a finite (3,) vector, Å; got {fixed_point!r}"
-                )
-        if not isinstance(as_crystal, (bool, np.bool_)):
-            raise ValueError(f"as_crystal: must be a bool; got {as_crystal!r}")
-        pad = real(padding, "padding")
-        if pad.ndim != 0 or not np.isfinite(pad) or pad < 0:
-            raise ValueError(
-                f"padding: must be a finite number >= 0 (Å); got {padding!r}"
-            )
-        pad = float(pad)
-        R = rot_from_axis_angle(ax, float(a))
+        ax, a, p, pad = check_rotation_args(
+            axis_vec, turn_radians, fixed_point, as_crystal, padding, self._centroid
+        )
+        R = rot_from_axis_angle(ax, a)
         adp = None if self._adp is None else R @ self._adp @ R.T
         if as_crystal:
             if pad != 0.0:
@@ -420,6 +416,7 @@ class AtomSet:
                 self._msd[source],
                 None if adp is None else adp[source],
                 self._remark,
+                None if self._charge is None else self._charge[source],
             )
         r = p + (self.xyz_angstrom - p) @ R.T
         half = self._sides / 2.0
@@ -439,6 +436,7 @@ class AtomSet:
             self._msd,
             adp,
             self._remark,
+            self._charge,
         )
 
     def replicated(self, replicas) -> AtomSet:
@@ -497,6 +495,7 @@ class AtomSet:
             np.repeat(self._msd, m),
             adp,
             self._remark,
+            None if self._charge is None else np.repeat(self._charge, m),
         )
 
 
@@ -564,5 +563,6 @@ def read_atom_set(
         msd=data["msd"],
         adp=data["adp"],
         remark=data["remark"],
+        charge=data.get("charge"),
         tilt_sine=sine,
     )

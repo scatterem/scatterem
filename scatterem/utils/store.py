@@ -1,8 +1,7 @@
 """Saving and loading containers, with a declared schema.
 
-Replaces ``io/serialize.AutoSerialize`` (removed in 0.1.0), which was derived
-from quantem (MIT) with the copyright notice stripped. Written here from scratch, and deliberately not
-the same design.
+Replaces ``io/serialize.AutoSerialize`` (removed in 0.1.0). Written here from
+scratch, and deliberately not the same design.
 
 **What is different, and why.** ``AutoSerialize`` walks ``__dict__`` and writes
 whatever it finds. That is convenient and it fails quietly:

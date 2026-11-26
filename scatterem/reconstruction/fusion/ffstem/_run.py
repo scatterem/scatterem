@@ -140,6 +140,11 @@ class FusedFullFieldConfig(ReconstructionConfig[FusedFullFieldResult]):
     ``data.bright_field_mask_threshold``, and ``n_dark_field_segments=None``
     to ``n_batches`` with a warning.
 
+    Memory: the ptychography channel frees its virtual bright field and the
+    bright-field Fourier stack ``G`` when it returns, before the tcDF channel
+    runs. So the launch caches add no ``G`` to the peak of a repeated run on
+    one dataset.
+
     Parameters
     ----------
     n_batches : int

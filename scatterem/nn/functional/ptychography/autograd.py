@@ -9,6 +9,7 @@ from scatterem.nn.functional.warp.ptychography import (
     _direct_ptychography_forward,
 )
 from scatterem.physics import _warp_interop as wi
+from scatterem.physics._forward_ad import refuse_forward_ad
 
 from ._caches import (
     _sin_cos_floats,
@@ -415,6 +416,7 @@ def correct_aberrations(
     torch.Tensor
         Complex-valued, aberration-corrected tensor of shape ``(Nqy, Nqx, Nk)``.
     """
+    refuse_forward_ad("correct_aberrations", Gprime, aberrations, Qx, Qy, Kx, Ky)
     sin_cos_rot = _sin_cos_rot(rotation, Gprime.device)
     Gprime_real = torch.view_as_real(Gprime).contiguous()
     out_real = torch.ops.scatterem.correct_aberrations_fwd(

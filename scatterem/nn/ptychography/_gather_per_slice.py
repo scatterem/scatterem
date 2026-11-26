@@ -23,7 +23,7 @@ from __future__ import annotations
 import torch
 from torch import Tensor
 
-from scatterem.nn.functional._forward_ad import carries_tangent
+from scatterem.physics._forward_ad import carries_tangent
 
 #: Lazily resolved fused gather + transmit multiply, or ``False`` without Triton.
 _GATHER_CMUL = None

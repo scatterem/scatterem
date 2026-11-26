@@ -12,6 +12,8 @@ import math
 
 import torch
 
+from scatterem.physics._forward_ad import refuse_forward_ad
+
 
 def pctf_unnormalized(
     G: torch.Tensor | None,
@@ -28,6 +30,9 @@ def pctf_unnormalized(
 
     Same arguments, same checks, same rotation conversion and the same op.
     """
+    # ``G`` is not in the guard: the op reads only its shape, so a G tangent is
+    # correctly zero.
+    refuse_forward_ad("pctf_unnormalized", aberrations, Qx, Qy, Kx, Ky)
     if torch.is_tensor(rotation):
         # OK in eager; graph-breaks under torch.compile(fullgraph=True).
         # Compile-safe callers must pass a Python float (see docstring).

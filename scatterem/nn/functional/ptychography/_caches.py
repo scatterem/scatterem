@@ -6,6 +6,8 @@ per-cache comments below say why each one exists, what it is keyed on and why
 reuse is bit-exact.
 """
 
+import contextlib
+
 import torch
 import warp as wp
 from torch import Tensor
@@ -14,6 +16,7 @@ from scatterem.nn.functional.warp.ptychography import (
     _direct_ptychography_chi_is_zero,
 )
 from scatterem.physics import _warp_interop as wi
+from scatterem.utils._normal_tensors import normal_tensors
 
 try:  # pragma: no cover - present in every torch this package supports
     import torch._C._functorch as _functorch
@@ -56,6 +59,8 @@ except ImportError:  # pragma: no cover - a torch built without functorch
 #     moved in here in the first place, so this changes nothing about
 #     ``torch.compile(fullgraph=True)`` safety.
 _SIN_COS_FLOAT_CACHE: dict = {}
+
+
 _SIN_COS_FLOAT_CACHE_MAX = 8
 
 
@@ -115,12 +120,14 @@ def _sin_cos_rot(rotation, device) -> torch.Tensor:
             if hit is not None:
                 return hit[1]
         rotation = torch.as_tensor(rotation, dtype=torch.float32, device=device)
-    rotation_rad = torch.deg2rad(rotation)
-    sin_cos_rot = (
-        torch.stack([torch.sin(rotation_rad), torch.cos(rotation_rad)])
-        .to(dtype=torch.float32)
-        .contiguous()
-    )
+    # never cache an inference tensor: ``correct_aberrations`` saves it
+    with normal_tensors() if key is not None else contextlib.nullcontext():
+        rotation_rad = torch.deg2rad(rotation)
+        sin_cos_rot = (
+            torch.stack([torch.sin(rotation_rad), torch.cos(rotation_rad)])
+            .to(dtype=torch.float32)
+            .contiguous()
+        )
     if key is not None:
         if len(_SIN_COS_ROT_CACHE) >= _SIN_COS_ROT_CACHE_MAX:
             _SIN_COS_ROT_CACHE.clear()
@@ -162,7 +169,8 @@ def _contiguous_memo(t: Tensor) -> Tensor:
     hit = _CONTIG_CACHE.get(key)
     if hit is not None and hit[0] is t:
         return hit[1]
-    out = t.contiguous()
+    with normal_tensors():  # never cache an inference tensor
+        out = t.contiguous()
     if len(_CONTIG_CACHE) >= _CONTIG_CACHE_MAX:
         _CONTIG_CACHE.clear()
     _CONTIG_CACHE[key] = (t, out)

@@ -26,6 +26,7 @@ from math import pi
 import torch
 from torch import Tensor
 
+from scatterem.physics._forward_ad import carries_tangent
 from scatterem.physics.periodic_sampling import PeriodicGrid, dft_sample_frequencies
 
 from ._fresnel import angular_spectrum_kernel as angular_spectrum_kernel
@@ -249,7 +250,8 @@ def _fftfreq_f64(n: int, device) -> Tensor:
     key = (int(n), str(device))
     v = _FFTFREQ_F64.get(key)
     if v is None:
-        v = torch.fft.fftfreq(n, device=device, dtype=torch.float64)
+        with torch.inference_mode(False):  # never cache an inference tensor
+            v = torch.fft.fftfreq(n, device=device, dtype=torch.float64)
         _FFTFREQ_F64[key] = v
     return v
 
@@ -385,7 +387,9 @@ def fourier_shift_stack(
     fold = 0 < P <= chunk and (n_el & (n_el - 1)) == 0
     wq = torch.fft.fft2(waves, dim=(-2, -1), norm="forward" if fold else "backward")
     out = None
-    if not fold:
+    # A forward-mode dual takes no ``out=``: an ``out=`` op refuses forward AD.
+    pieces: list[Tensor] | None = [] if carries_tangent(waves, shifts) else None
+    if not fold and pieces is None:
         out = torch.empty(
             (P,) + tuple(waves.shape), dtype=waves.dtype, device=waves.device
         )
@@ -410,5 +414,10 @@ def fourier_shift_stack(
             phase = torch.polar(one, u).to(waves.dtype)
         if fold:
             return torch.fft.ifft2(wq * phase, dim=(-2, -1), norm="forward")
+        if pieces is not None:
+            pieces.append(torch.fft.ifft2(wq * phase, dim=(-2, -1)))
+            continue
         torch.fft.ifft2(wq * phase, dim=(-2, -1), out=out[a:b])
-    return out
+    if pieces is None:
+        return out
+    return torch.cat(pieces) if pieces else waves.new_empty((0, *waves.shape))

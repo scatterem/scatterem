@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scatterem"
-version = "0.4.2"
-description = "Fused full-field 4D-STEM reconstruction, BiP-PRISM core-loss STEM-EELS simulation, and elastic PRISM"
+version = "0.5.0"
+description = "Differentiable scattering models and imaging algorithms for microscopy"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"

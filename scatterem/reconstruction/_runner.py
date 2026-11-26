@@ -359,6 +359,10 @@ def run(
         a = run(ds, config, meta=fit_a.applied_to(ds.meta))
         b = run(ds, config, meta=fit_b.applied_to(ds.meta))
 
+    Memory: a direct-ptychography run frees its virtual bright field and its
+    ``G`` stack when it returns, so a second run on one dataset peaks no
+    higher than the first.
+
     Parameters
     ----------
     data : object

@@ -15,28 +15,30 @@ meant. The two frames differ only in the m-fold pairs at ``rotation != 0``.
 """
 
 import logging
-import math
-from dataclasses import replace
 
 import numpy as np
 import torch
 from tqdm.auto import tqdm
 
-from scatterem.data.aberrations import Aberrations
 from scatterem.data.datasets import (
     DatasetVirtualBrightField4DStem,
 )
-from scatterem.utils.transfer import (
-    aberrations_to_image_shifts,
-    shift_model_to_detector_frame,
-)
+from scatterem.utils.transfer import aberrations_to_image_shifts
 
 from ._bf_parallax import measure_bf_parallax
+from ._bright_field_bootstrap import shift_fit_covariance
 from ._bright_field_closed_form import (
     _rotation_matrix_2x2 as _rotation_matrix_2x2,
 )
 from ._bright_field_closed_form import (
     fit_low_order_aberrations_and_rotation_closed_form as fit_low_order_aberrations_and_rotation_closed_form,
+)
+from ._bright_field_driver import (
+    VbfSpectra,
+    center_reference,
+    fwhm_to_sigma,
+    log_fit,
+    publish_detector_frame,
 )
 from ._bright_field_fit_result import (
     BrightFieldShiftFit,
@@ -66,6 +68,7 @@ def fit_aberrations_and_rotation_to_bright_field_shifts(
     max_iter: int = 250,
     lr: float = 1e-1,
     verbosity: int = 0,
+    covariance_block_px: int | None = None,
 ) -> BrightFieldShiftFit:
     """Fit the aberrations and rotation to the bright field shifts.
 
@@ -117,12 +120,20 @@ def fit_aberrations_and_rotation_to_bright_field_shifts(
         Learning rate. Default is 1e-1.
     verbosity : int, optional
         Verbosity level. Default is 0.
+    covariance_block_px : int, optional
+        If given, the result also carries ``covariance_bootstrap``: a block
+        bootstrap over the bright-field pixels, with square blocks of this
+        side in detector pixels (choose it larger than the correlation length
+        of the shift errors). Default is None: only the formal covariance,
+        which is not calibrated when the shift errors are correlated.
 
     Returns
     -------
     BrightFieldShiftFit
         The fitted aberrations (Angstrom) and rotation (degrees), with the
-        relative residual and the ``reliable`` flag. It unpacks as
+        relative residual, the ``reliable`` flag and, for
+        ``init_method="closed_form"`` and ``correct_order=1``, the covariance
+        of C1, C12 (and the rotation, when it is fitted). It unpacks as
         ``aberrations, rotation = fit``. Check ``reliable`` before a pipeline
         writes the values as results; the class docstring gives the fallback
         order. The aberrations are in the SHIFT-MODEL frame of
@@ -145,12 +156,7 @@ def fit_aberrations_and_rotation_to_bright_field_shifts(
     target_shifts = target_shifts.to(torch.float32)
     if bright_field_mask.device != device:
         bright_field_mask = bright_field_mask.to(device)
-    n_bf = int(bright_field_mask.sum().item())
-    if include_in_fit_mask is None:
-        include = torch.ones(n_bf, device=device, dtype=torch.bool)
-    else:
-        # (N,) per pixel or (N, 2) per component: a pixel is whole-in/whole-out.
-        include = include_in_fit_mask.to(device).reshape(n_bf, -1)[:, 0].bool()
+    include = _include_mask(include_in_fit_mask, bright_field_mask)
 
     # --- Seed the optimization -------------------------------------------------
     rotation_init_t = (
@@ -158,12 +164,7 @@ def fit_aberrations_and_rotation_to_bright_field_shifts(
         if rotation_init is None
         else rotation_init.to(device).to(torch.float32)
     )
-    if init_method not in ("closed_form", "zeros"):
-        raise ValueError(
-            f"init_method must be 'closed_form' or 'zeros', got {init_method!r}"
-        )
-    if correct_order not in ORDER_END:
-        raise ValueError(f"correct_order must be 0, 1, 2 or 3, got {correct_order!r}")
+    _check_fit_options(init_method, correct_order)
     seed_info = None
     free = torch.arange(12, device=device) < ORDER_END[int(correct_order)]
     if init_method == "closed_form":
@@ -213,11 +214,18 @@ def fit_aberrations_and_rotation_to_bright_field_shifts(
         )[bright_field_mask]
 
     if verbosity > 0:
-        logger.info("Final shifts max: %s", final_shifts.max(0).values.cpu().numpy())
-        logger.info("Initial rotation: %.2f deg", rotation_init_t.item())
-        logger.info("Final   rotation: %.2f deg", rotation_opt.item())
-        logger.info("Final aberrations: %s", aberrations.cpu().numpy())
-
+        log_fit(rotation_init_t, rotation_opt, aberrations, final_shifts)
+    # The closed-form covariance applies to an order-1 fit at its rotation.
+    covariance = shift_fit_covariance(
+        seed_info if correct_order == 1 and freeze_rotation else None,
+        target_shifts,
+        k_sampling,
+        wavelength,
+        bright_field_mask,
+        include,
+        rotation_init_t,
+        covariance_block_px,
+    )
     return _shift_fit_result(
         aberrations,
         rotation_opt,
@@ -226,7 +234,33 @@ def fit_aberrations_and_rotation_to_bright_field_shifts(
         include,
         residual_warn_rtol,
         well_posed=seed_info is None or bool(freeze_rotation),
+        **covariance,
     )
+
+
+def _include_mask(
+    include_in_fit_mask: torch.Tensor | None, bright_field_mask: torch.Tensor
+) -> torch.Tensor:
+    """The ``(N,)`` per-pixel include mask (all pixels when None).
+
+    An ``(N, 2)`` per-component mask is reduced to its first column: a pixel
+    is whole-in or whole-out.
+    """
+    device = bright_field_mask.device
+    n_bf = int(bright_field_mask.sum().item())
+    if include_in_fit_mask is None:
+        return torch.ones(n_bf, device=device, dtype=torch.bool)
+    return include_in_fit_mask.to(device).reshape(n_bf, -1)[:, 0].bool()
+
+
+def _check_fit_options(init_method: str, correct_order: int) -> None:
+    """Refuse an unknown ``init_method`` or ``correct_order``."""
+    if init_method not in ("closed_form", "zeros"):
+        raise ValueError(
+            f"init_method must be 'closed_form' or 'zeros', got {init_method!r}"
+        )
+    if correct_order not in ORDER_END:
+        raise ValueError(f"correct_order must be 0, 1, 2 or 3, got {correct_order!r}")
 
 
 def aberrations_and_rotation_from_bright_field_shifts(
@@ -244,6 +278,7 @@ def aberrations_and_rotation_from_bright_field_shifts(
     init_method: str = "closed_form",
     peak_selection: str = "argmax",
     correct_order: int = 1,
+    covariance_block_px: int | None = None,
 ) -> BrightFieldShiftFit:
     """First determine the bright field shifts, then fit aberrations and rotation.
 
@@ -318,12 +353,19 @@ def aberrations_and_rotation_from_bright_field_shifts(
         `fit_aberrations_and_rotation_to_bright_field_shifts`. Default is 1
         (C1, C12 and rotation); a real spherical aberration is then absorbed
         into C1 unless 3 is requested.
+    covariance_block_px : int, optional
+        Forwarded to `fit_aberrations_and_rotation_to_bright_field_shifts`:
+        if given, the result carries a block-bootstrap covariance as well as
+        the formal one. Default is None.
 
     Returns
     -------
     BrightFieldShiftFit
         The aberrations (Angstrom) and rotation (degrees) of the last bin
-        level. The aberrations are ``(12,)`` in the DETECTOR frame of
+        level. Every level fits the shifts MEASURED up to that level (the sum
+        of the measured increments); the fitted shifts are not fed back into
+        the data. The covariance fields (detector frame) are those of the
+        last level's fit. The aberrations are ``(12,)`` in the DETECTOR frame of
         ``meta.aberrations`` (the frame the direct-ptychography kernels and
         tilt-corrected dark field read): the shift-model-frame fit converted
         with ``scatterem.utils.transfer.shift_model_to_detector_frame`` at
@@ -347,18 +389,7 @@ def aberrations_and_rotation_from_bright_field_shifts(
     device = dataset.device
     wavelength = _require_meta(dataset).wavelength
     vBF = dataset
-    # Normalized center reference from the first n_center radius-ordered
-    # columns only — identical values to slicing the full normalized stack
-    # (the elementwise per-pixel divide commutes with column selection), and
-    # it works on the streaming provider whose stack may live on the CPU.
-    inds_r = vBF.bright_field_inds_ordered_by_radius
-    norm_cols = vBF.diffraction_pattern_mean_normalized[
-        inds_r[:n_center_indices, 0], inds_r[:n_center_indices, 1]
-    ].to(device)
-    center_cols = (
-        vBF.array[..., :n_center_indices].to(device) / norm_cols[None, None, :]
-    )
-    G_ref = G_ref_initial = torch.fft.fft2(center_cols.mean(-1))
+    G_ref = G_ref_initial = center_reference(vBF, n_center_indices, device)
 
     sampling = torch.as_tensor(dataset.sampling[:2], device=device, dtype=torch.float32)
     detector_dr = _detector_dr(dataset)
@@ -366,21 +397,17 @@ def aberrations_and_rotation_from_bright_field_shifts(
     if use_com_rotation_prior == "auto" and abs(rot_value) < 1e-6:
         rot_value = _com_rotation_prior(dataset, rot_value, verbosity)
     rot_tensor = torch.tensor([rot_value], device=device, dtype=torch.float32)
-    global_shifts = torch.zeros(
+    measured_shifts = torch.zeros(
         (len(vBF.bright_field_inds_centered), 2), device=device, dtype=torch.float32
     )
     order = vBF.bright_field_inds_radial_order.to(device=device)
     kind = "pairwise" if alignment_method == "pairwise" else "reference-based"
     estimator = "neighbour_mesh" if kind == "pairwise" else "mean_template"
-    spectra = _VbfSpectra(vBF)
-    sigma_px = (
-        None
-        if lowpass_fwhm_bright_field is None
-        else float(lowpass_fwhm_bright_field) / (2.0 * math.sqrt(2.0 * math.log(2.0)))
-    )
+    spectra = VbfSpectra(vBF)
+    sigma_px = fwhm_to_sigma(lowpass_fwhm_bright_field)
     pbar = tqdm(bin_factors, desc=f"Self-calibration ({kind})", disable=not verbosity)
     level_fits: list[BrightFieldShiftFit] = []
-    fitted_global_shifts = measured_shifts = global_shifts
+    fitted_global_shifts = measured_shifts
     try:
         for bin in pbar:
             measured_incremental_shifts_px = level_shifts(
@@ -400,10 +427,13 @@ def aberrations_and_rotation_from_bright_field_shifts(
             pbar.set_postfix(
                 {"Res. Shift [A]": f"{inc_shifts_angstroms.max().item():.2f}"}
             )
-            global_shifts += inc_shifts_angstroms
-            measured_shifts = global_shifts.clone()
+            # Fit the accumulated MEASURED shifts. Fitting "previous
+            # model + increment" dropped the earlier levels' residuals from the
+            # data: the covariance came out too small and the result was pulled
+            # toward the first level.
+            measured_shifts = measured_shifts + inc_shifts_angstroms
             shift_fit = fit_aberrations_and_rotation_to_bright_field_shifts(
-                global_shifts,
+                measured_shifts,
                 detector_dr,
                 wavelength,
                 vBF.bright_field_mask,
@@ -412,6 +442,7 @@ def aberrations_and_rotation_from_bright_field_shifts(
                 init_method=init_method,
                 correct_order=correct_order,
                 verbosity=verbosity,
+                covariance_block_px=covariance_block_px,
             )
             level_fits.append(shift_fit)
             fitted_global_shifts = aberrations_to_image_shifts(
@@ -421,7 +452,6 @@ def aberrations_and_rotation_from_bright_field_shifts(
                 wavelength,
                 vBF.bright_field_mask.shape,
             )[vBF.bright_field_mask]
-            global_shifts = fitted_global_shifts
 
             # Add the measured shifts to the vBF's alignment OVERLAY, so the next
             # bin level and the reference see the aligned G without a change to
@@ -445,54 +475,8 @@ def aberrations_and_rotation_from_bright_field_shifts(
 
         logger.info(
             "Interpolated shifts for %d bright field indices",
-            len(global_shifts),
+            len(measured_shifts),
         )
-        show_bright_field_shift_maps(vBF, global_shifts, fitted_global_shifts)
+        show_bright_field_shift_maps(vBF, measured_shifts, fitted_global_shifts)
 
-    return _publish_detector_frame(vBF, shift_fit, update_dataset)
-
-
-class _VbfSpectra:
-    """The BF image spectra of a vBF provider as a ``SpectrumSource``.
-
-    Index ``i`` is BF pixel ``i`` in the original order of
-    ``bright_field_inds_centered``; the provider stores its BF axis in radial
-    order, so :meth:`read` maps the indices through the radial rank. The
-    provider applies its alignment overlay at fetch time.
-    """
-
-    def __init__(self, vbf: DatasetVirtualBrightField4DStem) -> None:
-        self._vbf = vbf
-        order = vbf.bright_field_inds_radial_order.to(device="cpu", dtype=torch.long)
-        self._rank = torch.argsort(order)
-        self.image_count = int(order.numel())
-        self.scan_grid_shape = (int(vbf.array.shape[0]), int(vbf.array.shape[1]))
-        self.run_device = torch.device(vbf.device)
-
-    def read(self, indices) -> torch.Tensor:
-        idx = self._rank[torch.as_tensor(list(indices), dtype=torch.long)]
-        cols = self._vbf.get_G_columns(idx.to(self.run_device))
-        return torch.permute(cols, (2, 0, 1)).to(self.run_device)
-
-
-def _publish_detector_frame(
-    vBF: DatasetVirtualBrightField4DStem,
-    fit: BrightFieldShiftFit,
-    update_dataset: bool,
-) -> BrightFieldShiftFit:
-    """The shift-model-frame fit turned to the detector frame, stored if asked.
-
-    Everything before this models the measured shifts, in the shift model's
-    frame; the vector returned and written into ``meta.aberrations`` is the
-    detector-frame one its readers use, turned at the FINAL rotation (the
-    identity, bit for bit, at rotation 0). The fit's quality fields are kept.
-    """
-    fit = replace(
-        fit, aberrations=shift_model_to_detector_frame(fit.aberrations, fit.rotation)
-    )
-    if update_dataset:
-        meta = _require_meta(vBF)
-        meta.aberrations = Aberrations(array=fit.aberrations)
-        meta.rotation = fit.rotation.item()
-        meta.defocus_guess = 0.0  # C10 is in aberrations alone
-    return fit
+    return publish_detector_frame(vBF, shift_fit, update_dataset)

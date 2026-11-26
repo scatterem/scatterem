@@ -23,14 +23,23 @@ accumulator) to preserve gradient precision; the fully-reduced grad is narrowed
 back to the leaf complex dtype at the autograd boundary.
 """
 
+import threading
 from typing import Any
 
 import torch
 import warp as wp
 from torch import Tensor
 
+from scatterem.nn._backends_launch import TRANSMIT_LAUNCH_MEMO
 from scatterem.nn.functional.warp._complex_funcs import _cconj, _cmul
 from scatterem.physics import _warp_interop as wi
+from scatterem.physics._forward_ad import refuse_forward_ad
+from scatterem.utils.env import resolve_backend
+
+try:  # Warp's low-level array descriptor.
+    from warp._src.types import array_t as _array_t
+except Exception:  # pragma: no cover - a Warp whose private layout moved
+    _array_t = None
 
 
 @wp.kernel
@@ -202,6 +211,116 @@ for _vt in (wp.vec2h, wp.vec2):
 del _vt
 
 
+#: ``(kernel, value type, dim, device ordinal, thread id) -> wp.Launch``.
+#: Bounded and cleared wholesale; the working set is one entry per
+#: kernel, value type and patch shape per thread.
+_LAUNCH_MEMO: dict = {}
+_REAL_DTYPE = {wp.vec2: torch.float32, wp.vec2h: torch.float16}
+_LAUNCH_MEMO_CAP = 64
+
+
+def transmit_launch_memo_supported(device: Any) -> bool:
+    """Whether a recorded command may issue a transmit kernel now.
+
+    Parameters
+    ----------
+    device : warp.context.Device
+        The Warp device of the launch.
+
+    Returns
+    -------
+    bool
+        True on a CUDA device when Warp's array descriptor is importable and
+        neither Warp nor torch captures a graph. A capture then records the
+        plain launch it recorded before the memo existed.
+    """
+    return (
+        _array_t is not None
+        and bool(device.is_cuda)
+        and not device.is_capturing
+        and not torch.cuda.is_current_stream_capturing()
+    )
+
+
+def _desc(t: Tensor, vec: Any) -> Any:
+    """A Warp array descriptor over ``t``, as ``from_torch(t, dtype=vec)`` builds.
+
+    A truthy ``vec`` (a Warp vector type) reads the trailing size-2 axis as the
+    vector element. Byte strides come from ``t.stride()``. ``grad`` and
+    ``flags`` are 0, as ``from_torch(requires_grad=False)`` sets them. The
+    descriptor holds a raw pointer only; the caller keeps ``t`` alive across
+    the enqueue, which is all a CUDA launch needs.
+    """
+    shape = t.shape[:-1] if vec else t.shape
+    stride = t.stride()[:-1] if vec else t.stride()
+    es = t.element_size()
+    # The row's predicate declines when ``_array_t`` is None.
+    return _array_t(t.data_ptr(), 0, len(shape), shape, [s * es for s in stride])  # pyright: ignore[reportOptionalCall]
+
+
+def _check_dtypes(tensors, dtypes) -> None:
+    """Refuse a dtype that ``from_torch`` refuses; :func:`_desc` does not check."""
+    for t, v in zip(tensors, dtypes, strict=True):
+        want = torch.int32 if v is None else _REAL_DTYPE[v]
+        if t.dtype != want:
+            raise TypeError(f"transmit expects {want} for this argument, got {t.dtype}")
+
+
+def _plain_args(tensors, dtypes, n_modes, m_index) -> list:
+    """The ``from_torch`` argument list of the plain ``wp.launch``."""
+    args: list = [
+        wi.from_torch(t, dtype=d, requires_grad=False)
+        for t, d in zip(tensors, dtypes, strict=True)
+    ]
+    args.insert(m_index, n_modes)
+    return args
+
+
+def _launch(kernel, dim, vt, device, tensors, dtypes, n_modes, m_index) -> None:
+    """Issue one transmit kernel; the row ``transmit_launch_memo`` picks the route.
+
+    ``"launch"`` is the plain ``wp.launch``. ``"recorded"``
+    records a ``wp.Launch`` once per (kernel, value type, dim, device, thread)
+    and rebinds every array argument and ``n_modes`` on every call, so a
+    replay never launches a pointer from an earlier call. Rebinding also
+    replaces the recorded arguments, so the command does not keep the
+    recording call's tensors alive. The replay runs on torch's current stream:
+    the tensors are written, read and freed there, and on Warp's own stream
+    the replay raced that work.
+    """
+    if resolve_backend(TRANSMIT_LAUNCH_MEMO, None, device) != "recorded":
+        wp.launch(
+            kernel=kernel,
+            dim=dim,
+            inputs=_plain_args(tensors, dtypes, n_modes, m_index),
+            device=device,
+        )
+        return
+    key = (kernel, vt, dim, device.ordinal, threading.get_ident())
+    cmd = _LAUNCH_MEMO.get(key)
+    if cmd is None:
+        if len(_LAUNCH_MEMO) >= _LAUNCH_MEMO_CAP:
+            _LAUNCH_MEMO.clear()
+        # ``record_cmd=True`` RECORDS and does NOT launch.
+        cmd = wp.launch(
+            kernel=kernel,
+            dim=dim,
+            inputs=_plain_args(tensors, dtypes, n_modes, m_index),
+            device=device,
+            record_cmd=True,
+        )
+        if cmd is None:  # pragma: no cover - ``record_cmd=True`` returns the Launch
+            raise RuntimeError("wp.launch(record_cmd=True) returned no command")
+        _LAUNCH_MEMO[key] = cmd
+    _check_dtypes(tensors, dtypes)
+    for j, (t, v) in enumerate(zip(tensors, dtypes, strict=True)):
+        cmd.set_param_at_index_from_ctype(j + (j >= m_index), _desc(t, v))
+    cmd.set_param_at_index_from_ctype(m_index, n_modes)
+    cmd.launch(
+        stream=wi.stream_from_torch(torch.cuda.current_stream(tensors[0].device))
+    )
+
+
 @torch.library.custom_op("scatterem::transmit_fwd", mutates_args=())
 def _transmit_fwd(
     exp_patches_real: Tensor,  # [U, 2] float32/float16 (view_as_real of complex)
@@ -219,19 +338,19 @@ def _transmit_fwd(
     vt = wp.vec2h if waves_real.dtype == torch.float16 else wp.vec2
     out = torch.empty_like(waves_real)
     device = wi.device_from_torch(waves_real.device)
-    exp_wp = wi.from_torch(exp_patches_real, dtype=vt, requires_grad=False)
-    inv_wp = wi.from_torch(inv, requires_grad=False)
-    waves_wp = wi.from_torch(waves_real, dtype=vt, requires_grad=False)
-    out_wp = wi.from_torch(out, dtype=vt, requires_grad=False)
     # Mode-blocked launch: one ``inv`` load and one ``exp_patches`` gather per
     # PIXEL instead of per (mode, pixel).  Bit-exact to the per-thread-mode grid
-    # it replaced -- see the kernel's own comment.
-    wp.launch(
-        kernel=_transmit_fwd_blocked_kernel,
-        dim=(K, ph, pw),
-        inputs=[exp_wp, inv_wp, waves_wp, M],
-        outputs=[out_wp],
-        device=device,
+    # it replaced -- see the kernel's own comment.  Arguments in kernel order:
+    # exp_patches, inv, waves, n_modes (index 3), out.
+    _launch(
+        _transmit_fwd_blocked_kernel,
+        (K, ph, pw),
+        vt,
+        device,
+        (exp_patches_real, inv, waves_real, out),
+        (vt, None, vt, vt),
+        M,
+        3,
     )
     return out
 
@@ -268,11 +387,6 @@ def _transmit_bwd(
         exp_patches_real.shape, dtype=torch.float32, device=exp_patches_real.device
     )
 
-    grad_out_wp = wi.from_torch(grad_out_real, dtype=vt, requires_grad=False)
-    exp_wp = wi.from_torch(exp_patches_real, dtype=vt, requires_grad=False)
-    inv_wp = wi.from_torch(inv, requires_grad=False)
-    waves_wp = wi.from_torch(waves_real, dtype=vt, requires_grad=False)
-
     # One fused launch, blocked over the mode axis: the two split kernels above
     # both stream the whole of ``grad_out`` and both re-read the mode-independent
     # ``inv``/``exp_patches`` once per mode.  See
@@ -280,17 +394,20 @@ def _transmit_bwd(
     # why the mode LOOP (rather than a mode grid axis) is what keeps
     # ``grad_waves`` bit-identical to the split spelling.  The split kernels are
     # kept above as the reference spelling for A/B comparisons.
-    wp.launch(
-        kernel=_transmit_bwd_fused_kernel,
-        dim=(K, ph, pw),
-        # grad_out / exp_patches / waves are the (possibly fp16) value type; the
-        # accumulator binds to the fixed float32 wp.vec2 declared on the kernel.
-        inputs=[grad_out_wp, exp_wp, waves_wp, inv_wp, M],
-        outputs=[
-            wi.from_torch(grad_waves, dtype=vt, requires_grad=False),
-            wi.from_torch(grad_exp, dtype=wp.vec2, requires_grad=False),
-        ],
-        device=device,
+    # Arguments in kernel order: grad_out, exp_patches, waves, inv, n_modes
+    # (index 4), grad_waves, grad_exp.  grad_out / exp_patches / waves /
+    # grad_waves are the (possibly fp16) value type ``vt``; the accumulator
+    # ``grad_exp`` binds to the fixed float32 wp.vec2 declared on the kernel (the
+    # descriptor has no dtype, so ``vt`` in the memo key selects the overload).
+    _launch(
+        _transmit_bwd_fused_kernel,
+        (K, ph, pw),
+        vt,
+        device,
+        (grad_out_real, exp_patches_real, waves_real, inv, grad_waves, grad_exp),
+        (vt, vt, vt, None, vt, wp.vec2),
+        M,
+        4,
     )
     return grad_exp, grad_waves
 
@@ -315,16 +432,10 @@ def _backward(ctx, grad_out):
     grad_exp, grad_waves = torch.ops.scatterem.transmit_bwd(
         grad_out.contiguous(), exp_patches_real, inv, waves_real
     )
-    # ``grad_exp`` is ALWAYS float32 (fp32 scatter accumulation), but the
-    # ``exp_patches_real`` leaf is float16 in fp16 (complex32) mode. PyTorch's
-    # autograd actually ACCEPTS a mismatched grad dtype here and auto-casts it
-    # to the leaf dtype when accumulating into ``.grad`` (verified on torch
-    # 2.7.1: returning a float32 grad for a float16 custom-op input yields a
-    # float16 ``.grad``). We nonetheless cast EXPLICITLY at this boundary so the
-    # returned grad deterministically matches the leaf dtype and the result does
-    # not depend on autograd's implicit-cast behaviour. The accumulation itself
-    # stayed in float32 inside the kernel; only the final, fully-reduced grad is
-    # narrowed to float16 here.
+    # ``grad_exp`` is ALWAYS float32 (fp32 scatter accumulation), but the leaf
+    # is float16 in complex32 mode. Autograd would cast it implicitly (torch
+    # 2.7.1); the explicit cast makes the returned dtype not depend on that.
+    # Only the final, fully reduced grad is narrowed to float16.
     if grad_exp.dtype != exp_patches_real.dtype:
         grad_exp = grad_exp.to(exp_patches_real.dtype)
     # grads for (exp_patches_real, inv, waves_real)
@@ -376,6 +487,7 @@ def fused_transmit(
         ``(M, K, ph, pw)`` complex64 or complex32 (matching the inputs),
         equal to ``exp_patches[inverse_index].unsqueeze(0) * waves``.
     """
+    refuse_forward_ad("fused_transmit", exp_patches, waves)
     exp_real = torch.view_as_real(exp_patches).contiguous()
     waves_real = torch.view_as_real(waves).contiguous()
     inv = inverse_index.to(torch.int32).contiguous()

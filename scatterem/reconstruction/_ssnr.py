@@ -96,24 +96,27 @@ def _ssnr_radial_bins(ny, nx, sampling, radial_bins, dtype, device):
     if hit is not None:
         return hit
 
-    qy = torch.fft.fftfreq(ny, d=sampling[0]).to(device)
-    qx = torch.fft.fftfreq(nx, d=sampling[1]).to(device)
-    QY, QX = torch.meshgrid(qy, qx, indexing="ij")
-    q_mag = torch.sqrt(QX**2 + QY**2)
+    with torch.inference_mode(False):  # never cache an inference tensor
+        qy = torch.fft.fftfreq(ny, d=sampling[0]).to(device)
+        qx = torch.fft.fftfreq(nx, d=sampling[1]).to(device)
+        QY, QX = torch.meshgrid(qy, qx, indexing="ij")
+        q_mag = torch.sqrt(QX**2 + QY**2)
 
-    flat_q = q_mag.flatten()
-    q_min, q_max = flat_q.min(), flat_q.max()
-    bin_edges = torch.linspace(
-        q_min, q_max, steps=radial_bins + 1, device=flat_q.device
-    )
-    bin_idx = torch.bucketize(flat_q, bin_edges) - 1
-    bin_idx = bin_idx.clamp(min=0, max=radial_bins - 1)
+        flat_q = q_mag.flatten()
+        q_min, q_max = flat_q.min(), flat_q.max()
+        bin_edges = torch.linspace(
+            q_min, q_max, steps=radial_bins + 1, device=flat_q.device
+        )
+        bin_idx = torch.bucketize(flat_q, bin_edges) - 1
+        bin_idx = bin_idx.clamp(min=0, max=radial_bins - 1)
 
-    den_safe = torch.bincount(bin_idx, minlength=radial_bins).to(dtype).clamp_min(1.0)
+        den_safe = (
+            torch.bincount(bin_idx, minlength=radial_bins).to(dtype).clamp_min(1.0)
+        )
 
-    qnum = torch.zeros(radial_bins, device=flat_q.device, dtype=flat_q.dtype)
-    qnum.index_add_(0, bin_idx, flat_q)
-    q_rad = qnum / den_safe
+        qnum = torch.zeros(radial_bins, device=flat_q.device, dtype=flat_q.dtype)
+        qnum.index_add_(0, bin_idx, flat_q)
+        q_rad = qnum / den_safe
 
     if len(_SSNR_BIN_CACHE) >= _SSNR_BIN_CACHE_MAX:
         _SSNR_BIN_CACHE.clear()

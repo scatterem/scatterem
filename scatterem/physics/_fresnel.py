@@ -142,7 +142,9 @@ def angular_spectrum_kernel(
     -------
     Tensor
         Transfer function, shape `(Ny, Nx)`, corner-origin reciprocal grid.
-        The evanescent band (``|q| > 1/lambda``) is clamped to zero phase.
+        In the evanescent band (``|q| > 1/lambda``) ``kz`` is clamped to
+        zero, so the kernel there is ``exp(-i k dz)``: a constant phase with
+        no decay.
     """
     return torch.exp(
         1j

@@ -252,10 +252,19 @@ def potential_spectra(grid: PeriodicGrid, atomic_numbers: Sequence[int]) -> np.n
     if not numbers:
         raise ValueError("atomic_numbers must hold at least one number")
     ky, kx = dft_sample_frequencies(grid)
-    x = ky**2 + kx**2
-    return np.stack(
-        [_amplitude_of_square(x, z) * POTENTIAL_PER_AMPLITUDE for z in numbers]
-    )
+    # ``+k`` and ``-k`` square to the same float, so ``k_y^2``
+    # and ``k_x^2`` take about half as many distinct values as pixels per axis.
+    # The formula acts element by element on ``x``, and each sub-grid value is
+    # the same float64 sum as on the full grid. So the sub-grid and an index
+    # gather give every pixel the same bits, on about a quarter of the pixels.
+    sy, iy = np.unique(ky.ravel() ** 2, return_inverse=True)
+    sx, ix = np.unique(kx.ravel() ** 2, return_inverse=True)
+    x = sy[:, None] + sx[None, :]
+    out = np.empty((len(numbers), *grid.points), dtype=np.float64)
+    for s, z in enumerate(numbers):
+        small = _amplitude_of_square(x, z) * POTENTIAL_PER_AMPLITUDE
+        np.take(small[iy.ravel()], ix.ravel(), axis=1, out=out[s])
+    return out
 
 
 def gamma_wavelength(kinetic_ev: float) -> float:

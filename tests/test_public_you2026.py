@@ -144,7 +144,7 @@ def test_base_download_fetches_every_declared_resource(
 
     calls = []
 
-    def _fake_download(url, root, filename, md5):
+    def _fake_download(url, root, filename, md5, timeout=None):
         calls.append((url, str(root), filename, md5))
 
     monkeypatch.setattr(

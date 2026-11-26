@@ -43,12 +43,12 @@ from scatterem.nn._backends_graphs import (
     GATHER_L2_GRAPH,
     MULTISLICE_L2_GRAPH,
 )
-from scatterem.nn.functional._forward_ad import carries_tangent
 from scatterem.nn.modules import Propagator
 from scatterem.nn.ptychography import multislice_transmit_slice
 from scatterem.nn.ptychography._gather_per_slice import _gather_cmul_fn
 from scatterem.physics import _warp_interop as wi
 from scatterem.physics._aten_cmul_order import aten_cmul_imag_swapped
+from scatterem.physics._forward_ad import carries_tangent
 from scatterem.utils.env import resolve_backend, switched_on
 
 __all__ = [

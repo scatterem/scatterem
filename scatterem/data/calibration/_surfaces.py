@@ -239,9 +239,8 @@ def fit_2D(
     The field is sampled on the unit square (:func:`_make_xy_flat`). The three
     models of this module are solved in closed form by linear least squares;
     any other callable is fitted by L-BFGS from ``popt``. Clean-room
-    implementation from a behavioural specification, with the interface kept
-    from py4DSTEM (see the module docstring); method of Savitzky et al. (2021)
-    and Ophus (2019).
+    implementation from a behavioural specification (see the module
+    docstring); method of Savitzky et al. (2021) and Ophus (2019).
 
     Parameters
     ----------

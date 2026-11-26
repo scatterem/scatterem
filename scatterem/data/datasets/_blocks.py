@@ -40,6 +40,8 @@ class _SourceBacked(_DirectStats, _Streamed):
     _row_block: int = 8
     _dose: float | None = None
     _dose_deferred: bool = False
+    #: A frame view with a deferred dose: the parent's whole-frame source.
+    _dose_source: ArraySource
     _total_intensity: float | None
 
     # --- storage -----------------------------------------------------------
@@ -259,8 +261,8 @@ class _SourceBacked(_DirectStats, _Streamed):
 
     @dose_per_probe_unnormalized.setter
     def dose_per_probe_unnormalized(self, value: float | None) -> None:
-        self._dose = value
-        self._dose_deferred = False
+        self._dose, self._dose_deferred = value, False
+        self.__dict__.pop("_dose_source", None)  # not needed now: free the parent
 
     def _fill_deferred_dose(self) -> None:
         """Run the deferred dose pass once: steps 1-5 without ``pre`` or ``c``."""
@@ -270,12 +272,12 @@ class _SourceBacked(_DirectStats, _Streamed):
                 f"{type(self._source).__name__} needs "
                 "dataset.source.materialize(device) first"
             )
-        if self.__dict__.get("_frame_view"):  # the eager crop's recipe (_DirectStats)
-            return self._fill_frame_dose()
-        dose = _streamed_dose(self._source, self._transform)
-        n = self._source.shape[0] * self._source.shape[1]
-        self._dose, self._total_intensity = dose, dose * n
-        self._dose_deferred = False
+        # A frame view takes the dose of its parent's whole frames.
+        source = self.__dict__.get("_dose_source", self._source)
+        total = _streamed_total(source, self._transform)
+        self._total_intensity = total
+        # The setter ends the deferral and frees the parent's source.
+        self.dose_per_probe_unnormalized = total / (source.shape[0] * source.shape[1])
 
     def _lazy_total(self) -> float:
         """The total for ``total_intensity`` when none is recorded.
@@ -435,6 +437,12 @@ def _streamed_dose(source: ArraySource, transform: RowTransform | None) -> float
     bit for bit with the eager value of the same data built on the same device type.
     """
     ny, nx = source.shape[:2]
+    return _streamed_total(source, transform) / (ny * nx)
+
+
+def _streamed_total(source: ArraySource, transform: RowTransform | None) -> float:
+    """Sum of all patterns after steps 1-5, without ``pre`` or ``c`` (the eager total)."""
+    ny, nx = source.shape[:2]
     tr = None
     dev = torch.device("cpu")
     if transform is not None:
@@ -449,7 +457,7 @@ def _streamed_dose(source: ArraySource, transform: RowTransform | None) -> float
             rows = torch.arange(row * nx, (row + 1) * nx, dtype=torch.int64)
             x = tr.stage1(block, rows)
         total += float(x.to(torch.float64).sum())
-    return total / (ny * nx)
+    return total
 
 
 def _init_from_source(

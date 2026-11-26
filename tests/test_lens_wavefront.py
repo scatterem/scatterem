@@ -187,6 +187,18 @@ def test_linearity() -> None:
 # --- B.7 batch --------------------------------------------------------------
 
 
+# Both calls contract the same 12 basis terms b_j with the coefficients c_j,
+# but a batch is a GEMM and one lens a GEMV, and BLAS may sum the 12 products
+# in a different order for each (MKL on an AMD EPYC does; on the Intel
+# workstation the results are identical). Any order of a float64 inner product
+# of length n satisfies |fl(s) - s| <= gamma_n * sum_j |c_j b_j|, with
+# gamma_n = n u / (1 - n u) and u = 2**-53 (Higham, Accuracy and Stability of
+# Numerical Algorithms, eq. 3.5). Two orders differ by at most twice that.
+# A relative bar on the result is not a bound: the terms cancel, and the
+# result can be much smaller than sum_j |c_j b_j|.
+GAMMA_12 = 12 * 2.0**-53 / (1 - 12 * 2.0**-53)
+
+
 @pytest.mark.parametrize("batch", [(3,), (2, 3)])
 @pytest.mark.parametrize("grid", [((5, 7), (5, 7)), ((5, 1), (1, 7))])
 def test_batch_equals_separate_calls(batch, grid) -> None:
@@ -194,12 +206,17 @@ def test_batch_equals_separate_calls(batch, grid) -> None:
     lens = torch.tensor(random_lens(rng, batch))
     fy = torch.tensor(rng.uniform(-1, 1, grid[0]))
     fx = torch.tensor(rng.uniform(-1, 1, grid[1]))
+    unit = torch.eye(len(O.LENS_LAYOUT), dtype=lens.dtype)
     for func, tail in ((O.lens_wavefront, ()), (O.lens_wavefront_slope, (2,))):
         out = func(lens, fy, fx, lambda_a=LAM)
         assert out.shape == (*batch, 5, 7, *tail)
+        # |b_j|: a unit lens gives the scaled basis term b_j exactly
+        abs_terms = torch.stack([func(e, fy, fx, lambda_a=LAM).abs() for e in unit])
         for idx in np.ndindex(*batch):
             single = func(lens[idx], fy, fx, lambda_a=LAM)
-            torch.testing.assert_close(out[idx], single, rtol=1e-14, atol=0)
+            bound = 2 * GAMMA_12 * torch.tensordot(lens[idx].abs(), abs_terms, dims=1)
+            excess = (out[idx] - single).abs() - bound
+            assert excess.max() <= 0, f"{func.__name__}{idx}: {excess.max():.3g}"
 
 
 def test_sequence_lens_is_accepted() -> None:

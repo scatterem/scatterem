@@ -147,10 +147,8 @@ def fit_origin(
 
     Notes
     -----
-    Clean-room implementation from a behavioural specification, with the
-    interface kept from py4DSTEM, except that ``fit_function`` and
-    ``return_fit_params`` are new spellings of ``fitfunction`` and
-    ``returnfitp`` (see :mod:`._surfaces`). The method is that of
+    Clean-room implementation from a behavioural specification (see
+    :mod:`._surfaces`). The method is that of
     Savitzky et al. (2021) and Ophus (2019): the descan is a slow, smooth drift, so
     a low-order surface fitted to each component removes it and leaves the
     specimen signal in the residual.

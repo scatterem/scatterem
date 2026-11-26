@@ -266,6 +266,29 @@ def _available(row: Backend, impl: str) -> bool:
     return _AVAILABLE[key]
 
 
+def _dual_operand(args: tuple) -> bool:
+    """Whether an operand in ``args`` carries a forward-mode tangent.
+
+    A gated implementation is usually a fused kernel (Warp, Triton, an
+    extension) that drops a tangent with no error. :func:`resolve_backend`
+    sends a dual operand to the ungated fallback (the last impl) instead. That
+    fallback keeps the tangent only when it is a differentiable torch route.
+
+    Only the top-level tensors in ``args`` are read: a tensor inside a
+    container or a module, or an operand the call site does not pass, is not
+    seen. Outside a ``forward_ad`` dual level the test is one dictionary lookup
+    and one attribute read, made once per :func:`resolve_backend` call.
+    """
+    fwad = sys.modules.get("torch.autograd.forward_ad")
+    if fwad is None or fwad._current_level < 0:  # torch's own test  # noqa: SLF001
+        return False
+    from torch import Tensor  # noqa: PLC0415 - torch is loaded when a level is open
+
+    from scatterem.physics._forward_ad import carries_tangent  # noqa: PLC0415
+
+    return carries_tangent(*(a for a in args if isinstance(a, Tensor)))
+
+
 def _takes(row: Backend, impl: str, args: tuple) -> bool:
     """Whether ``impl`` is available and its per-call predicates pass."""
     if not _available(row, impl):
@@ -328,7 +351,10 @@ def resolve_backend(kernel: str | Backend, requested: str | None = None, *args) 
     ``args``; the last implementation is the fallback.  An explicit request
     is honoured or refused, never silently replaced; ``SCATTEREM_USE_WARP``
     switched on is a preference for Warp (see :func:`resolve_use_warp`), and
-    switched off a request for torch.
+    switched off a request for torch.  A top-level tensor operand with a
+    forward-mode tangent gets the ungated fallback (the last impl), which
+    keeps the tangent only when it is a differentiable torch route; an
+    explicit request for another impl is refused (:func:`_dual_choice`).
 
     Parameters
     ----------
@@ -354,6 +380,8 @@ def resolve_backend(kernel: str | Backend, requested: str | None = None, *args) 
     """
     row = _row(kernel)
     choice, source = _request(row, requested)
+    if _dual_operand(args):  # a forward-mode tangent: only the fallback
+        return _dual_choice(row, choice, source)
     if choice == AUTO:
         return _walk(row, args)
     if choice == _PREFER_WARP and "warp" in row.impls:
@@ -369,6 +397,27 @@ def resolve_backend(kernel: str | Backend, requested: str | None = None, *args) 
             f"does not accept these operands"
         )
     return choice
+
+
+def _dual_choice(row: Backend, choice: str, source: str) -> str:
+    """:func:`resolve_backend` for operands with a forward-mode tangent.
+
+    Every gated implementation is declined, so ``"auto"``, a Warp preference
+    and the row's default all give the ungated fallback (the last impl). An
+    explicit request (argument or environment) for another impl is refused.
+    """
+    fallback = row.impls[-1]
+    if choice in (AUTO, _PREFER_WARP) or source == "default" or choice == fallback:
+        return fallback
+    if choice not in row.impls:
+        raise ValueError(
+            f"{row.name}: {source} asks for {choice!r}; choose one of "
+            f"{(AUTO, *row.impls)}"
+        )
+    raise BackendUnavailable(
+        f"{row.name}: {source} asks for {choice!r}, which does not take a "
+        f"forward-mode dual operand; only the fallback {fallback!r} is allowed"
+    )
 
 
 def switched_on(kernel: str | Backend, impl: str) -> bool:

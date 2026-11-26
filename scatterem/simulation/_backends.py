@@ -40,6 +40,8 @@ EELS_WALK_GRAPH = register_backend(
 
 
 
+
+
 #: EELS ``acc += |psi|^2`` (``abs2_acc_fused``): Warp for contiguous complex64
 #: CUDA ``psi`` into float64 ``acc``, else the ATen chain.
 EELS_ABS2_ACC = register_backend(

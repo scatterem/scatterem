@@ -18,6 +18,8 @@ rows) the C2R buys ~1.04x and the shipped path stays.
 
 import torch
 
+from scatterem.physics._forward_ad import refuse_forward_ad
+
 from ._caches import _contiguous_memo, _sin_cos_rot
 from ._sq_aperture import _pctf_sq_threshold
 from .kouter import _correct_aberrations_kouter_impl
@@ -110,6 +112,9 @@ def correct_aberrations_kouter_half(
     torch.Tensor
         ``out``.
     """
+    refuse_forward_ad(
+        "correct_aberrations_kouter_half", Gprime, aberrations, Qx, Qy, Kx, Ky
+    )
     out_real = torch.view_as_real(out)
     if not out_real.is_contiguous() or out.shape[0] != Gprime.shape[0]:
         raise ValueError("out must be a contiguous (Nk, Hq, W//2 + 1) complex tensor")

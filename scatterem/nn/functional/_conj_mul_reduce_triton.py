@@ -95,6 +95,7 @@ from scatterem.nn._backends import (
     CONJ_MUL_REDUCE_BCAST,
 )
 from scatterem.physics._aten_cmul_order import aten_cmul_imag_swapped
+from scatterem.physics._forward_ad import carries_tangent
 from scatterem.utils.env import resolve_backend
 
 __all__ = [
@@ -294,7 +295,7 @@ def conj_mul_reduce_bcast_declines(
     """
     if conj_mul_reduce_declines(g, w):
         return True
-    if t.dtype is not torch.complex64 or not t.is_contiguous():
+    if t.dtype is not torch.complex64 or not t.is_contiguous() or carries_tangent(t):
         return True
     return t.shape != g.shape[1:]
 
@@ -306,7 +307,7 @@ def conj_mul_reduce_declines(g: torch.Tensor, w: torch.Tensor) -> bool:
 
 def _products_decline(g: torch.Tensor, w: torch.Tensor) -> bool:
     """Every gate of :func:`conj_mul_reduce_declines` except ``_MAX_MODES``."""
-    if not (g.is_cuda and w.is_cuda):
+    if not (g.is_cuda and w.is_cuda) or carries_tangent(g, w):  # kernels drop tangents
         return True
     if g.dtype is not torch.complex64 or w.dtype is not torch.complex64:
         return True
@@ -411,7 +412,7 @@ def conj_mul_bcast_products_declines(
     """
     if _products_decline(g, w):
         return True
-    if t.dtype is not torch.complex64 or not t.is_contiguous():
+    if t.dtype is not torch.complex64 or not t.is_contiguous() or carries_tangent(t):
         return True
     return t.shape != g.shape[1:]
 

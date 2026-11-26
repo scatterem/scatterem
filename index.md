@@ -7,7 +7,7 @@ html_theme.sidebar_secondary.remove: true
 # scatterem
 
 {.sem-tagline}
-4D-STEM reconstruction and differentiable STEM simulations on the GPU, in PyTorch.
+Differentiable scattering models and imaging algorithms for microscopy
 
 ::::{grid} 1 1 2 2
 :gutter: 3
@@ -16,10 +16,12 @@ html_theme.sidebar_secondary.remove: true
 :::{grid-item}
 :columns: 12 12 7 7
 ```{figure} docs/images/ffstem_carbon.png
-:alt: Three images of the same area of amorphous carbon. Direct ptychography is strong at low spatial frequencies, tilt-corrected dark field shows the fine detail, and the fused full-field image has both.
+:alt: Three images of the same area of amorphous carbon with Poisson noise at 2 × 10⁴ electrons per square angstrom. Direct ptychography shows the structure with low noise, tilt-corrected dark field is noisy, and the fused full-field image follows direct ptychography.
 
-Amorphous carbon, 300 kV: direct ptychography, tilt-corrected dark field and
-their fused full-field image. Data: You *et al.*, Zenodo,
+Amorphous carbon, 300 kV, with Poisson noise at 2 × 10{sup}`4` e/Å² added:
+direct ptychography, tilt-corrected dark field and their fused full-field
+image. The fusion weights each channel by its SSNR, so at this dose it keeps
+mostly the direct ptychography. Data: You *et al.*, Zenodo,
 [doi:10.5281/zenodo.18008901](https://doi.org/10.5281/zenodo.18008901),
 CC-BY-4.0.
 ```
@@ -36,7 +38,7 @@ BiP-PRISM with analytic hydrogenic states (not quantitative).
 :::
 ::::
 
-::::{grid} 1 1 3 3
+::::{grid} 1 1 2 2
 :gutter: 3
 
 :::{grid-item-card} FF-STEM
@@ -46,7 +48,7 @@ with no missing band of spatial frequencies.
 S. You *et al.*, *Adv. Sci.* **13** (2026) e76620,
 [doi:10.1002/advs.76620](https://doi.org/10.1002/advs.76620)
 +++
-[The method](docs/method.md)
+[FF-STEM](docs/ffstem.md)
 :::
 
 :::{grid-item-card} BiP-PRISM
@@ -67,6 +69,16 @@ P. Pelz, *J. Phys. Mater.* (2026),
 [doi:10.1088/2515-7639/aebdd0](https://doi.org/10.1088/2515-7639/aebdd0)
 +++
 [Elastic PRISM](docs/prism.md)
+:::
+
+:::{grid-item-card} Mixed-state ptychography
+Reconstructs a 2D object and a mixed-state probe with second-order solvers,
+and measures the orbital angular momentum of the probe modes.
+
+S. You *et al.*, arXiv:2608.05749 (2026),
+[doi:10.48550/arXiv.2608.05749](https://doi.org/10.48550/arXiv.2608.05749)
++++
+[API reference](docs/api.md)
 :::
 ::::
 
@@ -92,10 +104,11 @@ docs/quickstart
 :hidden:
 :caption: User guide
 
-docs/method
+docs/ffstem
 docs/calibration
 Figure scripts <docs/figures>
 docs/notebooks
+docs/mixed-state
 docs/eels
 docs/bip-prism
 docs/prism
@@ -106,7 +119,7 @@ docs/prism
 :caption: Reference
 
 API <docs/api>
-docs/migrating
+docs/architecture
 ```
 
 ```{toctree}

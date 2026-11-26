@@ -5,6 +5,7 @@ from __future__ import annotations
 import torch
 from torch import Tensor
 
+from scatterem.physics._forward_ad import carries_tangent
 from scatterem.physics._frequency_grid import fft_frequency_grid
 
 from ._fwd_eager import fwd_eager
@@ -205,6 +206,7 @@ def _ramp_mul(basis_fft: Tensor, ramp: Tensor) -> Tensor:
         and not (
             torch.is_grad_enabled() and (basis_fft.requires_grad or ramp.requires_grad)
         )
+        and not carries_tangent(basis_fft, ramp)  # the kernel would drop the tangent
     ):
         basis_real = torch.view_as_real(basis_fft).contiguous()
         ramp_real = torch.view_as_real(ramp).contiguous()

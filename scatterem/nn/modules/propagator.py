@@ -91,8 +91,7 @@ class Propagator(Module):
     tilt : Sequence of float or None, optional
         Global crystal tilt ``(theta_y, theta_x)`` in RADIANS (adaptive
         propagator ptychography, Sha et al. 2022). Multiplies ``prop`` by
-        ``exp(+2*pi*i * dz * (qy*tan(theta_y) + qx*tan(theta_x)))``, PtyRAD's
-        kernel: the wave is translated by ``-dz*tan(theta)`` per slice, i.e.
+        ``exp(+2*pi*i * dz * (qy*tan(theta_y) + qx*tan(theta_x)))``: the wave is translated by ``-dz*tan(theta)`` per slice, i.e.
         the object's columns advance by ``+dz*tan(theta)`` per slice relative
         to the beam. Only the physical kernel ``prop`` carries it; the
         reference-plane :meth:`fresnel_kernel`/:meth:`fresnel_phase` stay

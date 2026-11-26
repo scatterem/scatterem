@@ -1,4 +1,4 @@
-"""Oklab domain colouring, replacing the quantem-derived JCh renderer.
+"""Oklab domain colouring, replacing the earlier JCh renderer.
 
 Assertions are against colour-space properties rather than against the
 implementation being replaced.

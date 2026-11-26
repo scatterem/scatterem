@@ -29,6 +29,8 @@ from torch import Tensor
 
 from scatterem.data.origin_check import corner_origin_margin, is_clearly_corner_origin
 
+from ._blocks import _streamed_total
+from ._dose import array_total, float64_slice_total
 from ._meta import KEEP, copy_meta, moved_warp_centre
 
 if TYPE_CHECKING:
@@ -58,8 +60,41 @@ class DetectorOps:
     #: The operations applied to the data, oldest first. Each entry is a dict
     #: with the key ``"op"`` and the parameters of that operation.
     processing_steps: tuple[dict[str, Any], ...] = ()
-    #: ``Dataset4DStem`` saves the steps in this field. Older files lack it.
-    SERIAL_OPTIONAL: ClassVar[tuple[str, ...]] = ("_processing_steps_json",)
+    #: Fields that ``Dataset4DStem`` saves and that older files lack: the steps,
+    #: and the crop's own sum.
+    SERIAL_OPTIONAL: ClassVar[tuple[str, ...]] = (
+        "_processing_steps_json",
+        "_array_total",
+    )
+    #: The value of ``_array_total``; ``None`` means ``total_intensity``.
+    _own_total: float | None = None
+    #: A frame view sums its own reads on first use (``_direct.frame_view``).
+    _own_total_deferred: bool = False
+
+    @property
+    def _array_total(self: Any) -> float | None:
+        """A crop's own sum of its array before the division by ``c``.
+
+        The sum is in the units of the parent's ``total_intensity``. ``None``
+        means ``total_intensity``. Read it with ``_dose.array_total``. A frame
+        view computes it on first use, with one read pass over its own frames.
+        """
+        if self._own_total_deferred:
+            self._array_total = _streamed_total(self.source, self.read_transform)
+        return self._own_total
+
+    @_array_total.setter
+    def _array_total(self, value: float | None) -> None:
+        self._own_total, self._own_total_deferred = value, False
+
+    def _array_scale(self: Any) -> float:
+        """``array_total`` over the sum of the array: counts per unit of the array.
+
+        A crop multiplies its own sum by it, so that the sum is in the units of
+        this dataset's total, also when this dataset was normalised.
+        """
+        now = float64_slice_total(self.array)
+        return array_total(self) / now if now > 0.0 else 1.0
 
     @property
     def _processing_steps_json(self) -> np.ndarray:
@@ -77,7 +112,12 @@ class DetectorOps:
         self.processing_steps = tuple(json.loads(text))
 
     def _carry_record(
-        self: Any, new: Any, step: dict | None = None, *, dose: bool = False
+        self: Any,
+        new: Any,
+        step: dict | None = None,
+        *,
+        dose: bool = False,
+        crop_scale: float | None = None,
     ) -> Any:
         """Give ``new`` the ``fourier_shift_dim`` and ``processing_steps`` of this one.
 
@@ -91,6 +131,16 @@ class DetectorOps:
             Also copy the dose values of this dataset. ``from_array`` calculates
             them again from data that can be normalised already, which gives
             wrong values. Use it when the operation keeps the counts per probe.
+            A crop keeps them too: the probe's electrons. When ``new`` has
+            fewer scan points (a scan crop), its total is the dose times its
+            probe count.
+        crop_scale : float, optional
+            ``new`` is a crop of this dataset, and this is ``_array_scale()`` of
+            this dataset before the crop. With ``dose``, ``new`` then keeps the
+            sum of its own array times ``crop_scale`` in ``_array_total``. So the
+            array still converts back to counts (``_dose.array_total``), also
+            when this dataset was normalised. Without it, ``new`` gets the
+            ``_array_total`` of this dataset.
 
         Returns
         -------
@@ -100,9 +150,18 @@ class DetectorOps:
         new.fourier_shift_dim = self.fourier_shift_dim
         new.processing_steps = (*self.processing_steps, *([step] if step else []))
         if dose:
+            own = new.__dict__.get("_total_intensity")
+            if crop_scale is not None and own is not None:
+                new._array_total = own * crop_scale
+            else:
+                new._array_total = self._array_total
             new.dose_per_probe_unnormalized = self.dose_per_probe_unnormalized
             new.dose_per_probe_normalized = self.dose_per_probe_normalized
             new._total_intensity = self._total_intensity
+            n_new = new.shape[0] * new.shape[1]
+            dose = self.dose_per_probe_unnormalized
+            if n_new != self.shape[0] * self.shape[1] and dose is not None:
+                new._total_intensity = dose * n_new
         return new
 
     def _derived(

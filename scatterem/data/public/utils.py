@@ -37,9 +37,11 @@ from tqdm import tqdm
 USER_AGENT = "scatterem"
 
 
-def _timeout_kwargs(timeout: float | None) -> dict[str, float]:
-    """``urlopen`` keyword for a socket timeout; none means the global default."""
-    return {} if timeout is None else {"timeout": timeout}
+def _urlopen(request: urllib.request.Request, timeout: float | None):
+    """Open ``request``; a ``timeout`` of None keeps the global socket default."""
+    if timeout is None:
+        return urllib.request.urlopen(request)
+    return urllib.request.urlopen(request, timeout=timeout)
 
 
 def _urlretrieve(
@@ -49,9 +51,8 @@ def _urlretrieve(
     timeout: float | None = None,
     desc: str | None = None,
 ) -> None:
-    with urllib.request.urlopen(
-        urllib.request.Request(url, headers={"User-Agent": USER_AGENT}),
-        **_timeout_kwargs(timeout),
+    with _urlopen(
+        urllib.request.Request(url, headers={"User-Agent": USER_AGENT}), timeout
     ) as response:
         with (
             open(filename, "wb") as fh,
@@ -137,8 +138,8 @@ def _get_redirect_url(url: str, max_hops: int = 3, timeout: float | None = None)
     headers = {"Method": "HEAD", "User-Agent": USER_AGENT}
 
     for _ in range(max_hops + 1):
-        with urllib.request.urlopen(
-            urllib.request.Request(url, headers=headers), **_timeout_kwargs(timeout)
+        with _urlopen(
+            urllib.request.Request(url, headers=headers), timeout
         ) as response:
             if response.url == url or response.url is None:
                 return url

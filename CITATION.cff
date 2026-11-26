@@ -3,9 +3,10 @@ message: >-
   If you use this software, please cite the paper for the part you used. The
   preferred citation below is the 4D-STEM reconstruction paper; work using the
   core-loss STEM-EELS simulation or elastic PRISM should cite the BiP-PRISM
-  paper instead, listed under references.
+  paper instead, and work using the mixed-state ptychography should cite the
+  You et al. preprint; both are listed under references.
 title: "scatterem"
-version: 0.4.2
+version: 0.5.0
 abstract: >-
   Direct (single-side-band) ptychography, tilt-corrected dark-field imaging, and
   their SSNR-weighted Wiener fusion for 4D-STEM data; and forward simulation of
@@ -92,3 +93,33 @@ references:
         given-names: Philipp
         email: philipp.pelz@fau.de
         orcid: "https://orcid.org/0000-0002-8009-4515"
+  # The mixed-state ptychography paper (preprint). Cite this one for work using
+  # solve_ptychography, PlanarPtychography, the second-order optimisers or the
+  # OAM diagnostics. Metadata from the arXiv API (2026-11-25).
+  - type: article
+    title: "Transverse quantum-state characterization of programmable electron optics"
+    journal: "arXiv preprint"
+    year: 2026
+    doi: 10.48550/arXiv.2608.05749
+    identifiers:
+      - type: other
+        value: "arXiv:2608.05749"
+    authors:
+      - family-names: You
+        given-names: Shengbo
+      - family-names: Rosi
+        given-names: Paolo
+      - family-names: Rotunno
+        given-names: Enzo
+      - family-names: Roncaglia
+        given-names: Alberto
+      - family-names: Belsito
+        given-names: Luca
+      - family-names: Tavabi
+        given-names: Amir H.
+      - family-names: Dunin-Borkowski
+        given-names: Rafal E.
+      - family-names: Grillo
+        given-names: Vincenzo
+      - family-names: Pelz
+        given-names: Philipp M.

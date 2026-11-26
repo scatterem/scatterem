@@ -95,7 +95,7 @@ regression risk for no gain.
 * **no autograd.**  In-place writes from a Triton kernel are invisible to autograd,
   so a live graph would get silently wrong gradients -- this repository's recorded
   failure mode.  Same gate shape as ``physics.propagation.propagate``'s in-place branch.
-  A forward-mode dual operand is declined too (``_forward_ad.carries_tangent``):
+  A forward-mode dual operand is declined too (``physics._forward_ad.carries_tangent``):
   the kernel multiplies the primal only, so the tangent would not be propagated.
 * ``SCATTEREM_BCAST_CMUL=0`` forces the torch path (used for the A/B measurement).
 """
@@ -107,8 +107,8 @@ import triton
 import triton.language as tl
 
 from scatterem.nn._backends import BCAST_CMUL
-from scatterem.nn.functional._forward_ad import carries_tangent
 from scatterem.physics._aten_cmul_order import aten_cmul_imag_swapped
+from scatterem.physics._forward_ad import carries_tangent
 from scatterem.utils.env import resolve_backend
 
 __all__ = ["bcast_cmul_", "BLOCK_DEFAULT", "GROUPS_DEFAULT", "CALLS"]

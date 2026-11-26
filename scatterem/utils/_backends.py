@@ -36,6 +36,7 @@ OVERLAP_COUNTS = register_backend(
 )
 
 
+
 #: ``_subpixel_tail_warp.refine_tail``: the argmax and both
 #: parabola fits of ``subpixel._peak_offsets`` as one bit-exact Warp kernel, or
 #: the ~65 small torch launches.  Gated on the operands;

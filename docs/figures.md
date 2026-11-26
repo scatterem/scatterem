@@ -4,9 +4,9 @@ The scripts are in this repository, not in the PyPI package. Clone the
 repository at the release tag and install the same release from PyPI:
 
 ```bash
-git clone --branch v0.4.2 https://github.com/scatterem/scatterem
+git clone --branch v0.5.0 https://github.com/scatterem/scatterem
 cd scatterem
-pip install scatterem==0.4.2
+pip install scatterem==0.5.0
 ```
 
 Four scripts under `experiments/ff_stem/`, one per specimen. Each downloads its
@@ -55,7 +55,7 @@ reconstruction, and it exercises the whole pipeline.
 
 Each script has an interactive marimo notebook in `notebooks/`. molab, the
 free hosted notebook service of marimo, opens it from GitHub. Switch on the
-GPU in the notebook specs. The notebook installs `scatterem` 0.4.2, downloads
+GPU in the notebook specs. The notebook installs `scatterem` 0.5.0, downloads
 the dataset (Hugging Face mirror, Zenodo as fallback) and runs the calls of the script with the parameters
 of the script. With the default controls, its three images are the images
 that the script saves. The controls change the fusion: the number of
@@ -222,7 +222,7 @@ comparison does not match. The v0.4 differences in the table above add to these.
 The paper applied the sub-pixel dark-field shifts with the Fourier path
 (`tcdf_shift_method="fourier"`). The scripts use the drizzle default, as v0.3
 did. On `Fig2_carbon.py`, the two paths give fused images that correlate to
-0.993 (relative L2 difference 0.066). See [Method](method.md).
+0.993 (relative L2 difference 0.066). See [FF-STEM](ffstem.md).
 
 Scale-bar lengths are chosen on a 1-2-5 ladder, so a bar may be a different round
 number than in the paper — 10 Å where the paper shows 5 Å on the same field, for

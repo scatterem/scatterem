@@ -246,7 +246,7 @@ def _show_2d_combined(
     ax.imshow(rgba)
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_title(title)
+    ax.set_title(title or "")
     if cbar:
         raise NotImplementedError("an overlay of several arrays has no colour bar")
 

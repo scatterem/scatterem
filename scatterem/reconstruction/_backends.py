@@ -32,6 +32,9 @@ DRIZZLE = register_backend(
 
 
 
+
+
+
 #: The analytical SSNR's tail after the PCTF kernel -- bright-field count, PCTF
 #: normalisation, overlap counts, noise and SNR epilogue -- as two bit-exact
 #: Warp launches (``direct_ptychography._ssnr_analytical_warp``),
@@ -48,6 +51,7 @@ SSNR_EPILOGUE = register_backend(
         },
     )
 )
+
 
 
 

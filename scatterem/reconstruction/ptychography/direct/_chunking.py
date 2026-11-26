@@ -13,6 +13,7 @@ from scatterem.nn.functional.ptychography import (
     correct_aberrations_kouter,
     correct_aberrations_ksum,
 )
+from scatterem.nn.functional.ptychography._release import releases_launch_operands
 
 from . import _config
 from ._chunk_count import _effective_n_batches
@@ -76,7 +77,8 @@ def _upsampled_grid(vBF, upsample_int):
     hit = _UPSAMPLED_GRID_CACHE.get(key)
     if hit is not None and hit[0]() is vBF:
         return new_shape, hit[1], hit[2]
-    Qy, Qx = vBF.get_q_1d(new_shape)
+    with torch.inference_mode(False):  # never cache an inference tensor
+        Qy, Qx = vBF.get_q_1d(new_shape)
     if len(_UPSAMPLED_GRID_CACHE) >= _UPSAMPLED_GRID_CACHE_MAX:
         _UPSAMPLED_GRID_CACHE.clear()
     try:
@@ -246,6 +248,7 @@ def _direct_ptychography_kouter(
     raise ValueError(f"invalid reduce: {reduce!r}")
 
 
+@releases_launch_operands
 def _iter_chunk_images(
     vBF, aberrations, rotation_t, Qy, Qx, upsample_int, n_batches, reduce
 ):

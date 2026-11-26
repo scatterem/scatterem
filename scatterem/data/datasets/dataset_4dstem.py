@@ -661,20 +661,18 @@ class Dataset4DStem(
         Returns
         -------
         Dataset4DStem
-            The sub-block, with ``is_cropped`` set.
+            The sub-block, with ``is_cropped`` and the parent's dose per probe.
         """
+        scale = self._array_scale()  # first: a view crop may divide self in place
         array_view = _init_passes.crop_array(  # one Warp pass on CUDA
             self.array, index, clone, normalize, clip_neg_values
         )
-        ndim = array_view.ndim
 
         # The new origin: the old one minus the start of each slice (0 if none).
         starts = [getattr(index[i], "start", None) for i in range(4)]
-        new_origin = np.array(self.origin) - np.array(
-            [0 if start is None else start for start in starts]
-        )
+        new_origin = np.array(self.origin) - np.array([s or 0 for s in starts])
 
-        if ndim != 4:
+        if array_view.ndim != 4:
             raise ValueError("only 4D slices are supported.")
         new = Dataset4DStem.from_array(
             array=array_view,
@@ -690,7 +688,7 @@ class Dataset4DStem(
             clip_neg_values=clip_neg_values,
             copy=not clone,  # a cloned slice is fresh; a view keeps its clone
         )
-        return self._carry_record(new)
+        return self._carry_record(new, dose=True, crop_scale=scale)
 
     def crop_(
         self,
@@ -939,6 +937,7 @@ class Dataset4DStem(
         new.dose_per_probe_unnormalized = self.dose_per_probe_unnormalized
         new.dose_per_probe_normalized = self.dose_per_probe_normalized
         new._total_intensity = self._total_intensity
+        new._array_total = self._array_total  # a crop's own sum
         new.processing_steps = self.processing_steps
         # from_array is typed on the base because it may build an out-of-core
         # dataset; with the in-core arguments above it always builds ``cls``.

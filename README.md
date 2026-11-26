@@ -5,7 +5,7 @@
 <h1 align="center">scatterem</h1>
 
 <p align="center">
-  <b>4D-STEM reconstruction and differentiable STEM simulations on the GPU, in PyTorch.</b>
+  <b>Differentiable scattering models and imaging algorithms for microscopy</b>
 </p>
 
 <p align="center">
@@ -25,6 +25,7 @@ that make the paper's figures.
 | **FF-STEM** | Fuses direct (single-side-band) ptychography and tilt-corrected dark field with SSNR-weighted Wiener weights. The image keeps the low-frequency contrast and the high-frequency detail. | S. You *et al.*, *Adv. Sci.* 13 (2026) e76620, [doi:10.1002/advs.76620](https://doi.org/10.1002/advs.76620) |
 | **BiP-PRISM** | Simulates core-loss STEM-EELS by transition-potential multislice, PRISM and the bi-partitioned PRISM algorithm. Full-resolution elemental maps fit on one consumer GPU. | P. Pelz, *J. Phys. Mater.* (2026), [doi:10.1088/2515-7639/aebdd0](https://doi.org/10.1088/2515-7639/aebdd0) |
 | **Elastic PRISM** | Simulates 4D-STEM with the plane-wave and the beam-partitioned scattering matrix. | as used in the BiP-PRISM paper |
+| **Mixed-state ptychography** | Reconstructs a 2D object and a mixed-state probe with probe modes by second-order minibatch solvers, and measures the probe's orbital angular momentum spectrum and density matrix. | S. You *et al.*, arXiv:2608.05749 (2026), [doi:10.48550/arXiv.2608.05749](https://doi.org/10.48550/arXiv.2608.05749) |
 
 ```bash
 pip install scatterem                                # FF-STEM and elastic PRISM
@@ -34,7 +35,6 @@ CC=g++ pip install "scatterem[eels]" gpaw-data       # adds GPAW wavefunctions f
 - **Documentation:** [scatterem.github.io/scatterem](https://scatterem.github.io/scatterem)
 - **Try it in the browser:** [![Open in molab](https://marimo.io/molab-shield.svg)](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/ffstem_demo.py) (one FF-STEM reconstruction on a free molab GPU)
 - **FF-STEM data:** [doi:10.5281/zenodo.18008901](https://doi.org/10.5281/zenodo.18008901) (CC-BY-4.0)
-- **Upgrading from v0.3:** every module moved. Read [Migrating from v0.3](https://scatterem.github.io/scatterem/docs/migrating.html).
 
 ## Install
 
@@ -66,9 +66,9 @@ The scripts are in this repository, not in the PyPI package. Clone the
 repository at the release tag and install the same release from PyPI:
 
 ```bash
-git clone --branch v0.4.2 https://github.com/scatterem/scatterem
+git clone --branch v0.5.0 https://github.com/scatterem/scatterem
 cd scatterem
-pip install scatterem==0.4.2
+pip install scatterem==0.5.0
 ```
 
 Each script downloads its dataset on the first run from the
@@ -199,7 +199,7 @@ pre-release code, which uses the v0.3 transition potentials. See the
   (`shift_method="drizzle"`, `tcdf_shift_method="drizzle"` in the fusion).
   The figure scripts and the notebooks use this default. The paper's
   figures used Fourier upsampling and a phase ramp (`shift_method="fourier"`).
-  See [Method](https://scatterem.github.io/scatterem/docs/method.html).
+  See [FF-STEM](https://scatterem.github.io/scatterem/docs/ffstem.html).
 * **The STEM-EELS code is the forward simulation only.** There is no EELS
   reconstruction here.
 * This repository holds the published methods only. The wider `scatterem`
