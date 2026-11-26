@@ -178,7 +178,7 @@ scan 1074 of the paper, its one-mode solve reached only +12.3 ħ of the
 from the shifts of the virtual bright-field images
 (`pairwise_relative_shifts`, `synchronize_shifts`) and integrates the
 aperture phase from them. It runs the whole recipe on a crop of that scan
-(see [Notebooks](notebooks.md)).
+(see the [Example gallery](gallery.md)).
 
 Two rules from the paper's controls with simulated data:
 

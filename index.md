@@ -88,7 +88,7 @@ pip install scatterem
 
 [![Open in molab](https://marimo.io/molab-shield.svg)](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/ffstem_demo.py)
 Run the FF-STEM demo on a free GPU, with nothing to install, or pick one of
-the [paper-figure notebooks](docs/notebooks.md).
+the notebooks of the [example gallery](docs/gallery.md).
 
 [Quickstart](docs/quickstart.md) · [API](docs/api.md) · [Cite](docs/cite.md)
 
@@ -104,10 +104,10 @@ docs/quickstart
 :hidden:
 :caption: User guide
 
+docs/gallery
 docs/ffstem
 docs/calibration
 Figure scripts <docs/figures>
-docs/notebooks
 docs/mixed-state
 docs/eels
 docs/bip-prism

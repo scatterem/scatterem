@@ -26,5 +26,8 @@ experiments/ff_stem/outputs/
 
 # The two images of the start page. Without this exception the blanket *.png
 # above drops them, and the start page shows two broken images -- which is
-# what happened to the first push of the book layout.
-!docs/images/*.png
+# what happened to the first push of the book layout. The `**` also covers
+# subdirectories such as docs/images/gallery/: `*` does not match `/`, and the
+# gallery thumbnails were ignored for that reason. The release export refuses
+# an export when this file ignores an exported file.
+!docs/images/**/*.png

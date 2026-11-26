@@ -139,6 +139,7 @@ html_favicon = "../favicon.png"
 # The former site served the logo and the favicon at its root; keep those URLs.
 # _redirects keeps old page addresses (v0.5): docs/method.html -> docs/ffstem.html,
 # docs/migrating.html (removed) -> docs/architecture.html.
+# docs/notebooks.html -> docs/gallery.html.
 html_extra_path = ["../logo.png", "../favicon.png", "_redirects"]
 # The page sources are not copied, so no button may link to them: the source,
 # edit and download buttons would point at files the site does not have.

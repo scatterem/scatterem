@@ -70,7 +70,7 @@ channel and the fusion weights against the spatial frequency.
 | `Fig4_diffraction.py` | [fig4_diffraction.py](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig4_diffraction.py) |
 | `Fig1_Gd2O3.py` | [fig1_gd2o3.py](https://molab.marimo.io/github/scatterem/scatterem/blob/main/notebooks/fig1_gd2o3.py) |
 
-[Notebooks](notebooks.md) lists all notebooks, with their runtime and GPU
+The [Example gallery](gallery.md) lists all notebooks, with their runtime and GPU
 memory, including the BiP-PRISM figure notebooks.
 
 :::{admonition} Fitting a smaller GPU

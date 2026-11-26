@@ -76,7 +76,8 @@ else is needed. The code and the data are both public, the notebook installs
 mirror (Zenodo as fallback), md5-verified.
 
 The folder `notebooks/` also holds an interactive notebook for each FF-STEM
-figure and for the BiP-PRISM figures; [Notebooks](notebooks.md) lists them.
+figure and for the BiP-PRISM figures; the [Example gallery](gallery.md) lists
+them.
 
 <span id="from-source"></span>
 
